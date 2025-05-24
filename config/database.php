@@ -62,6 +62,44 @@ return [
             ]) : [],
         ],
 
+        'qurani' => [
+            'driver' => env('DB_QURANI_CONNECTION'),
+            'host' => env('DB_QURANI_HOST', '127.0.0.1'),
+            'port' => env('DB_QURANI_PORT', '3306'),
+            'database' => env('DB_QURANI_DATABASE', 'db_qurani'),
+            'username' => env('DB_QURANI_USERNAME', 'root'),
+            'password' => env('DB_QURANI_PASSWORD', ''),
+            'unix_socket' => env('DB_QURANI_SOCKET', ''),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
+        'linkid' => [
+            'driver' => env('DB_LINKID_CONNECTION'),
+            'host' => env('DB_LINKID_HOST', '127.0.0.1'),
+            'port' => env('DB_LINKID_PORT', '3306'),
+            'database' => env('DB_LINKID_DATABASE', 'db_linkid'),
+            'username' => env('DB_LINKID_USERNAME', 'root'),
+            'password' => env('DB_LINKID_PASSWORD', ''),
+            'unix_socket' => env('DB_LINKID_SOCKET', ''),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),
