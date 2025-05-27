@@ -22,15 +22,4 @@ export default defineConfig({
             'ziggy-js': resolve(__dirname, 'vendor/tightenco/ziggy'),
         },
     },
-    // server: {
-    //     host: 'localhost',
-    //     port: 8000,
-    //     strictPort: true,
-    //     allowedHosts: [
-    //         '127.0.0.1:8000',
-    //         'localhost',
-    //         'local.link.id',
-    //         'quranilocal.link.id',
-    //     ],
-    // },
 });

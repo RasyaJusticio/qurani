@@ -1,20 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { addTranslations, formatNumberBasedOnLocale  } from '../i18n/i18n';
+import { formatNumberFromLocale } from '@/features/i18n/utils/formatNumberFromLocale';
 import Styles from './welcome.module.scss';
+import { Head } from '@inertiajs/react';
+import { setupTranslations } from '@/features/i18n/i18n';
 
 const config = {
     PARENT_WEB: import.meta.env.VITE_PARENT_URL,
 };
 
-const CompleteComponent = () => {
+const RedirectPage = () => {
     const [countdown, setCountdown] = useState(100);
     const [translationsReady, setTranslationsReady] = useState(false);
-    const { t, i18n } = useTranslation('redirect');
+    const { t } = useTranslation('redirect');
 
     useEffect(() => {
         const loadTranslations = async () => {
-            await addTranslations('redirect');
+            await setupTranslations('redirect');
             setTranslationsReady(true);
         };
         loadTranslations();
@@ -41,6 +43,7 @@ const CompleteComponent = () => {
 
     return (
         <div className={Styles.redirectContainer}>
+            <Head title="Qurani" />
             <div className={Styles.redirectContent}>
                 <div className={Styles.container1}>
                     <a href={`${config.PARENT_WEB}/qurani`}>
@@ -61,7 +64,7 @@ const CompleteComponent = () => {
                     dangerouslySetInnerHTML={{
                         __html: t('home.countdownMessage', {
                             countdown: Styles.countdown,
-                            count: formatNumberBasedOnLocale (countdown),
+                            count: formatNumberFromLocale(countdown),
                         }),
                     }}
                 ></p>
@@ -80,4 +83,4 @@ const CompleteComponent = () => {
     );
 };
 
-export default CompleteComponent;
+export default RedirectPage;
