@@ -15,6 +15,15 @@ const getLocaleFromLanguageCode = (languageCode: string | null): string => {
     return languageMap[languageCode || ""] || "id_id";
 };
 
+export const formatNumberBasedOnLocale = (num: number | string): string => {
+  const languageCode = localStorage.getItem("language_code");
+  if (languageCode === 'ra_ra') {
+    const arabicNumerals = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    return num.toString().replace(/[0-9]/g, (digit) => arabicNumerals[parseInt(digit)]);
+  }
+  return num.toString();
+};
+
 const loadTranslationFile = async (namespace: string) => {
     const languageCode = localStorage.getItem("language_code");
     const locale = getLocaleFromLanguageCode(languageCode);
