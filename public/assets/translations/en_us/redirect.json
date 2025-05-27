@@ -1,0 +1,7 @@
+{
+  "home": {
+    "mainMessage": "Welcome to <a href='{{parentWeb}}/qurani' class='{{link}}'>Qurani</a>",
+    "countdownMessage": "Redirecting in <span class='{{countdown}}'>{{count}}</span> seconds...",
+    "infoMessage": "Click <a href='{{qurani}}' class='{{link}}'>here</a> to go to Qurani now."
+  }
+}
