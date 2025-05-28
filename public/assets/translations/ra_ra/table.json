@@ -1,0 +1,15 @@
+{
+  "history": {
+    "title": "تاريخ",
+    "table": {
+      "time": "الوقت",
+      "reciter": "القارئ",
+      "recipient": "المتلقي",
+      "recite": "التلاوة",
+      "results": "النتائج",
+      "signature": "التوقيع",
+      "noData": "لا يوجد تاريخ تلاوة"
+    },
+    "settingsButtonTitle": "إعدادات قرآني"
+  }
+}

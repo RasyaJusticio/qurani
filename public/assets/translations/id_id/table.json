@@ -1,0 +1,15 @@
+{
+  "history": {
+    "title": "Riwayat",
+    "table": {
+      "time": "Waktu",
+      "reciter": "Penyetor",
+      "recipient": "Penerima",
+      "recite": "Setoran",
+      "results": "Hasil",
+      "signature": "Paraf",
+      "noData": "Tidak ada riwayat setoran"
+    },
+    "settingsButtonTitle": "Pengaturan Qurani"
+  }
+}

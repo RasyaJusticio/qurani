@@ -1,0 +1,15 @@
+{
+  "history": {
+    "title": "History",
+    "table": {
+      "time": "Time",
+      "reciter": "Reciter",
+      "recipient": "Recipient",
+      "recite": "Recite",
+      "results": "Results",
+      "signature": "Signature",
+      "noData": "Doesn't recite history"
+    },
+    "settingsButtonTitle": "Qurani Setting"
+  }
+}

@@ -9,7 +9,7 @@ const initializeI18n = async () => {
         .use(initReactI18next)
         .init({
             lng: getLocaleFromLanguageCode(languageCode),
-            fallbackLng: 'en_us',
+            fallbackLng: 'id_id',
             interpolation: {
                 escapeValue: false,
             },
@@ -24,7 +24,7 @@ export const loadTranslationFile = async (namespace: string) => {
     try {
         const response = await fetch(`/assets/translations/${locale}/${namespace}.json`);
         if (!response.ok) {
-            const fallbackResponse = await fetch(`/assets/translations/en_us/${namespace}.json`);
+            const fallbackResponse = await fetch(`/assets/translations/id_id/${namespace}.json`);
             if (!fallbackResponse.ok) throw new Error('Translation not found');
             return await fallbackResponse.json();
         }

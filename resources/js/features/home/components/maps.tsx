@@ -1,58 +1,72 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
-import { Expand, ArrowLeft } from 'lucide-react';
-import { useState } from 'react';
+import { MapContainer, TileLayer } from 'react-leaflet';
+import { Expand, Grid2X2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
-// Fix for default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+  iconRetinaUrl: '',
+  iconUrl: '',
+  shadowUrl: '',
 });
 
 interface MapsProps {
   onDashboardClick?: () => void;
 }
 
+const translations = {
+  en: {
+    title: 'Qurani History',
+  },
+  id: {
+    title: 'Riwayat Qurani',
+  },
+  ar: {
+    title: 'تاريخ قرآني',
+  },
+};
+
 const Maps = ({ onDashboardClick }: MapsProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
-
-  const cities = [
-    { name: 'Jakarta', position: [-6.2088, 106.8456] },
-    { name: 'Bandung', position: [-6.9175, 107.6191] },
-    { name: 'Surabaya', position: [-7.2575, 112.7521] },
-    { name: 'Bali', position: [-8.4095, 115.1889] },
-    { name: 'Medan', position: [3.5952, 98.6722] },
-  ];
+  const [lang, setLang] = useState<'en' | 'id' | 'ar'>('en');
 
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
   };
 
+ useEffect(() => {
+  const locale = localStorage.getItem('language_code');
+  const validLang = {
+    id_id: 'id',
+    ra_ra: 'ar',
+    en_us: 'en',
+  }[locale] || 'id';
+  setLang(validLang);
+}, []);
+
   return (
-    <div className={`mx-auto ${isExpanded ? 'fixed inset-0 z-50 bg-white' : 'max-w-lg'}`}>
+    <div className={`mx-auto ${isExpanded ? 'fixed inset-0 z-50 bg-white' : ''}`}>
       <div className={`overflow-hidden rounded-lg bg-white shadow-lg ${isExpanded ? 'h-[calc(100vh-2rem)]' : ''}`}>
-        <div className=" p-4 flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-800">Qurani History</h2>
+        <div className="p-4 flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-gray-800">
+            {translations[lang].title}
+          </h2>
           <div className="flex space-x-2">
             <button
+              onClick={onDashboardClick}
+              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors hover:cursor-pointer"
+              aria-label="Go to dashboard"
+            >
+              <Grid2X2 className="w-5 h-5" />
+            </button>
+            <button
               onClick={toggleExpand}
-              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors hover:cursor-pointer"
               aria-label={isExpanded ? 'Minimize map' : 'Expand map'}
             >
               <Expand className="w-5 h-5" />
             </button>
-            {onDashboardClick && (
-              <button
-                onClick={onDashboardClick}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors"
-                aria-label="Go to dashboard"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-            )}
           </div>
         </div>
 
@@ -64,15 +78,6 @@ const Maps = ({ onDashboardClick }: MapsProps) => {
             style={{ height: '100%', width: '100%' }}
           >
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            {cities.map((city, index) => (
-              <Marker key={index} position={city.position}>
-                <Popup>
-                  <div className="font-medium">{city.name}</div>
-                  <div>Lat: {city.position[0].toFixed(4)}</div>
-                  <div>Lng: {city.position[1].toFixed(4)}</div>
-                </Popup>
-              </Marker>
-            ))}
           </MapContainer>
         </div>
 
