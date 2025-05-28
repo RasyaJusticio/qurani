@@ -1,0 +1,36 @@
+{
+  "filter": {
+    "title": "Search Filter",
+    "labels": {
+      "time": "Time",
+      "reciter": "Reciter",
+      "recipient": "Recipient",
+      "result": "Result",
+      "signature": "Signature"
+    },
+    "placeholders": {
+      "select_reciter": "Select Reciter",
+      "select_recipient": "Select Recipient"
+    },
+    "options": {
+      "result": {
+        "all": "All",
+        "fluent": "Fluent",
+        "not_fluent": "Not Fluent",
+        "pass": "Pass",
+        "fail": "Fail",
+        "excellent": "Excellent",
+        "weak": "Weak"
+      },
+      "signature": {
+        "all": "All",
+        "available": "Available",
+        "not_available": "Not Available"
+      }
+    },
+    "buttons": {
+      "show": "Show",
+      "reset": "Reset"
+    }
+  }
+}

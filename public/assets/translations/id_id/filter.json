@@ -1,0 +1,36 @@
+{
+  "filter": {
+    "title": "Filter Pencarian",
+    "labels": {
+      "time": "Waktu",
+      "reciter": "Penyetor",
+      "recipient": "Penerima",
+      "result": "Hasil",
+      "signature": "Paraf"
+    },
+    "placeholders": {
+      "select_reciter": "Pilih Penyetor",
+      "select_recipient": "Pilih Penerima"
+    },
+    "options": {
+      "result": {
+        "all": "Semua",
+        "fluent": "Lancar",
+        "not_fluent": "Tidak Lancar",
+        "pass": "Lulus",
+        "fail": "Tidak Lulus",
+        "excellent": "Mumtaz",  
+        "weak": "Dhoif"
+      },
+      "signature": {
+        "all": "Semua",
+        "available": "Ada",
+        "not_available": "Tidak Ada"
+      }
+    },
+    "buttons": {
+      "show": "Tampilkan",
+      "reset": "Reset"
+    }
+  }
+}

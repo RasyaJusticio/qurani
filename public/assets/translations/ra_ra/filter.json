@@ -1,0 +1,36 @@
+{
+  "filter": {
+    "title": "فلتر البحث",
+    "labels": {
+      "time": "الوقت",
+      "reciter": "القارئ",
+      "recipient": "المتلقي",
+      "result": "النتيجة",
+      "signature": "التوقيع"
+    },
+    "placeholders": {
+      "select_reciter": "اختر القارئ",
+      "select_recipient": "اختر المتلقي"
+    },
+    "options": {
+      "result": {
+        "all": "الكل",
+        "fluent": "بطلاقة",
+        "not_fluent": "غير بطلاقة",
+        "pass": "ناجح",
+        "fail": "غير ناجح",
+        "excellent": "ممتاز",
+        "weak": "ضعيف"
+      },
+      "signature": {
+        "all": "الكل",
+        "available": "موجود",
+        "not_available": "غير موجود"
+      }
+    },
+    "buttons": {
+      "show": "عرض",
+      "reset": "إعادة تعيين"
+    }
+  }
+}
