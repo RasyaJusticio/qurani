@@ -1,7 +1,7 @@
 {
   "home": {
-    "mainMessage": "مرحبًا بك في <a href='{{parentWeb}}/qurani' class='{{link}}'>قرآني</a>",
-    "countdownMessage": "جارٍ إعادة التوجيه خلال <span class='{{countdown}}'>{{count}}</span> ثوانٍ...",
-    "infoMessage": "انقر <a href='{{qurani}}' class='{{link}}'>هنا</a> للانتقال إلى قرآني الآن."
+    "mainMessage": "لا يمكن الوصول إلى هذه الصفحة إلا من الصفحة الرئيسية <a href='{{parentWeb}}/linkid' class='{{link}}'>Link.id</a>",
+    "countdownMessage": "سيتم إعادة توجيهك إلى الصفحة الرئيسية <a href='{{parentWeb}}/linkid' class='{{link}}'>Link.id</a> خلال <span class='{{countdown}}'>{{count}}</span> ثوانٍ",
+    "infoMessage": "إذا لم يتم إعادة التوجيه تلقائيًا، انقر <a href='{{linkid}}' class='{{link}}'>هنا</a>."
   }
 }

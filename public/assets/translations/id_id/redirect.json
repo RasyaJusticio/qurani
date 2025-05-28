@@ -1,7 +1,7 @@
 {
   "home": {
-    "mainMessage": "Selamat datang di <a href='{{parentWeb}}/qurani' class='{{link}}'>Qurani</a>",
-    "countdownMessage": "Mengalihkan dalam <span class='{{countdown}}'>{{count}}</span> detik...",
-    "infoMessage": "Klik <a href='{{qurani}}' class='{{link}}'>di sini</a> untuk ke Qurani sekarang."
+    "mainMessage": "Halaman ini hanya bisa diakses dari halaman utama <a href='{{parentWeb}}/qurani' class='{{link}}'>Link.id</a>",
+    "countdownMessage": "Anda akan dialihkan ke halaman utama <a href='{{parentWeb}}/qurani' class='{{link}}'>Link.id</a> dalam <span class='{{countdown}}'>{{count}}</span> detik",
+    "infoMessage": "Jika tidak dialihkan otomatis, klik <a href='{{qurani}}' class='{{link}}'>di sini</a>."
   }
 }

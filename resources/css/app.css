@@ -154,6 +154,6 @@
     }
 
     body {
-        @apply bg-background text-foreground;
+        background-color: rgb(238,240,243);
     }
 }
