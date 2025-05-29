@@ -22,7 +22,7 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign }) => {
   if (!translationsReady) return null; // Tampilkan loading atau null sampai terjemahan siap
 
   return (
-    <div className={fluidDesign ? 'mt-3 w-full' : 'mx-auto mt-3 max-w-7xl'}>
+    <div className={fluidDesign ? 'mt-3 w-full' : 'mx-auto mt-3 w-full'}>
       <div className="flex justify-center">
         <div className="w-full overflow-x-auto">
           <div className="rounded-lg bg-white p-6 shadow-lg">

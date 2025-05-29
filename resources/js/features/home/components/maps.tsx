@@ -46,8 +46,8 @@ const Maps = ({ onDashboardClick }: MapsProps) => {
 }, []);
 
   return (
-    <div className={`mx-auto ${isExpanded ? 'fixed inset-0 z-50 bg-white' : ''}`}>
-      <div className={`overflow-hidden rounded-lg bg-white shadow-lg ${isExpanded ? 'h-[calc(100vh-2rem)]' : ''}`}>
+    <div className={`mx-auto w-full h-full ${isExpanded ? 'fixed inset-0 z-50 bg-white' : ''}`}>
+      <div className={`overflow-hidden rounded-lg bg-white shadow-lg h-full w-full`}>
         <div className="p-4 flex justify-between items-center">
           <h2 className="text-xl font-semibold text-gray-800">
             {translations[lang].title}

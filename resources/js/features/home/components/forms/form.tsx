@@ -158,8 +158,8 @@ const QuraniCard: React.FC = () => {
     if (!translationsReady) return null;
 
     return (
-        <div className="flex justify-center">
-            <div className="w-full max-w-md">
+        <div className="flex w-full justify-center">
+            <div className="w-full">
                 <div className="overflow-hidden rounded-lg bg-white shadow-lg">
                     {/* Header */}
                     <div className="bg-white bg-gradient-to-r px-6 py-3">

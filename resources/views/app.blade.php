@@ -19,17 +19,6 @@
             })();
         </script>
 
-        {{-- Inline style to set the HTML background color based on our theme in app.css --}}
-        <style>
-            html {
-                background-color: white;
-            }
-
-            html.dark {
-                background-color: oklch(0.145 0 0);
-            }
-        </style>
-
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
         <link rel="icon" href="assets/img/LinkId-Icon.png" sizes="any">
