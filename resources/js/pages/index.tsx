@@ -1,10 +1,20 @@
 import QuraniForm from '@/features/home/components/forms/form';
-import { Head } from '@inertiajs/react';
-import React from 'react';
 import Maps from '@/features/home/components/maps';
 import Table from '@/features/home/components/table';
+import { Head } from '@inertiajs/react';
+import React from 'react';
 
-const Index: React.FC = () => {
+interface Option {
+    value: string;
+    name: string;
+}
+
+interface IndexProps {
+    groups: Option[];
+    user_fullname: string;
+}
+
+const Index: React.FC<IndexProps> = ({ groups, user_fullname }) => {
     return (
         <>
             <Head title="Qurani" />

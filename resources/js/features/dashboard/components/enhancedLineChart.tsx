@@ -13,7 +13,7 @@ const generateData = (range: 'week' | 'month' | 'year') => {
   if (range === 'month') {
     return Array.from({ length: 30 }, (_, i) => ({
       name: `Day ${i + 1}`,
-      value: Math.floor(Math.random() * 2000) + 500,
+      value: Math.floor(Math.random() * 1000) + 100,
     }));
   }
 
@@ -35,7 +35,7 @@ const EnhancedLineChart: React.FC = () => {
   return (
     <div className="bg-white rounded-lg shadow p-4 h-[400px]">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold">Performance Trend</h3>
+        <h3 className="text-lg font-semibold">Aktivitas Qurani</h3>
         <ChartToggle onRangeChange={handleRangeChange} />
       </div>
       <ResponsiveContainer width="100%" height="90%">

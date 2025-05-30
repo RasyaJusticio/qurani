@@ -50,7 +50,6 @@ const QuraniCard: React.FC = () => {
     const juzDropdownRef = useRef<HTMLDivElement>(null);
     const halamanDropdownRef = useRef<HTMLDivElement>(null);
 
-    // Load translations
     useEffect(() => {
         const loadTranslations = async () => {
             await setupTranslations('form');
@@ -59,7 +58,6 @@ const QuraniCard: React.FC = () => {
         loadTranslations();
     }, []);
 
-    // Update lists when language changes
     const SURAH_LIST: Option[] = t('surah_list', { returnObjects: true }) as Option[];
     const JUZ_LIST: Option[] = t('juz_list', { returnObjects: true }) as Option[];
     const HALAMAN_LIST: Option[] = t('halaman_list', { returnObjects: true }) as Option[];
