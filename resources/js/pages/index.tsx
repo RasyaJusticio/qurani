@@ -1,8 +1,9 @@
 import QuraniForm from '@/features/home/components/forms/form';
 import Maps from '@/features/home/components/maps';
 import Table from '@/features/home/components/table';
+import { Friend } from '@/features/home/types/friend';
 import { Head } from '@inertiajs/react';
-import React from 'react';
+import React, { useEffect } from 'react';
 
 interface Option {
     value: string;
@@ -10,11 +11,10 @@ interface Option {
 }
 
 interface IndexProps {
-    groups: Option[];
-    user_fullname: string;
+    friends: Friend[];
 }
 
-const Index: React.FC<IndexProps> = ({ groups, user_fullname }) => {
+const Index: React.FC<IndexProps> = ({ friends }) => {
     return (
         <>
             <Head title="Qurani" />
@@ -22,7 +22,7 @@ const Index: React.FC<IndexProps> = ({ groups, user_fullname }) => {
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-col md:flex-row gap-2">
                         <div className="w-full">
-                            <QuraniForm />
+                            <QuraniForm friends={friends} />
                         </div>
                         <div className="w-full">
                             <Maps />

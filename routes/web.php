@@ -1,15 +1,14 @@
 <?php
 
 use App\Http\Controllers\Qurani\DashboardController;
+use App\Http\Controllers\Qurani\HomeController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 //backend
 
 
-Route::get('/', function () {
-    return Inertia::render('index');
-})->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/redirect', function () {
     return Inertia::render('redirect');
 })->name('redirect');

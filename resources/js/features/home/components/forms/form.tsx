@@ -1,9 +1,10 @@
+import Combobox from '@/components/ui/combobox';
+import { setupTranslations } from '@/features/i18n/i18n';
 import { Settings } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { setupTranslations } from '@/features/i18n/i18n';
+import { Friend } from '../../types/friend';
 
-// Interfaces
 interface Option {
     value: string;
     name: string;
@@ -18,7 +19,11 @@ interface DropdownVisibility {
     halaman: boolean;
 }
 
-const QuraniCard: React.FC = () => {
+interface QuraniFormProps {
+    friends: Friend[];
+}
+
+const QuraniCard: React.FC<QuraniFormProps> = ({ friends }) => {
     const { t, i18n } = useTranslation('form');
     const [translationsReady, setTranslationsReady] = useState(false);
     const [penyetor, setPenyetor] = useState<string>('grup');
@@ -51,6 +56,7 @@ const QuraniCard: React.FC = () => {
     const halamanDropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        console.log(friends.map((friend) => ({ label: friend.user_fullname, value: friend.user_name })));
         const loadTranslations = async () => {
             await setupTranslations('form');
             setTranslationsReady(true);
@@ -162,9 +168,9 @@ const QuraniCard: React.FC = () => {
                     {/* Header */}
                     <div className="bg-white bg-gradient-to-r px-6 py-3">
                         <div className="flex items-center justify-between">
-                            <h2 className="text-3xl font-semibold text-black leading-tight">{t('header')}</h2>
-                            <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors hover:cursor-pointer">
-                                <Settings size={20}/>
+                            <h2 className="text-3xl leading-tight font-semibold text-black">{t('header')}</h2>
+                            <button className="rounded-full p-2 text-gray-600 transition-colors hover:cursor-pointer hover:bg-gray-100 hover:text-gray-900">
+                                <Settings size={20} />
                             </button>
                         </div>
                     </div>
@@ -222,7 +228,9 @@ const QuraniCard: React.FC = () => {
                                                     ref={groupDropdownRef}
                                                     className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-md border border-gray-300 bg-white shadow-lg"
                                                 >
-                                                    <div className="px-3 py-2 text-sm text-gray-500 hover:bg-gray-50">{t('messages.join_group_first')}</div>
+                                                    <div className="px-3 py-2 text-sm text-gray-500 hover:bg-gray-50">
+                                                        {t('messages.join_group_first')}
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
@@ -251,7 +259,7 @@ const QuraniCard: React.FC = () => {
                                 <div className="flex items-center space-x-2">
                                     <label className="w-24 text-sm font-medium text-gray-700">{t('labels.friend')}</label>
                                     <div className="relative flex-1">
-                                        <input
+                                        {/* <input
                                             type="text"
                                             id="temanInput"
                                             className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
@@ -267,8 +275,14 @@ const QuraniCard: React.FC = () => {
                                                 className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-md border border-gray-300 bg-white shadow-lg"
                                             >
                                                 <div className="px-3 py-2 text-sm text-gray-900 hover:bg-gray-50">{t('messages.no_friends_available')}</div>
+                                                {friends.map((friend) => (
+                                                    <div className="px-3 py-2 text-sm text-gray-900 hover:bg-gray-50">{friend.user_fullname}</div>
+                                                ))}
                                             </div>
-                                        )}
+                                        )} */}
+                                        <Combobox options={friends.map((friend) => ({ label: friend.user_fullname, value: friend.user_name }))}
+                                            placeholder='select friend'
+                                        />
                                     </div>
                                 </div>
                             )}
