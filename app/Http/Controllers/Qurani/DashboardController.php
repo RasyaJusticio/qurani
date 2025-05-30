@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Qurani;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\LinkID\User;
-use App\Models\Qurani\QuSetoran;
+use App\Models\LinkID\QuSetoran;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
