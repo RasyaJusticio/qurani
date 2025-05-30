@@ -1,7 +1,11 @@
 <?php
 
+use App\Http\Controllers\Qurani\DashboardController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
+//backend
+
 
 Route::get('/', function () {
     return Inertia::render('index');
@@ -9,9 +13,7 @@ Route::get('/', function () {
 Route::get('/redirect', function () {
     return Inertia::render('redirect');
 })->name('redirect');
-Route::get('/dashboard', function () {
-    return Inertia::render('dashboard/index');
-})->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 Route::get('/filter', function () {
     return Inertia::render('dashboard/filter');
 })->name('filter');

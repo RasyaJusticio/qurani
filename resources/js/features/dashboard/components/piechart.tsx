@@ -13,7 +13,7 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 const PieChartComponent: React.FC = () => {
   return (
     <div className="bg-white rounded-lg shadow p-4 h-[400px]">
-      <h3 className="text-lg font-semibold mb-4">Distribution</h3>
+      <h3 className="text-lg font-semibold mb-4">Group Setoran Terbanyak</h3>
       <ResponsiveContainer width="100%" height="90%">
         <PieChart>
           <Pie
