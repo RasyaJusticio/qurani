@@ -13,7 +13,7 @@ class ChapterController extends Controller
         $chapters = Chapter::select('id', 'name_simple')->get()->map(function ($chapter) {
             return [
                 'value' => (string) $chapter->id,
-                'name' => $chapter->name_arabic,
+                'name' => $chapter->name_simple,
             ];
         });
 

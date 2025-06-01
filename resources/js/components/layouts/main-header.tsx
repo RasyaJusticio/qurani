@@ -88,7 +88,7 @@ const QuranHeader: React.FC<QuranHeaderProps> = ({
         <div className="flex items-center">
           <div
             className="cursor-pointer"
-            onClick={() => (window.location.href = `${config.PARENT_WEB}/qurani`)}
+            onClick={() => (window.location.href = `/`)}
           >
             <FontAwesomeIcon icon={faHome} className={`${iconSize} text-[#2CA4AB]`} />
           </div>
@@ -101,7 +101,7 @@ const QuranHeader: React.FC<QuranHeaderProps> = ({
             className="flex justify-center items-center cursor-pointer text-center p-1 w-auto"
             onClick={handleClick}
           >
-            { noFinishButton() && <span
+            { !noFinishButton() && <span
               className={`${buttonSize.padding} ${buttonSize.fontSize} text-white font-bold rounded me-5 bg-[#ff6500]`}
             >
               Selesai

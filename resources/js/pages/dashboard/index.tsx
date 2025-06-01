@@ -6,6 +6,7 @@ import EnhancedLineChart from '@/features/dashboard/components/enhancedLineChart
 import PieChartComponent from '@/features/dashboard/components/piechart';
 import ProvinceTable from '@/features/dashboard/components/provinceTable';
 import React, { useEffect } from 'react';
+import { Head } from '@inertiajs/react';
 import { FaBookOpen } from 'react-icons/fa';
 import { FiActivity, FiTrendingUp, FiUsers } from 'react-icons/fi';
 
@@ -21,6 +22,8 @@ interface PageProps {
 const DashboardPage: React.FC<PageProps> = ({ usersCount, setoranCount, popularSurah }) => {
     useEffect(() => {});
     return (
+        <>
+        <Head title='Dashboard'/>
         <div className="min-h-screen bg-gray-50">
             {/* QuranHeader component */}
             <QuranHeader page={1} translateMode="read" classNav="" finishButtonPath="/Rekapan-surah" isJuz={false} />
@@ -77,6 +80,7 @@ const DashboardPage: React.FC<PageProps> = ({ usersCount, setoranCount, popularS
                 </div>
             </div>
         </div>
+        </>
     );
 };
 

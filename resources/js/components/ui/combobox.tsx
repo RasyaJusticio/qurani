@@ -1,6 +1,5 @@
 import * as React from "react"
 import { Check, ChevronsUpDown } from "lucide-react"
-
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -18,25 +17,34 @@ import {
 } from "@/components/ui/popover"
 
 interface ComboboxOption {
-    value : string;
-    label : string;
+    value: string;
+    label: string;
 }
 
 interface ComboboxProps {
-    options : ComboboxOption[];
+    options: ComboboxOption[];
     placeholder?: string;
     searchPlaceholder?: string;
     notFoundText?: string;
+    value?: string;
+    onValueChange?: (value: string) => void;
 }
 
 const Combobox: React.FC<ComboboxProps> = ({
     options,
     placeholder = "Select option...",
     searchPlaceholder = "Search option...",
-    notFoundText = "No option found."
+    notFoundText = "No option found.",
+    value: externalValue,
+    onValueChange
 }) => {
   const [open, setOpen] = React.useState(false)
-  const [value, setValue] = React.useState("")
+  const [value, setValue] = React.useState(externalValue || "")
+
+  // Update internal state when external value changes
+  React.useEffect(() => {
+    setValue(externalValue || "")
+  }, [externalValue])
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -48,7 +56,7 @@ const Combobox: React.FC<ComboboxProps> = ({
           className="w-[200px] justify-between"
         >
           {value
-            ? options.find((framework) => framework.value === value)?.label
+            ? options.find((option) => option.value === value)?.label
             : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -62,10 +70,18 @@ const Combobox: React.FC<ComboboxProps> = ({
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.value}
+                  // PERUBAHAN UTAMA: Gabungkan value dan label untuk filtering
+                  value={`${option.value} ${option.label}`}
                   onSelect={(currentValue) => {
-                    setValue(currentValue === value ? "" : currentValue)
-                    setOpen(false)
+                    // Ambil value asli dari option yang dipilih
+                    const selectedOption = options.find(opt =>
+                      `${opt.value} ${opt.label}`.toLowerCase() === currentValue.toLowerCase()
+                    );
+                    const actualValue = selectedOption?.value || "";
+                    const newValue = actualValue === value ? "" : actualValue;
+                    setValue(newValue);
+                    onValueChange?.(newValue);
+                    setOpen(false);
                   }}
                 >
                   <Check
