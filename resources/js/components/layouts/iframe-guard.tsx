@@ -2,15 +2,19 @@ import { router } from '@inertiajs/react';
 import React from 'react';
 
 interface IFrameGuardProps {
-    children: React.ReactNode;
+    children?: React.ReactNode;
 }
 
 const IFrameGuard: React.FC<IFrameGuardProps> = ({ children }) => {
-    if (window.frameElement) {
-        return children;
-    }
+    //if (window.name === 'qurani-iframe') {
+        return (
+            <>
+                {children}
+            </>
+        );
+    //}
 
-    router.visit(route('redirect'));
+    //router.visit(route('redirect'));
 }
 
 export default IFrameGuard;
