@@ -1,3 +1,4 @@
+import AppWrapper from '@/components/layouts/app-wrapper';
 import QuraniForm from '@/features/home/components/forms/form';
 import Maps from '@/features/home/components/maps';
 import Table from '@/features/home/components/table';
@@ -20,7 +21,7 @@ interface IndexProps {
 
 const Index: React.FC<IndexProps> = ({ friends, groups, chapters }) => {
     return (
-        <>
+        <AppWrapper>
             <Head title="Qurani" />
             <div className="container mx-auto px-4 py-6">
                 <div className="flex flex-col gap-2">
@@ -37,7 +38,7 @@ const Index: React.FC<IndexProps> = ({ friends, groups, chapters }) => {
                     </div>
                 </div>
             </div>
-        </>
+        </AppWrapper>
     );
 };
 

@@ -44,6 +44,10 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters }) =>
   const [selectedHalaman, setSelectedHalaman] = useState<string>('');
   const [selectedSurahValue, setSelectedSurahValue] = useState<string>('');
 
+  const config = {
+    PARENT_WEB: import.meta.env.VITE_PARENT_URL,
+  };
+
   const [dropdownVisibility, setDropdownVisibility] = useState<DropdownVisibility>({
     group: false,
     member: false,
@@ -167,7 +171,9 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters }) =>
           <div className="bg-white px-6 py-3">
             <div className="flex items-center justify-between">
               <h2 className="text-3xl font-semibold text-black">{t('header')}</h2>
-              <button className="rounded-full p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900">
+              <button className="rounded-full p-2 hover:cursor-pointer text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                onClick={() => (window.location.href=`${config.PARENT_WEB}/settings/qurani`)}
+              >
                 <Settings size={20} />
               </button>
             </div>
