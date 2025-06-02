@@ -1,4 +1,4 @@
-import { Head, usePage } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import MistakeModal from '../../components/layouts/mistakeModal';
 
@@ -28,21 +28,18 @@ interface Chapter {
   bismillah_pre: boolean | null;
 }
 
-interface Juz {
-  id: number;
-  juz_number: number;
-  pages: number[];
-  verses_count: number;
+interface Page {
+  page_number: number;
 }
 
 interface PageProps {
-  juz: Juz;
+  page: Page;
   verses: Verse[];
   chapters: { [key: number]: Chapter };
 }
 
-export default function JuzIndex() {
-  const { juz, verses, chapters } = usePage<PageProps>().props;
+export default function PageIndex() {
+  const { page, verses, chapters } = usePage<PageProps>().props;
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedWordId, setSelectedWordId] = useState<number | null>(null);
   const [wordColors, setWordColors] = useState<{ [key: number]: string }>({});
@@ -93,8 +90,6 @@ export default function JuzIndex() {
   });
 
   return (
-    <>
-    <Head title='Juz'/>
     <div className="container mx-auto max-w-3xl p-4">
       <MistakeModal
         isOpen={modalOpen}
@@ -156,6 +151,5 @@ export default function JuzIndex() {
         })}
       </div>
     </div>
-    </>
   );
 }
