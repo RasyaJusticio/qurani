@@ -22,9 +22,6 @@ const QuranHeader: React.FC<QuranHeaderProps> = ({
   const { t } = useTranslation();
   const [screenSize, setScreenSize] = useState<'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl'>('md');
 
-  const config = {
-    PARENT_WEB: import.meta.env.VITE_PARENT_URL,
-  };
 
   useEffect(() => {
     const updateScreenSize = () => {
@@ -79,7 +76,7 @@ const QuranHeader: React.FC<QuranHeaderProps> = ({
   console.log(lastSegment);
 
   const noFinishButton = (()=>{
-    return (['dashboard'].includes(lastSegment as string));
+    return (['dashboard','filter'].includes(lastSegment as string));
   })
 
   return (

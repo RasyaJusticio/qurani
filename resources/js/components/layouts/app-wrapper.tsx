@@ -12,6 +12,10 @@ const parentUrl = import.meta.env.VITE_PARENT_URL;
 const AppWrapper: React.FC<AppWrapperProps> = ({ children }) => {
     const handleParentStateEvent = async (data: ParentStateEvent['data']) => {
         try {
+            console.log(data);
+
+            localStorage.setItem('parent_data', JSON.stringify(data));
+
         } catch (error) {
         }
     }

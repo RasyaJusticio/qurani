@@ -19,7 +19,7 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign }) => {
     loadTranslations();
   }, []);
 
-  if (!translationsReady) return null; // Tampilkan loading atau null sampai terjemahan siap
+  if (!translationsReady) return null;
 
   return (
     <div className={fluidDesign ? 'mt-3 w-full' : 'mx-auto mt-3 w-full'}>
@@ -32,15 +32,17 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign }) => {
               </a>
               <div className="flex gap-2">
                 <button
-                  className="rounded-full p-2 text-gray-700 transition-colors hover:bg-gray-100"
+                  className="rounded-full p-2 text-gray-700 transition-colors hover:bg-gray-100 hover:cursor-pointer"
                   aria-label={t('history.tableButtonLabel') || 'Table View'}
+                  onClick={() => (window.location.href='/dashboard')}
                 >
                   <SquareActivity size={20} />
                 </button>
                 <button
-                  className="rounded-full p-2 text-gray-700 transition-colors hover:bg-gray-100"
+                  className="rounded-full p-2 text-gray-700 transition-colors hover:bg-gray-100 hover:cursor-pointer"
                   title={t('history.settingsButtonTitle') || 'Settings'}
                   aria-label={t('history.settingsButtonLabel') || 'Settings'}
+                  onClick={() => (window.location.href='/filter')}
                 >
                   <Grid2X2 size={20} />
                 </button>

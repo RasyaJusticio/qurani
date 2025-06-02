@@ -11,10 +11,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: '',
 });
 
-interface MapsProps {
-  onDashboardClick?: () => void;
-}
-
 const translations = {
   en: {
     title: 'Qurani History',
@@ -27,7 +23,7 @@ const translations = {
   },
 };
 
-const Maps = ({ onDashboardClick }: MapsProps) => {
+const Maps = ({ }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [lang, setLang] = useState<'en' | 'id' | 'ar'>('en');
 
@@ -54,7 +50,7 @@ const Maps = ({ onDashboardClick }: MapsProps) => {
           </h2>
           <div className="flex space-x-2">
             <button
-              onClick={onDashboardClick}
+              onClick={() => (window.location.href='/dashboard')}
               className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors hover:cursor-pointer"
               aria-label="Go to dashboard"
             >
