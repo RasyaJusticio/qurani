@@ -1,4 +1,6 @@
-import { usePage } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
+import MistakeModal from '../../components/layouts/mistakeModal';
 
 interface Word {
   id: number;
@@ -35,9 +37,77 @@ interface PageProps {
 
 export default function SurahIndex() {
   const { surah, verses } = usePage<PageProps>().props;
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedWordId, setSelectedWordId] = useState<number | null>(null);
+  const [wordColors, setWordColors] = useState<{ [key: number]: string }>({});
+  const [isRemoveMode, setIsRemoveMode] = useState(false);
+
+  // Check if verses is empty
+  useEffect(() => {
+    if (verses.length === 0) {
+      setModalOpen(true);
+    }
+  }, [verses]);
+
+  // Handle word click
+  const handleWordClick = (word: Word) => {
+    setSelectedWordId(word.id);
+
+    // Cek apakah word sudah ada labelnya
+    const hasLabel = wordColors[word.id] && wordColors[word.id] !== 'transparent';
+
+    if (hasLabel) {
+      // Jika sudah ada label, tampilkan modal konfirmasi hapus
+      setIsRemoveMode(true);
+    } else {
+      // Jika belum ada label, tampilkan modal pilih label
+      setIsRemoveMode(false);
+    }
+
+    setModalOpen(true);
+  };
+
+  // Handle label selection
+  const handleLabelSelect = (color: string) => {
+    if (selectedWordId !== null) {
+      setWordColors((prev) => ({ ...prev, [selectedWordId]: color }));
+    }
+    setModalOpen(false);
+    setSelectedWordId(null);
+    setIsRemoveMode(false);
+  };
+
+  // Handle remove label
+  const handleRemoveLabel = () => {
+    if (selectedWordId !== null) {
+      setWordColors((prev) => {
+        const newColors = { ...prev };
+        delete newColors[selectedWordId];
+        return newColors;
+      });
+    }
+    setModalOpen(false);
+    setSelectedWordId(null);
+    setIsRemoveMode(false);
+  };
 
   return (
+    <>    <Head title='Page'/>
     <div className="container mx-auto p-4 max-w-3xl">
+      <MistakeModal
+        isOpen={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          setSelectedWordId(null);
+          setIsRemoveMode(false);
+        }}
+        onLabelSelect={handleLabelSelect}
+        onRemoveLabel={handleRemoveLabel}
+        versesEmpty={verses.length === 0}
+        isRemoveMode={isRemoveMode}
+        selectedWordId={selectedWordId}
+        wordColors={wordColors}
+      />
       {/* Surah Header */}
       <div className="mb-12 text-center">
         <h1 className="text-4xl font-bold text-gray-800 font-arabic">
@@ -49,7 +119,7 @@ export default function SurahIndex() {
         </p>
         {surah.bismillah_pre && (
           <p className="text-3xl mt-6 font-arabic text-gray-800">
-            بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
+            بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
           </p>
         )}
       </div>
@@ -61,19 +131,29 @@ export default function SurahIndex() {
             {verse.words.map((word) => (
               <span
                 key={word.id}
-                className="hover:bg-yellow-200 transition-colors duration-200"
+                className="hover:text-blue-300 transition-colors duration-200 cursor-pointer"
+                style={{ backgroundColor: wordColors[word.id] || 'transparent' }}
+                onClick={() => handleWordClick(word)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    handleWordClick(word);
+                  }
+                }}
               >
                 {word.text_uthmani}{' '}
               </span>
             ))}
             <span className="inline-flex items-center justify-center text-xl font-arabic text-gray-700">
-              {/* ۝{verse.end_marker || verse.verse_number}۝ */}
-                 ۝{verse.end_marker || verse.verse_number}
+              ۝{verse.end_marker || verse.verse_number}
             </span>
             {index < verses.length - 1 && ' '}
           </span>
         ))}
       </div>
     </div>
+    </>
+
   );
 }

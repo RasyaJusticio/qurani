@@ -27,9 +27,18 @@ interface QuraniFormProps {
   chapters: Chapter[];
 }
 
+interface UserData {
+  c_user?: string;
+  s_lang?: string;
+  s_night_mode?: string;
+  user_session?: string;
+  signature?: string;
+}
+
 const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters }) => {
   const { t } = useTranslation('form');
   const [translationsReady, setTranslationsReady] = useState(false);
+  const [userData, setUserData] = useState<UserData>({});
   const [penyetor, setPenyetor] = useState<string>('grup');
   const [setoran, setSetoran] = useState<string>('tahsin');
   const [tampilkan, setTampilkan] = useState<string>('surat');
@@ -42,6 +51,9 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters }) =>
   const [selectedJuz, setSelectedJuz] = useState<string>('');
   const [halamanInput, setHalamanInput] = useState<string>('');
   const [selectedHalaman, setSelectedHalaman] = useState<string>('');
+  const [selectedGroup, setSelectedGroup] = useState<string>('');
+  const [selectedMember, setSelectedMember] = useState<string>('');
+  const [selectedFriend, setSelectedFriend] = useState<string>(''); // Added missing state
   const [selectedSurahValue, setSelectedSurahValue] = useState<string>('');
 
   const config = {
@@ -63,6 +75,26 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters }) =>
   const suratDropdownRef = useRef<HTMLDivElement>(null);
   const juzDropdownRef = useRef<HTMLDivElement>(null);
   const halamanDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Load user data from localStorage
+  useEffect(() => {
+    const loadUserData = () => {
+      try {
+        const storedParentData = localStorage.getItem('parent_data');
+        if (storedParentData) {
+          const parsedParentData = JSON.parse(storedParentData);
+          setUserData(parsedParentData);
+          console.log('Parent data loaded from localStorage:', parsedParentData);
+        } else {
+          console.warn('No parent_data found in localStorage');
+        }
+      } catch (error) {
+        console.error('Error loading parent data from localStorage:', error);
+      }
+    };
+
+    loadUserData();
+  }, []);
 
   useEffect(() => {
     const loadTranslations = async () => {
@@ -103,23 +135,64 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters }) =>
     setDropdownVisibility((prev) => ({ ...prev, [type]: true }));
   };
 
+  const getRedirectUrl = (): string => {
+    switch (tampilkan) {
+      case 'surat':
+        if (selectedSurahValue) {
+          return `/surah/${selectedSurahValue}`;
+        }
+        break;
+      case 'juz':
+        if (selectedJuz) {
+          return `/juz/${selectedJuz}`;
+        }
+        break;
+      case 'halaman':
+        if (selectedHalaman) {
+          return `/halaman/${selectedHalaman}`;
+        }
+        break;
+    }
+    return '/';
+  };
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
-    console.log({
-      penyetor,
-      setoran,
-      tampilkan,
-      groupInput,
-      memberInput,
-      temanInput,
-      suratInput,
-      selectedSurat,
-      juzInput,
-      selectedJuz,
-      halamanInput,
-      selectedHalaman,
-    });
-    alert('Form submitted! Check console for details.');
+
+    // Log selected values for debugging
+    console.log('Penyetor:', penyetor);
+    console.log('Setoran:', setoran);
+    console.log('Tampilkan:', tampilkan);
+
+    if (penyetor === 'grup') {
+      console.log('Selected Group:', selectedGroup);
+      console.log('Selected Member:', selectedMember);
+    } else if (penyetor === 'teman') {
+      console.log('Selected Friend:', selectedFriend);
+    }
+
+    if (tampilkan === 'surat') {
+      console.log('Selected Surah:', selectedSurahValue);
+      console.log('Surah Input:', suratInput);
+    } else if (tampilkan === 'juz') {
+      console.log('Selected Juz:', selectedJuz);
+      console.log('Juz Input:', juzInput);
+    } else if (tampilkan === 'halaman') {
+      console.log('Selected Halaman:', selectedHalaman);
+      console.log('Halaman Input:', halamanInput);
+    }
+
+    // Get redirect URL based on selection
+    const redirectUrl = getRedirectUrl();
+    console.log('Redirect URL:', redirectUrl);
+
+    // Perform redirect
+    if (redirectUrl !== '/') {
+      console.log('Redirecting to:', redirectUrl);
+      window.location.href = redirectUrl;
+    } else {
+      alert('Please select a valid option to proceed');
+    }
   };
 
   const handleReset = (): void => {
@@ -131,6 +204,9 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters }) =>
     setTemanInput('');
     setSuratInput('');
     setSelectedSurat('');
+    setSelectedGroup('');
+    setSelectedMember('');
+    setSelectedFriend(''); // Reset selectedFriend
     setSelectedSurahValue('');
     setJuzInput('');
     setSelectedJuz('');
@@ -171,12 +247,20 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters }) =>
           <div className="bg-white px-6 py-3">
             <div className="flex items-center justify-between">
               <h2 className="text-3xl font-semibold text-black">{t('header')}</h2>
-              <button className="rounded-full p-2 hover:cursor-pointer text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                onClick={() => (window.location.href=`${config.PARENT_WEB}/settings/qurani`)}
+              <button
+                className="rounded-full p-2 hover:cursor-pointer text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                onClick={() => (window.top.location.href = `${config.PARENT_WEB}/settings/qurani`)}
               >
                 <Settings size={20} />
               </button>
             </div>
+            {/* info user */}
+            {/* {userData.c_user && (
+              <div className="mt-2 text-sm text-gray-600">
+                Penyimak: User ID {userData.c_user} | Session: {userData.user_session?.substring(0, 8)}... | Lang:{' '}
+                {userData.s_lang}
+              </div>
+            )} */}
           </div>
 
           <div className="p-6">
@@ -219,6 +303,8 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters }) =>
                         placeholder="select group"
                         searchPlaceholder="search group"
                         notFoundText="group not found"
+                        value={selectedGroup}
+                        onValueChange={setSelectedGroup}
                       />
                     </div>
                   </div>
@@ -230,6 +316,8 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters }) =>
                         placeholder="select member"
                         searchPlaceholder="search member"
                         notFoundText="member not found"
+                        value={selectedMember}
+                        onValueChange={setSelectedMember}
                       />
                     </div>
                   </div>
@@ -245,6 +333,8 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters }) =>
                       placeholder="select friend"
                       searchPlaceholder="search friend"
                       notFoundText="friend not found"
+                      value={selectedFriend}
+                      onValueChange={setSelectedFriend}
                     />
                   </div>
                 </div>
@@ -431,7 +521,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters }) =>
                 </button>
                 <button
                   type="submit"
-                  className="rounded-md bg-cyan-600 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-700"
+                  className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
                 >
                   {t('buttons.submit')}
                 </button>

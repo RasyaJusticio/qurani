@@ -3,44 +3,41 @@
 namespace App\Http\Controllers\Qurani;
 
 use App\Http\Controllers\Controller;
-use App\Models\Qurani\Juz;
+use App\Models\Qurani\Chapter;
 use App\Models\Qurani\Verses;
 use App\Models\Qurani\Word;
-use App\Models\Qurani\Chapter;
 use App\Traits\FetchWords;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class JuzController extends Controller
+class PageController extends Controller
 {
     use FetchWords;
 
     public function show($id, Request $request)
     {
-        // Validate Juz ID
-        if ($id < 1 || $id > 30) {
-            abort(404, 'Juz tidak ditemukan');
+        // Validate Page ID (1–604)
+        if ($id < 1 || $id > 604) {
+            abort(404, 'Halaman tidak ditemukan');
         }
 
-        // Fetch Juz details
-        $juz = Juz::findOrFail($id, [
-            'id',
-            'juz_number',
-            'pages',
-            'verse_mapping',
-            'verses_count'
-        ]);
+        // Fetch verses for the page
+        $verses = Verses::where('page_number', $id)
+            ->orderBy('verse_key')
+            ->select([
+                'id',
+                'verse_number',
+                'verse_key',
+                'text_uthmani',
+                'page_number',
+                'juz_number'
+            ])
+            ->get();
 
-        // Parse verse_mapping to get verse keys and surah IDs
-        $verseKeys = [];
-        $surahIds = [];
-        foreach ($juz->verse_mapping as $surah => $range) {
-            $surahIds[] = (int)$surah;
-            [$start, $end] = explode('-', $range);
-            for ($i = (int)$start; $i <= (int)$end; $i++) {
-                $verseKeys[] = "$surah:$i";
-            }
-        }
+        // Get Surah IDs from verses
+        $surahIds = $verses->map(function ($verse) {
+            return (int) explode(':', $verse->verse_key)[0];
+        })->unique()->values()->toArray();
 
         // Fetch chapters for the Surahs
         $chapters = Chapter::whereIn('id', $surahIds)
@@ -53,19 +50,6 @@ class JuzController extends Controller
             ])
             ->get()
             ->keyBy('id');
-
-        // Fetch verses for the Juz
-        $verses = Verses::whereIn('verse_key', $verseKeys)
-            ->orderBy('verse_key')
-            ->select([
-                'id',
-                'verse_number',
-                'verse_key',
-                'text_uthmani',
-                'page_number',
-                'juz_number'
-            ])
-            ->get();
 
         // Fetch words and end markers
         if ($verses->isNotEmpty()) {
@@ -100,13 +84,12 @@ class JuzController extends Controller
             });
         }
 
+
+
         // Render the Inertia view
-        return Inertia::render('juz/Index', [
-            'juz' => [
-                'id' => $juz->id,
-                'juz_number' => $juz->juz_number,
-                'pages' => $juz->pages,
-                'verses_count' => $juz->verses_count
+        return Inertia::render('page/Index', [
+            'page' => [
+                'page_number' => (int)$id
             ],
             'verses' => $verses,
             'chapters' => $chapters
