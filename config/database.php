@@ -63,7 +63,7 @@ return [
         ],
 
         'qurani' => [
-            'driver' => env('DB_QURANI_CONNECTION'),
+            'driver' => env('DB_QURANI_DRIVER'),
             'host' => env('DB_QURANI_HOST', '127.0.0.1'),
             'port' => env('DB_QURANI_PORT', '3306'),
             'database' => env('DB_QURANI_DATABASE', 'db_qurani'),
@@ -82,7 +82,7 @@ return [
         ],
 
         'linkid' => [
-            'driver' => env('DB_LINKID_CONNECTION'),
+            'driver' => env('DB_LINKID_DRIVER'),
             'host' => env('DB_LINKID_HOST', '127.0.0.1'),
             'port' => env('DB_LINKID_PORT', '3306'),
             'database' => env('DB_LINKID_DATABASE', 'db_linkid'),
