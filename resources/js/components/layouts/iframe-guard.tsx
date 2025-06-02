@@ -6,15 +6,15 @@ interface IFrameGuardProps {
 }
 
 const IFrameGuard: React.FC<IFrameGuardProps> = ({ children }) => {
-    //if (window.name === 'qurani-iframe') {
+    if (window.name === 'qurani-iframe' || import.meta.env.VITE_ENVIRONMENT == "DEV") {
         return (
             <>
                 {children}
             </>
         );
-    //}
+    }
 
-    //router.visit(route('redirect'));
+    router.visit(route('redirect'));
 }
 
 export default IFrameGuard;
