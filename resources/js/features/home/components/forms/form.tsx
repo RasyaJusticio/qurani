@@ -6,6 +6,8 @@ import { useTranslation } from 'react-i18next';
 import { Chapter } from '../../types/chapter';
 import { Friend } from '../../types/friend';
 import { Group } from '../../types/group';
+import { Juz } from '../../types/juz';
+import { pages } from '../../constanst/pages';
 
 interface Option {
   value: string;
@@ -25,6 +27,7 @@ interface QuraniFormProps {
   friends: Friend[];
   groups: Group[];
   chapters: Chapter[];
+  juzs: Juz[];
 }
 
 interface UserData {
@@ -35,7 +38,7 @@ interface UserData {
   signature?: string;
 }
 
-const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters }) => {
+const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs }) => {
   const { t } = useTranslation('form');
   const [translationsReady, setTranslationsReady] = useState(false);
   const [userData, setUserData] = useState<UserData>({});
@@ -131,10 +134,6 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters }) =>
     setSelectedSurahValue(value);
   };
 
-  const handleInputFocus = (type: keyof DropdownVisibility): void => {
-    setDropdownVisibility((prev) => ({ ...prev, [type]: true }));
-  };
-
   const getRedirectUrl = (): string => {
     switch (tampilkan) {
       case 'surat':
@@ -212,7 +211,6 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters }) =>
     setSelectedJuz('');
     setHalamanInput('');
     setSelectedHalaman('');
-    alert('Form has been reset successfully!');
   };
 
   useEffect(() => {
@@ -435,7 +433,8 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters }) =>
                       <button
                         key={button.value}
                         type="button"
-                        className="rounded-full bg-cyan-100 px-3 py-1 text-xs text-cyan-700 hover:bg-cyan-200"
+                        className="rounded-full bg-gray-300 px-3 py-1 text-xs text-black hover:bg-gray-400 hover:cursor-pointer"
+                        // className="rounded-full bg-[rgb(94,114,228)] px-3 py-1 text-xs text-neutral-50 hover:bg-[rgb(57,69,138)] hover:cursor-pointer"
                         onClick={() => handleQuickSelect(button.value, button.name)}
                       >
                         {button.name}
@@ -449,31 +448,12 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters }) =>
                 <div className="flex items-center space-x-2">
                   <label className="w-24 text-sm font-medium text-gray-700">{t('labels.juz')}</label>
                   <div className="relative flex-1">
-                    <input
-                      type="text"
-                      id="juzInput"
-                      className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                      placeholder={t('placeholders.select_juz')}
-                      value={juzInput}
-                      onChange={(e) => setJuzInput(e.target.value)}
-                      onFocus={() => handleInputFocus('juz')}
-                    />
-                    {dropdownVisibility.juz && (
-                      <div
-                        ref={juzDropdownRef}
-                        className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-md border border-gray-300 bg-white shadow-lg"
-                      >
-                        {JUZ_LIST.filter((juz) => juz.name.includes(juzInput)).map((juz) => (
-                          <div
-                            key={juz.value}
-                            className="cursor-pointer px-3 py-2 text-sm text-gray-900 hover:bg-emerald-50 hover:text-emerald-700"
-                            onClick={() => handleDropdownItemClick('juz', juz.value, juz.name)}
-                          >
-                            {juz.name}
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                     <Combobox
+                        options={juzs.map((juz) => ({ label: juz.id.toString(), value: juz.id.toString() }))}
+                        placeholder="select juz"
+                        searchPlaceholder="search juz"
+                        notFoundText="juz not found"
+                      />
                   </div>
                 </div>
               )}
@@ -482,31 +462,12 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters }) =>
                 <div className="flex items-center space-x-2">
                   <label className="w-24 text-sm font-medium text-gray-700">{t('labels.page')}</label>
                   <div className="relative flex-1">
-                    <input
-                      type="text"
-                      id="halamanInput"
-                      className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                      placeholder={t('placeholders.select_page')}
-                      value={halamanInput}
-                      onChange={(e) => setHalamanInput(e.target.value)}
-                      onFocus={() => handleInputFocus('halaman')}
-                    />
-                    {dropdownVisibility.halaman && (
-                      <div
-                        ref={halamanDropdownRef}
-                        className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-md border border-gray-300 bg-white shadow-lg"
-                      >
-                        {HALAMAN_LIST.filter((page) => page.name.includes(halamanInput)).map((page) => (
-                          <div
-                            key={page.value}
-                            className="cursor-pointer px-3 py-2 text-sm text-gray-900 hover:bg-emerald-50 hover:text-emerald-700"
-                            onClick={() => handleDropdownItemClick('halaman', page.value, page.name)}
-                          >
-                            {page.name}
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    <Combobox
+                        options={pages.map((page) => ({ label: page.toString(), value: page.toString() }))}
+                        placeholder="select juz"
+                        searchPlaceholder="search juz"
+                        notFoundText="juz not found"
+                      />
                   </div>
                 </div>
               )}
@@ -515,13 +476,13 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters }) =>
                 <button
                   type="button"
                   onClick={handleReset}
-                  className="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
+                  className="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:cursor-pointer"
                 >
                   {t('buttons.reset')}
                 </button>
                 <button
                   type="submit"
-                  className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+                  className="rounded-md bg-[rgb(94,114,228)] px-4 py-2 text-sm font-medium text-white hover:bg-[rgb(57,69,138)] hover:cursor-pointer"
                 >
                   {t('buttons.submit')}
                 </button>
