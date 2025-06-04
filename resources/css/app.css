@@ -164,3 +164,8 @@
     font-family: 'Scheherazade New', 'Lateef', serif;
     line-height: 2.5;
 }
+/* Tambahkan di CSS global */
+.page-loading {
+  visibility: hidden !important;
+  opacity: 0 !important;
+}

@@ -9,6 +9,7 @@ import React, { useEffect } from 'react';
 import { Head } from '@inertiajs/react';
 import { FaBookOpen } from 'react-icons/fa';
 import { FiActivity, FiTrendingUp, FiUsers } from 'react-icons/fi';
+import AppWrapper from '@/components/layouts/app-wrapper';
 
 interface PageProps {
     usersCount: Number;
@@ -22,11 +23,10 @@ interface PageProps {
 const DashboardPage: React.FC<PageProps> = ({ usersCount, setoranCount, popularSurah }) => {
     useEffect(() => {});
     return (
-        <>
+        <AppWrapper>
         <Head title='Dashboard'/>
         <div className="min-h-screen bg-gray-50">
             {/* QuranHeader component */}
-            <QuranHeader page={1} translateMode="read" classNav="" finishButtonPath="/Rekapan-surah" isJuz={false} />
             <div className="min-h-screen bg-gray-50 p-6 ">
                 {/* 4 Cards */}
                 <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4  mt-12">
@@ -80,7 +80,7 @@ const DashboardPage: React.FC<PageProps> = ({ usersCount, setoranCount, popularS
                 </div>
             </div>
         </div>
-        </>
+        </AppWrapper>
     );
 };
 

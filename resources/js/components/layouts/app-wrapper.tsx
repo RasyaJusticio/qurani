@@ -9,6 +9,7 @@ interface AppWrapperProps {
 
 const parentUrl = import.meta.env.VITE_PARENT_URL;
 
+
 const AppWrapper: React.FC<AppWrapperProps> = ({ children }) => {
     const handleParentStateEvent = async (data: ParentStateEvent['data']) => {
         try {
@@ -33,7 +34,6 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ children }) => {
     useEffect(() => {
         const currentPath = window.location.pathname;
 
-        // Initial notification to parent
         window.parent.postMessage(
             {
                 type: 'iframe_ready',
@@ -42,7 +42,6 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ children }) => {
             '*'
         );
 
-        // Notify parent about current route
         notifyParentRouteChange(currentPath);
 
         const handleMessage = (event: MessageEvent) => {
@@ -60,25 +59,20 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ children }) => {
 
         window.addEventListener('message', handleMessage);
 
-        // Listen for route changes (for SPA navigation)
         const handleRouteChange = () => {
             const newPath = window.location.pathname;
             notifyParentRouteChange(newPath);
         };
 
-        // Listen for popstate events (back/forward navigation)
         window.addEventListener('popstate', handleRouteChange);
 
-        // If using Inertia.js, listen for navigation events
         const handleInertiaNavigation = (event: any) => {
-            // Delay to ensure URL has changed
             setTimeout(() => {
                 const newPath = window.location.pathname;
                 notifyParentRouteChange(newPath);
             }, 10);
         };
 
-        // Listen for Inertia navigation events if available
         if (typeof window !== 'undefined' && (window as any).Inertia) {
             (window as any).Inertia.on('navigate', handleInertiaNavigation);
         }
@@ -92,7 +86,6 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ children }) => {
         }
     }, []);
 
-    // Also notify parent when component mounts with different routes
     useEffect(() => {
         const currentPath = window.location.pathname;
         notifyParentRouteChange(currentPath);

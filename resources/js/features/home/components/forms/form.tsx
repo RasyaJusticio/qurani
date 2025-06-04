@@ -56,7 +56,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
   const [selectedHalaman, setSelectedHalaman] = useState<string>('');
   const [selectedGroup, setSelectedGroup] = useState<string>('');
   const [selectedMember, setSelectedMember] = useState<string>('');
-  const [selectedFriend, setSelectedFriend] = useState<string>(''); // Added missing state
+  const [selectedFriend, setSelectedFriend] = useState<string>('');
   const [selectedSurahValue, setSelectedSurahValue] = useState<string>('');
 
   const config = {
@@ -79,7 +79,6 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
   const juzDropdownRef = useRef<HTMLDivElement>(null);
   const halamanDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Load user data from localStorage
   useEffect(() => {
     const loadUserData = () => {
       try {
@@ -87,12 +86,8 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
         if (storedParentData) {
           const parsedParentData = JSON.parse(storedParentData);
           setUserData(parsedParentData);
-          console.log('Parent data loaded from localStorage:', parsedParentData);
-        } else {
-          console.warn('No parent_data found in localStorage');
         }
       } catch (error) {
-        console.error('Error loading parent data from localStorage:', error);
       }
     };
 
@@ -158,36 +153,46 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
 
-    // Log selected values for debugging
-    console.log('Penyetor:', penyetor);
-    console.log('Setoran:', setoran);
-    console.log('Tampilkan:', tampilkan);
-
-    if (penyetor === 'grup') {
-      console.log('Selected Group:', selectedGroup);
-      console.log('Selected Member:', selectedMember);
-    } else if (penyetor === 'teman') {
-      console.log('Selected Friend:', selectedFriend);
+    let reciter: { user_name: string; full_name: string } | null = null;
+    if (penyetor === 'grup' && selectedGroup && selectedMember) {
+      const member = friends.find((f) => f.user_name === selectedMember);
+      if (member) {
+        reciter = {
+          user_name: member.user_name,
+          full_name: member.user_fullname,
+        };
+      }
+    } else if (penyetor === 'teman' && selectedFriend) {
+      const friend = friends.find((f) => f.user_name === selectedFriend);
+      if (friend) {
+        reciter = {
+          user_name: friend.user_name,
+          full_name: friend.user_fullname,
+        };
+      }
     }
 
-    if (tampilkan === 'surat') {
-      console.log('Selected Surah:', selectedSurahValue);
-      console.log('Surah Input:', suratInput);
-    } else if (tampilkan === 'juz') {
-      console.log('Selected Juz:', selectedJuz);
-      console.log('Juz Input:', juzInput);
-    } else if (tampilkan === 'halaman') {
-      console.log('Selected Halaman:', selectedHalaman);
-      console.log('Halaman Input:', halamanInput);
+    const setoranData: any = {
+      reciter: reciter || { user_name: '', full_name: '' },
+      setoran_type: setoran,
+      display: tampilkan,
+    };
+
+    if (tampilkan === 'surat' && selectedSurahValue) {
+      setoranData.surah_id = selectedSurahValue;
+    } else if (tampilkan === 'juz' && selectedJuz) {
+      setoranData.juz_id = selectedJuz;
+    } else if (tampilkan === 'halaman' && selectedHalaman) {
+      setoranData.page_number = selectedHalaman;
     }
 
-    // Get redirect URL based on selection
+    try {
+      localStorage.setItem('setoran-data', JSON.stringify(setoranData));
+    } catch (error) {
+    }
+
     const redirectUrl = getRedirectUrl();
-    console.log('Redirect URL:', redirectUrl);
-
-    // Perform redirect
     if (redirectUrl !== '/') {
-      console.log('Redirecting to:', redirectUrl);
       window.location.href = redirectUrl;
     } else {
       alert('Please select a valid option to proceed');
@@ -205,7 +210,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
     setSelectedSurat('');
     setSelectedGroup('');
     setSelectedMember('');
-    setSelectedFriend(''); // Reset selectedFriend
+    setSelectedFriend('');
     setSelectedSurahValue('');
     setJuzInput('');
     setSelectedJuz('');
@@ -252,13 +257,6 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                 <Settings size={20} />
               </button>
             </div>
-            {/* info user */}
-            {/* {userData.c_user && (
-              <div className="mt-2 text-sm text-gray-600">
-                Penyimak: User ID {userData.c_user} | Session: {userData.user_session?.substring(0, 8)}... | Lang:{' '}
-                {userData.s_lang}
-              </div>
-            )} */}
           </div>
 
           <div className="p-6">
@@ -434,7 +432,6 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                         key={button.value}
                         type="button"
                         className="rounded-full bg-gray-300 px-3 py-1 text-xs text-black hover:bg-gray-400 hover:cursor-pointer"
-                        // className="rounded-full bg-[rgb(94,114,228)] px-3 py-1 text-xs text-neutral-50 hover:bg-[rgb(57,69,138)] hover:cursor-pointer"
                         onClick={() => handleQuickSelect(button.value, button.name)}
                       >
                         {button.name}
@@ -448,12 +445,12 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                 <div className="flex items-center space-x-2">
                   <label className="w-24 text-sm font-medium text-gray-700">{t('labels.juz')}</label>
                   <div className="relative flex-1">
-                     <Combobox
-                        options={juzs.map((juz) => ({ label: juz.id.toString(), value: juz.id.toString() }))}
-                        placeholder="select juz"
-                        searchPlaceholder="search juz"
-                        notFoundText="juz not found"
-                      />
+                    <Combobox
+                      options={juzs.map((juz) => ({ label: juz.id.toString(), value: juz.id.toString() }))}
+                      placeholder="select juz"
+                      searchPlaceholder="search juz"
+                      notFoundText="juz not found"
+                    />
                   </div>
                 </div>
               )}
@@ -463,11 +460,11 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                   <label className="w-24 text-sm font-medium text-gray-700">{t('labels.page')}</label>
                   <div className="relative flex-1">
                     <Combobox
-                        options={pages.map((page) => ({ label: page.toString(), value: page.toString() }))}
-                        placeholder="select juz"
-                        searchPlaceholder="search juz"
-                        notFoundText="juz not found"
-                      />
+                      options={pages.map((page) => ({ label: page.toString(), value: page.toString() }))}
+                      placeholder="select page"
+                      searchPlaceholder="search page"
+                      notFoundText="page not found"
+                    />
                   </div>
                 </div>
               )}

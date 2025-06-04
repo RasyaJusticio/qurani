@@ -8,20 +8,28 @@ interface QuranHeaderProps {
   page: number;
   translateMode?: string;
   classNav?: string;
-  finishButtonPath?: string;
-  isJuz?: boolean;
 }
 
 const QuranHeader: React.FC<QuranHeaderProps> = ({
   page,
   translateMode = 'read',
   classNav = '',
-  finishButtonPath = '/Rekapan-surah',
-  isJuz = false,
 }) => {
   const { t } = useTranslation();
   const [screenSize, setScreenSize] = useState<'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl'>('md');
+  const [setoranType, setSetoranType] = useState('');
 
+  useEffect(() => {
+    const setoranData = localStorage.getItem('setoran-data');
+    if (setoranData) {
+      try {
+        const { setoran_type } = JSON.parse(setoranData);
+        setSetoranType(setoran_type);
+      } catch (e) {
+        console.error('Error parsing setoran data', e);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const updateScreenSize = () => {
@@ -67,17 +75,56 @@ const QuranHeader: React.FC<QuranHeaderProps> = ({
   }[screenSize];
 
   const handleClick = () => {
-    const targetPath = isJuz ? '/rekapan-juz' : finishButtonPath;
-    Inertia.visit(`${targetPath}?page=${page}`);
+    window.location.href = '/result';
   };
 
-  const urlNow = window.location.href;
-  const lastSegment = urlNow.split('/').pop();
-  console.log(lastSegment);
+  const urlNow = window.location.pathname;
+  const segments = urlNow.split('/').filter(Boolean);
+  let displaySegment = segments[segments.length - 1];
 
-  const noFinishButton = (()=>{
-    return (['dashboard','filter'].includes(lastSegment as string));
-  })
+  // Get current page/surah info from localStorage
+  const getCurrentReadingInfo = () => {
+    const setoranData = localStorage.getItem('setoran-data');
+    if (setoranData) {
+      try {
+        const data = JSON.parse(setoranData);
+        if (data.surah_number) {
+          return `Surah ${data.surah_number}`;
+        } else if (data.juz_number) {
+          return `Juz ${data.juz_number}`;
+        } else if (data.page_number) {
+          return `Page ${data.page_number}`;
+        }
+      } catch (e) {
+        console.error('Error parsing setoran data', e);
+      }
+    }
+    return null;
+  };
+
+  // Format display segment
+  if (segments[0] === 'result') {
+    const readingInfo = getCurrentReadingInfo();
+    if (readingInfo) {
+      displaySegment = `${setoranType || 'result'} / ${readingInfo}`;
+    } else {
+      displaySegment = setoranType || 'result';
+    }
+  } else if (segments[0] === 'surah' && segments[1]) {
+    displaySegment = `Surah ${segments[1]}`;
+  } else if (segments[0] === 'juz' && segments[1]) {
+    displaySegment = `Juz ${segments[1]}`;
+  } else if (segments[0] === 'page' && segments[1]) {
+    displaySegment = `Page ${segments[1]}`;
+  } else if (['dashboard', 'filter'].includes(displaySegment)) {
+    displaySegment = displaySegment.charAt(0).toUpperCase() + displaySegment.slice(1);
+  } else {
+    displaySegment = '/';
+  }
+
+  const noFinishButton = () => {
+    return ['dashboard', 'filter', 'result'].includes(segments[segments.length - 1]);
+  };
 
   return (
     <div className={`px-6 ${classNav} fixed w-full bg-neutral-100 z-50`}>
@@ -90,19 +137,21 @@ const QuranHeader: React.FC<QuranHeaderProps> = ({
             <FontAwesomeIcon icon={faHome} className={`${iconSize} text-[#2CA4AB]`} />
           </div>
           <span className={`ml-1 ${textSize}`}>
-            / {lastSegment}
+            / {displaySegment}
           </span>
         </div>
         {translateMode === 'read' && (
           <div
-            className="flex justify-center items-center cursor-pointer text-center p-1 w-auto"
+            className="flex justify-center items-center cursor-pointer text-center p-1 w-auto pe-10"
             onClick={handleClick}
           >
-            { !noFinishButton() && <span
-              className={`${buttonSize.padding} ${buttonSize.fontSize} text-white font-bold rounded me-5 bg-[#ff6500]`}
-            >
-              Selesai
-            </span>}
+            {!noFinishButton() && (
+              <span
+                className={`${buttonSize.padding} ${buttonSize.fontSize} text-white font-bold rounded me-5 bg-[#ff6500]`}
+              >
+                Selesai
+              </span>
+            )}
           </div>
         )}
         <div className="cursor-text flex items-center">

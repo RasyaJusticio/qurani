@@ -138,13 +138,21 @@ function CommandItem({
     <CommandPrimitive.Item
       data-slot="command-item"
       className={cn(
-        "data-[selected=true]:bg-neutral-50 data-[selected=true]:text-blue-400 [&_svg:not([class*='text-'])]:text-muted-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+
+        "data-[selected=true]:bg-neutral-50 data-[selected=true]:text-blue-400 " +
+        "relative flex cursor-default items-center pl-2 pr-6 py-1.5 text-sm outline-none select-none " +
+        "data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 " +
+
+
+        "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:size-4 [&_svg]:absolute [&_svg]:right-2",
+
         className
       )}
       {...props}
     />
   )
 }
+
 
 function CommandShortcut({
   className,

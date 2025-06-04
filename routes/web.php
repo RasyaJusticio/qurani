@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\LinkID\ResultController;
 use App\Http\Controllers\LinkID\SettingsController;
 use App\Http\Controllers\Qurani\ChapterController;
 use App\Http\Controllers\Qurani\DashboardController;
@@ -12,6 +13,8 @@ use Inertia\Inertia;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+Route::get('/result', [ResultController::class, 'index'])->name('result');
 
 
 Route::get('/filter', function () {

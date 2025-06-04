@@ -10,7 +10,7 @@ const config = {
 };
 
 const RedirectPage = () => {
-    const [countdown, setCountdown] = useState(100);
+    const [countdown, setCountdown] = useState(10);
     const [translationsReady, setTranslationsReady] = useState(false);
     const { t } = useTranslation('redirect');
 

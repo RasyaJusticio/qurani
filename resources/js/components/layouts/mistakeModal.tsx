@@ -11,15 +11,14 @@ interface ErrorLabel {
 interface MistakeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLabelSelect?: (color: string) => void;
+  onLabelSelect?: (key: string) => void;
   onRemoveLabel?: () => void;
   versesEmpty?: boolean;
-  isRemoveMode?: boolean;
   selectedWordId?: number | null;
   selectedVerseId?: number | null;
   selectedWordText?: string | null;
-  wordColors?: { [key: number]: string };
-  verseColors?: { [key: number]: string };
+  wordErrors?: { [key: number]: string };
+  verseErrors?: { [key: number]: string };
 }
 
 const errorLabels: ErrorLabel[] = [
@@ -50,60 +49,41 @@ const MistakeModal: FC<MistakeModalProps> = ({
   onLabelSelect,
   onRemoveLabel,
   versesEmpty,
-  isRemoveMode,
   selectedWordId,
   selectedVerseId,
   selectedWordText,
-  wordColors,
-  verseColors,
+  wordErrors,
+  verseErrors,
 }) => {
   if (!isOpen) return null;
 
-  // Filter labels: show labels with id <= 5 for verses, id > 5 for words
   const displayedLabels = selectedVerseId ? errorLabels.filter(label => label.id <= 5) : errorLabels.filter(label => label.id > 5);
-
-  // Find the current label for the selected word or verse
-  const currentLabel = selectedWordId && wordColors
-    ? errorLabels.find(label => label.color === wordColors[selectedWordId])
-    : selectedVerseId && verseColors
-    ? errorLabels.find(label => label.color === verseColors[selectedVerseId])
-    : null;
-
-  // Set modal size: smaller width and height for verses, larger for words
+  const currentErrorKey = selectedWordId && wordErrors ? wordErrors[selectedWordId] : selectedVerseId && verseErrors ? verseErrors[selectedVerseId] : null;
   const modalSize = selectedVerseId ? 'max-w-xs min-h-[15vh]' : 'max-w-sm min-h-[20vh]';
-  // Set label list height: shorter for verses, taller for words
   const labelListHeight = selectedVerseId ? 'min-h-48' : 'max-h-95';
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className={`bg-white rounded-2xl p-6 ${modalSize} w-full overflow-y-auto shadow-2xl border border-gray-200`}>
-        {/* Mode konfirmasi hapus */}
-        {isRemoveMode ? (
+        {versesEmpty ? (
           <>
-            <h2 className="text-xl font-bold text-gray-800 mb-4 text-center">
-              Konfirmasi Hapus Tanda
-            </h2>
-            <div className="flex justify-center gap-3 mt-4">
-              <button
-                onClick={onRemoveLabel}
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-200"
-              >
-                Ya, Hapus
-              </button>
+            <p className="text-gray-600 mb-4 text-center">
+              Tidak ada ayat yang ditemukan untuk Surah ini.
+            </p>
+            <div className="flex justify-center mt-4">
               <button
                 onClick={onClose}
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors duration-200"
+                className="px-3 py-1 bg-blue-300 text-white rounded hover:bg-blue-400 transition-colors duration-200"
               >
-                Batal
+                Tutup
               </button>
             </div>
           </>
         ) : (
-          /* Mode pilih label atau verses empty */
           <>
             <div className="flex items-center justify-center mb-4">
               <h2 className="text-xl font-bold text-gray-800 text-center font-arabic">
-                {versesEmpty ? 'إشعار' : selectedVerseId ? 'Kesalahan Ayat' : ``}
+                {selectedVerseId ? 'Kesalahan Ayat' : 'Kesalahan Kata'}
               </h2>
               {selectedWordText && (
                 <span className="font-arabic text-xl text-gray-800 mr-2" style={{ direction: 'rtl' }}>
@@ -111,30 +91,32 @@ const MistakeModal: FC<MistakeModalProps> = ({
                 </span>
               )}
             </div>
-            {versesEmpty ? (
-              <p className="text-gray-600 mb-4 text-center">
-                Tidak ada ayat yang ditemukan untuk Surah ini.
-              </p>
-            ) : (
-              <div className={`flex flex-col gap-2 ${labelListHeight} overflow-y-auto`}>
-                {displayedLabels.map((label) => (
-                  <div
-                    key={label.id}
-                    className="px-3 py-2 rounded cursor-pointer hover:bg-opacity-80 transition-colors duration-200 text-gray-800"
-                    style={{ backgroundColor: label.color }}
-                    onClick={() => onLabelSelect?.(label.color)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        onLabelSelect?.(label.color);
-                      }
-                    }}
-                  >
-                    {label.value}
-                  </div>
-                ))}
-              </div>
+            <div className={`flex flex-col gap-2 ${labelListHeight} overflow-y-auto`}>
+              {displayedLabels.map((label) => (
+                <div
+                  key={label.id}
+                  className={`px-3 py-2 rounded cursor-pointer hover:bg-opacity-80 transition-colors duration-200 text-gray-800 ${currentErrorKey === label.key ? 'border-2 border-blue-500' : ''}`}
+                  style={{ backgroundColor: label.color }}
+                  onClick={() => onLabelSelect?.(label.key)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      onLabelSelect?.(label.key);
+                    }
+                  }}
+                >
+                  {label.value}
+                </div>
+              ))}
+            </div>
+            {currentErrorKey && (
+              <button
+                onClick={onRemoveLabel}
+                className="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-200"
+              >
+                Hapus Tanda
+              </button>
             )}
             <div className="flex justify-center mt-4">
               <button
