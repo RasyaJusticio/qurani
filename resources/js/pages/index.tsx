@@ -6,6 +6,7 @@ import { Chapter } from '@/features/home/types/chapter';
 import { Friend } from '@/features/home/types/friend';
 import { Group } from '@/features/home/types/group';
 import { Juz } from '@/features/home/types/juz';
+import { Setoran } from '@/features/home/types/setoran';
 import { UserSetting } from '@/features/home/types/userSettings';
 import { Head } from '@inertiajs/react';
 import React, { useEffect } from 'react';
@@ -21,9 +22,10 @@ interface IndexProps {
     chapters: Chapter[];
     juzs: Juz[];
     userSettings: UserSetting[];
+    setoran : Setoran[];
 }
 
-const Index: React.FC<IndexProps> = ({ friends, groups, chapters, juzs, userSettings }) => {
+const Index: React.FC<IndexProps> = ({ friends, groups, chapters, juzs, userSettings,setoran }) => {
 
     useEffect(() => {
         console.log("User Settings:", userSettings);
@@ -42,7 +44,7 @@ const Index: React.FC<IndexProps> = ({ friends, groups, chapters, juzs, userSett
                         </div>
                     </div>
                     <div className="w-full">
-                        <Table />
+                        <Table fluidDesign={true} setoran={setoran} />
                     </div>
                 </div>
             </div>

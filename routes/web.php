@@ -15,15 +15,14 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
 Route::get('/result', [ResultController::class, 'index'])->name('result');
-
-
-Route::get('/filter', function () {
-    return Inertia::render('dashboard/recap');
-})->name('filter');
+// Route::post('/result', [ResultController::class, 'store'])->name('result.store');
 
 Route::get('/recap', function () {
     return Inertia::render('recap/index');
 })->name('recap');
+Route::get('/filter', function () {
+    return Inertia::render('dashboard/recap');
+})->name('filter');
 
 Route::get('/surah/{surah}', [ChapterController::class, 'show'])->name('surah');
 Route::get('/juz/{juz}', [JuzController::class, 'show'])->name('juz');

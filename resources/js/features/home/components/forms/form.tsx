@@ -102,29 +102,6 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
     loadTranslations();
   }, []);
 
-  const JUZ_LIST: Option[] = t('juz_list', { returnObjects: true }) as Option[];
-  const HALAMAN_LIST: Option[] = t('halaman_list', { returnObjects: true }) as Option[];
-
-  const handleDropdownItemClick = (type: string, value: string, name: string): void => {
-    switch (type) {
-      case 'surat':
-        setSuratInput(name);
-        setSelectedSurat(value);
-        setDropdownVisibility((prev) => ({ ...prev, surat: false }));
-        break;
-      case 'juz':
-        setJuzInput(name);
-        setSelectedJuz(value);
-        setDropdownVisibility((prev) => ({ ...prev, juz: false }));
-        break;
-      case 'halaman':
-        setHalamanInput(name);
-        setSelectedHalaman(value);
-        setDropdownVisibility((prev) => ({ ...prev, halaman: false }));
-        break;
-    }
-  };
-
   const handleQuickSelect = (value: string, name: string): void => {
     setSelectedSurahValue(value);
   };
@@ -174,6 +151,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
 
     const setoranData: any = {
       reciter: reciter || { user_name: '', full_name: '' },
+      recipient: userData.c_user,
       setoran_type: setoran,
       display: tampilkan,
     };
