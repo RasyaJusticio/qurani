@@ -7,14 +7,10 @@ import { Friend } from '@/features/home/types/friend';
 import { Group } from '@/features/home/types/group';
 import { Juz } from '@/features/home/types/juz';
 import { Setoran } from '@/features/home/types/setoran';
+import { Periode, SetoranRekap, SetoranRekapTotal } from '@/features/home/types/setoranRekap';
 import { UserSetting } from '@/features/home/types/userSettings';
 import { Head } from '@inertiajs/react';
 import React, { useEffect } from 'react';
-
-interface Option {
-    value: string;
-    name: string;
-}
 
 interface IndexProps {
     friends: Friend[];
@@ -22,25 +18,35 @@ interface IndexProps {
     chapters: Chapter[];
     juzs: Juz[];
     userSettings: UserSetting[];
-    setoran : Setoran[];
+    setoran: Setoran[];
+    setoranRekap: SetoranRekap[];
+    setoranRekapTotal: SetoranRekapTotal[];
+    periodes: Periode[];
+    selectedPeriode: Periode | null;
+    u_id:Number;
 }
 
-const Index: React.FC<IndexProps> = ({ friends, groups, chapters, juzs, userSettings,setoran }) => {
-
+const Index: React.FC<IndexProps> = ({ friends, groups, chapters, juzs, userSettings, setoran, setoranRekap, periodes, selectedPeriode, setoranRekapTotal, u_id }) => {
     useEffect(() => {
-        console.log("User Settings:", userSettings);
-    }, [userSettings]);
+        console.log('cookie:', u_id);
+    }, [setoranRekap]);
+
     return (
         <AppWrapper>
             <Head title="Qurani" />
-            <div className=" w-full flex justify-center py-6 px-18 mt-15">
-                <div className="flex flex-col gap-2 w-full">
-                    <div className="flex flex-col md:flex-row gap-2">
+            <div className="mt-15 flex w-full justify-center px-18 py-6">
+                <div className="flex w-full flex-col gap-2">
+                    <div className="flex flex-col gap-2 md:flex-row">
                         <div className="w-full">
-                            <QuraniForm friends={friends} groups={groups} chapters={chapters} juzs={juzs}/>
+                            <QuraniForm friends={friends} groups={groups} chapters={chapters} juzs={juzs} />
                         </div>
                         <div className="w-full">
-                            <Maps />
+                            <Maps
+                                setoranRekap={setoranRekap}
+                                setoranRekapTotal={setoranRekapTotal}
+                                periodes={periodes}
+                                selectedPeriode={selectedPeriode}
+                            />
                         </div>
                     </div>
                     <div className="w-full">

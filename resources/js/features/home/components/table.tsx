@@ -3,8 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { setupTranslations } from '@/features/i18n/i18n';
 
-// Fungsi untuk memformat waktu menjadi "tgl-bulan waktu"
-const formatTime = (timeString) => {
+const formatTime = (timeString : Date) => {
     const date = new Date(timeString);
     const day = date.getDate();
     const monthNames = [
@@ -17,9 +16,18 @@ const formatTime = (timeString) => {
     return `${day}-${month} ${hours}.${minutes}`;
 };
 
+const config = {
+        PARENT_WEB: import.meta.env.VITE_PARENT_URL,
+    };
+
 const HistoryTable = ({ fluidDesign, setoran }) => {
     const { t } = useTranslation('table');
     const [translationsReady, setTranslationsReady] = useState(false);
+
+    // Fungsi untuk membuka profil user di tab baru
+    const openUserProfile = (username) => {
+        window.open(`${config.PARENT_WEB}/${username}`, '_blank');
+    };
 
     useEffect(() => {
         const loadTranslations = async () => {
@@ -81,15 +89,21 @@ const HistoryTable = ({ fluidDesign, setoran }) => {
                             </thead>
                             <tbody>
                                 {setoran && setoran.length > 0 ? (
-                                    setoran.map((item: any) => (
+                                    setoran.map((item : any) => (
                                         <tr key={item.id} className="hover:bg-gray-50">
                                             <td className="border border-gray-200 px-4 py-2 text-sm text-gray-600">
                                                 {formatTime(item.time)}
                                             </td>
-                                            <td className="border border-gray-200 px-4 py-2 text-sm text-gray-600">
+                                            <td
+                                                className="border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:underline cursor-pointer"
+                                                onClick={() => openUserProfile(item.reciter_username)}
+                                            >
                                                 {item.reciter}
                                             </td>
-                                            <td className="border border-gray-200 px-4 py-2 text-sm text-gray-600">
+                                            <td
+                                                className="border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:underline cursor-pointer"
+                                                onClick={() => openUserProfile(item.recipient_username)}
+                                            >
                                                 {item.recipient}
                                             </td>
                                             <td className="border border-gray-200 px-4 py-2 text-sm text-gray-600">

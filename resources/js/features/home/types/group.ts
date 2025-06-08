@@ -1,4 +1,7 @@
+import { Friend } from "./friend";
+
 export type Group = {
-    group_id : Number;
-    group_title : string;
+    group_id: number;
+    group_title: string;
+    users: Friend[];
 };

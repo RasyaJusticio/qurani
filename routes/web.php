@@ -8,6 +8,8 @@ use App\Http\Controllers\Qurani\HomeController;
 use App\Http\Controllers\Qurani\JuzController;
 use App\Http\Controllers\Qurani\PageController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cookie;
 use Inertia\Inertia;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -31,3 +33,12 @@ Route::get('/page/{page}', [PageController::class, 'show'])->name('page');
 Route::get('/redirect', function () {
     return Inertia::render('redirect');
 })->name('redirect');
+
+
+Route::post('/set-cookie', function (Request $request) {
+    $u_id = $request->input('u_id');
+
+    Cookie::queue('u_id', $u_id, 60);
+
+    return redirect()->back();
+})->name('set.cookie');

@@ -137,7 +137,7 @@ const RecapFormLayout: React.FC = () => {
                     reciter: parsedData.reciter,
                     recipient: parsedData.recipient,
                     setoran_type: parsedData.setoran_type,
-                    display: 'surah', // Ganti dari parsedData.display ke 'surah'
+                    display: 'surah',
                     surah_id: parsedData.surah_id,
                     surah: parsedData.surah,
                     mistake: transformedMistake,
@@ -231,7 +231,7 @@ const RecapFormLayout: React.FC = () => {
             penyetor: form.data.reciter?.user_name || '',
             penerima: parseInt(form.data.recipient),
             setoran: form.data.setoran_type,
-            tampilan: 'surah', // Pastikan tampilan selalu 'surah'
+            tampilan: 'surah',
             nomor: parseInt(form.data.surah_id),
             info: `${form.data.awalAyat}-${form.data.akhirAyat}`,
             hasil: form.data.kesimpulan,

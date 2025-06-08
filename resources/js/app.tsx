@@ -14,6 +14,8 @@ if (token) {
   axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content
 } else {}
 
+
+
 createInertiaApp({
     title: (title) => `${title} | ${appName}`,
     resolve: (name) => resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx')),
@@ -26,5 +28,7 @@ createInertiaApp({
         color: '#4B5563',
     },
 });
+
+
 
 initializeTheme();
