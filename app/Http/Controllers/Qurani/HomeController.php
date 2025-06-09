@@ -64,6 +64,26 @@ class HomeController extends Controller
         }
     }
 
+    public function recap(Request $request)
+    {
+        try {
+            $uId = $request->cookie('u_id');
+            return Inertia::render('recap/Index', [
+                'u_id' => $uId
+            ]);
+        } catch (Exception $e) {
+            Log::error('Error in HomeController@recap', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return Inertia::render('Recap/Index', [
+                'u_id' => null,
+                'error' => 'Terjadi kesalahan saat memuat data'
+            ]);
+        }
+    }
+
     private function getFriends()
     {
         try {
@@ -212,6 +232,8 @@ class HomeController extends Controller
             'qu_setoran.nomor',
             'qu_setoran.info',
             'qu_setoran.hasil',
+            'qu_setoran.ket',
+            'qu_setoran.perhalaman',
             'qu_setoran.paraf',
         )
             ->join('users AS penyetor', 'qu_setoran.penyetor', '=', 'penyetor.user_id')
@@ -326,4 +348,76 @@ class HomeController extends Controller
             return [];
         }
     }
+
+    public function getSetoranById($id)
+{
+    try {
+        $setoran = QuSetoran::select(
+            'qu_setoran.id',
+            'qu_setoran.tgl',
+            'penyetor.user_name AS penyetor_username',
+            DB::raw("CONCAT(penyetor.user_firstname, ' ', penyetor.user_lastname) AS penyetor_fullname"),
+            'penerima.user_name AS penerima_username',
+            DB::raw("CONCAT(penerima.user_firstname, ' ', penerima.user_lastname) AS penerima_fullname"),
+            'qu_setoran.setoran',
+            'qu_setoran.tampilan',
+            'qu_setoran.nomor',
+            'qu_setoran.info',
+            'qu_setoran.hasil',
+            'qu_setoran.ket',
+            'qu_setoran.kesalahan',
+            'qu_setoran.perhalaman',
+            'qu_setoran.paraf',
+            'qu_setoran.paraftgl',
+            'qu_setoran.parafoleh'
+        )
+            ->join('users AS penyetor', 'qu_setoran.penyetor', '=', 'penyetor.user_id')
+            ->join('users AS penerima', 'qu_setoran.penerima', '=', 'penerima.user_id')
+            ->where('qu_setoran.id', $id)
+            ->first();
+
+        if (!$setoran) {
+            return response()->json(['error' => 'Setoran not found'], 404);
+        }
+
+        $surahName = null;
+        if ($setoran->tampilan === 'surah') {
+            $chapter = Chapter::find($setoran->nomor);
+            $surahName = $chapter ? $chapter->name_simple : null;
+        }
+
+        // Check if perhalaman is a JSON string or already an array
+        $perhalaman = is_string($setoran->perhalaman)
+            ? json_decode($setoran->perhalaman, true)
+            : (is_array($setoran->perhalaman) ? $setoran->perhalaman : []);
+
+        return response()->json([
+            'id' => $setoran->id,
+            'tgl' => $setoran->tgl,
+            'penyetor' => [
+                'username' => $setoran->penyetor_username,
+                'fullname' => $setoran->penyetor_fullname,
+            ],
+            'penerima' => [
+                'username' => $setoran->penerima_username,
+                'fullname' => $setoran->penerima_fullname,
+            ],
+            'setoran' => $setoran->setoran,
+            'tampilan' => $setoran->tampilan,
+            'nomor' => $setoran->nomor,
+            'info' => $setoran->info,
+            'hasil' => $setoran->hasil,
+            'ket' => $setoran->ket,
+            'kesalahan' => $setoran->kesalahan,
+            'perhalaman' => $perhalaman,
+            'paraf' => $setoran->paraf,
+            'paraftgl' => $setoran->paraftgl,
+            'parafoleh' => $setoran->parafoleh,
+            'surah_name' => $surahName,
+        ]);
+    } catch (Exception $e) {
+        Log::error('Error in getSetoranById', ['message' => $e->getMessage()]);
+        return response()->json(['error' => 'Terjadi kesalahan saat mengambil data'], 500);
+    }
+}
 }

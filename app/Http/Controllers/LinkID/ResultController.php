@@ -20,20 +20,24 @@ class ResultController extends Controller
         return Inertia::render('result/Index');
     }
 
-    public function tes(Request $r)
-    {
-        $r->validate([
-            'user_name' => 'required'
-        ]);
-
-        $user = User::where('user_name', $r->user_name)->first();
-
-        if (!$user) {
-            return response()->json('kosong');
-        }
-
-        return 'ada';
+    public function page(){
+        return Inertia::render('result/ResultPage');
     }
+
+    // public function tes(Request $r)
+    // {
+    //     $r->validate([
+    //         'user_name' => 'required'
+    //     ]);
+
+    //     $user = User::where('user_name', $r->user_name)->first();
+
+    //     if (!$user) {
+    //         return response()->json('kosong');
+    //     }
+
+    //     return 'ada';
+    // }
 
     public function store(Request $request)
     {

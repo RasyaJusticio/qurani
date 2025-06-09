@@ -233,9 +233,7 @@ export default function SurahIndex() {
         page={1}
         translateMode="read"
         classNav="ms-3"
-        onFinish={() => {
-        Inertia.visit('/result');
-        }}
+        target='/result'
       />
       <div className="mx-auto max-w-3xl p-4 overflow-auto">
         <MistakeModal

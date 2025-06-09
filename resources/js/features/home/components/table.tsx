@@ -1,15 +1,11 @@
 import { Grid2X2, SquareActivity, Check } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { setupTranslations } from '@/features/i18n/i18n';
+import React from 'react';
+import axios from 'axios';
 
-const formatTime = (timeString : Date) => {
+const formatTime = (timeString: string) => {
     const date = new Date(timeString);
     const day = date.getDate();
-    const monthNames = [
-        'januari', 'februari', 'maret', 'april', 'mei', 'juni',
-        'juli', 'agustus', 'september', 'oktober', 'november', 'desember'
-    ];
+    const monthNames = ['januari', 'februari', 'maret', 'april', 'mei', 'juni', 'juli', 'agustus', 'september', 'oktober', 'november', 'desember'];
     const month = monthNames[date.getMonth()];
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
@@ -17,49 +13,64 @@ const formatTime = (timeString : Date) => {
 };
 
 const config = {
-        PARENT_WEB: import.meta.env.VITE_PARENT_URL,
+    PARENT_WEB: import.meta.env.VITE_PARENT_URL,
+};
+
+const HistoryTable: React.FC<{ fluidDesign: boolean; setoran: any[] }> = ({ fluidDesign, setoran }) => {
+    const fetchSetoranDetails = async (id: number) => {
+        try {
+            const response = await axios.get(`/setoran/${id}`);
+            const setoranData = {
+                reciter: {
+                    user_id: response.data.penyetor?.username || '',
+                    user_name: response.data.penyetor?.username || '',
+                    full_name: response.data.penyetor?.fullname || '',
+                },
+                recipient: response.data.penerima?.fullname || '',
+                setoran_type: response.data.setoran || '',
+                surah_id: response.data.nomor?.toString() || '',
+                surah: {
+                    id: response.data.nomor?.toString() || '',
+                    name: response.data.surah_name || '',
+                    from: response.data.info?.split('-')[0] || '',
+                    to: response.data.info?.split('-')[1] || '',
+                },
+                mistake: response.data.perhalaman || {},
+                ket: response.data.ket || '',
+                conclusion: response.data.hasil || '',
+            };
+
+            localStorage.setItem('setoran-data', JSON.stringify(setoranData));
+            window.location.href = '/recap';
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to fetch setoran details');
+        }
     };
 
-const HistoryTable = ({ fluidDesign, setoran }) => {
-    const { t } = useTranslation('table');
-    const [translationsReady, setTranslationsReady] = useState(false);
-
-    // Fungsi untuk membuka profil user di tab baru
-    const openUserProfile = (username) => {
+    const openUserProfile = (username: string) => {
         window.open(`${config.PARENT_WEB}/${username}`, '_blank');
     };
 
-    useEffect(() => {
-        const loadTranslations = async () => {
-            await setupTranslations('table');
-            setTranslationsReady(true);
-        };
-        loadTranslations();
-    }, []);
-
-    if (!translationsReady) return null;
-
     return (
         <div className={fluidDesign ? 'mt-3 w-full' : 'mx-auto mt-3 w-full'}>
-            <div className="flex justify-center">
+            <div className="flex w-full justify-center">
                 <div className="w-full overflow-x-auto">
-                    <div className="rounded-lg bg-white p-6 shadow-lg">
+                    <div className="relative rounded-lg bg-white p-6 shadow-lg">
                         <div className="mb-4 flex items-center justify-between">
-                            <a href="#" className="text-2xl font-semibold hover:underline">
-                                {t('history.title')}
-                            </a>
+                            <h2 className="text-2xl font-semibold">History</h2>
                             <div className="flex gap-2">
                                 <button
-                                    className="rounded-full p-2 text-gray-700 transition-colors hover:bg-gray-100 hover:cursor-pointer"
-                                    aria-label={t('history.tableButtonLabel') || 'Table View'}
+                                    className="rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                                    aria-label="Table View"
                                     onClick={() => (window.location.href = '/dashboard')}
                                 >
                                     <SquareActivity size={20} />
                                 </button>
                                 <button
-                                    className="rounded-full p-2 text-gray-700 transition-colors hover:bg-gray-100 hover:cursor-pointer"
-                                    title={t('history.settingsButtonTitle') || 'Settings'}
-                                    aria-label={t('history.settingsButtonLabel') || 'Settings'}
+                                    className="rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                                    title="Qurani Setting"
+                                    aria-label="Settings"
                                     onClick={() => (window.location.href = '/filter')}
                                 >
                                     <Grid2X2 size={20} />
@@ -69,40 +80,43 @@ const HistoryTable = ({ fluidDesign, setoran }) => {
 
                         <table className="w-full border-collapse border border-gray-200">
                             <thead>
-                                <tr className="bg-gray-50">
-                                    {[
-                                        'history.table.time',
-                                        'history.table.reciter',
-                                        'history.table.recipient',
-                                        'history.table.recite',
-                                        'history.table.results',
-                                        'history.table.signature',
-                                    ].map((key) => (
+                                <tr className="bg-gray-100">
+                                    {['Time', 'Reciter', 'Recipient', 'Recite', 'Results', 'Signature'].map((header) => (
                                         <th
-                                            key={key}
+                                            key={header}
                                             className="border border-gray-200 px-4 py-2 text-left text-sm font-medium text-gray-700"
                                         >
-                                            {t(key)}
+                                            {header}
                                         </th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody>
-                                {setoran && setoran.length > 0 ? (
-                                    setoran.map((item : any) => (
-                                        <tr key={item.id} className="hover:bg-gray-50">
+                                {setoran?.length > 0 ? (
+                                    setoran.map((item) => (
+                                        <tr
+                                            key={item.id}
+                                            className="cursor-pointer hover:bg-gray-50"
+                                            onClick={() => fetchSetoranDetails(item.id)}
+                                        >
                                             <td className="border border-gray-200 px-4 py-2 text-sm text-gray-600">
                                                 {formatTime(item.time)}
                                             </td>
                                             <td
-                                                className="border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:underline cursor-pointer"
-                                                onClick={() => openUserProfile(item.reciter_username)}
+                                                className="border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:underline"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openUserProfile(item.reciter_username);
+                                                }}
                                             >
                                                 {item.reciter}
                                             </td>
                                             <td
-                                                className="border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:underline cursor-pointer"
-                                                onClick={() => openUserProfile(item.recipient_username)}
+                                                className="border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:underline"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openUserProfile(item.recipient_username);
+                                                }}
                                             >
                                                 {item.recipient}
                                             </td>
@@ -115,18 +129,15 @@ const HistoryTable = ({ fluidDesign, setoran }) => {
                                             <td className="border border-gray-200 px-4 py-2 text-sm text-gray-600">
                                                 <Check
                                                     size={20}
-                                                    className={item.signature === 0 ? 'text-gray-400' : 'text-gary-500'}
+                                                    className={item.signature === 0 ? 'text-gray-400' : 'text-blue-500'}
                                                 />
                                             </td>
                                         </tr>
                                     ))
                                 ) : (
                                     <tr>
-                                        <td
-                                            colSpan={6}
-                                            className="border border-gray-200 px-4 py-2 text-center text-sm"
-                                        >
-                                            {t('history.table.noData')}
+                                        <td colSpan={6} className="border border-gray-200 px-4 py-2 text-center text-sm text-gray-600">
+                                            Doesn't recite history
                                         </td>
                                     </tr>
                                 )}

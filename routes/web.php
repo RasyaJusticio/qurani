@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\LinkID\RecapController;
 use App\Http\Controllers\LinkID\ResultController;
 use App\Http\Controllers\LinkID\SettingsController;
 use App\Http\Controllers\Qurani\ChapterController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\Qurani\PageController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -17,7 +19,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
 Route::get('/result', [ResultController::class, 'index'])->name('result');
-// Route::post('/result', [ResultController::class, 'store'])->name('result.store');
+Route::get('/result-page', [ResultController::class, 'page'])->name('result.page');
 
 Route::get('/recap', function () {
     return Inertia::render('recap/index');
@@ -40,5 +42,11 @@ Route::post('/set-cookie', function (Request $request) {
 
     Cookie::queue('u_id', $u_id, 60);
 
+    Log::info($u_id);
+
     return redirect()->back();
 })->name('set.cookie');
+
+Route::get('/setoran/{id}', [HomeController::class, 'getSetoranById'])->name('setoran.show');
+Route::get('/recap', [HomeController::class, 'recap'])->name('recap');
+Route::get('/recap/surah/{id}',[RecapController::class,'index'])->name('recap.surah');

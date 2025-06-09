@@ -4,19 +4,21 @@ import { Head } from '@inertiajs/react'
 import AppWrapper from '@/components/layouts/app-wrapper'
 import QuranHeader from '@/components/layouts/main-header'
 import { Inertia } from '@inertiajs/inertia'
+import DisabledRecapFormLayout from '@/features/recap/Index'
+import RecapHeader from '@/components/layouts/recap-header'
 
 const index = () => {
   return (
     <AppWrapper>
         <Head title='Recap'/>
-        <QuranHeader
+        <RecapHeader
                 page={1}
                 translateMode="read"
                 classNav="ms-3"
-                target="/result"
+                target=""
         />
         <div>
-            <RecapForm/>
+            <DisabledRecapFormLayout/>
         </div>
     </AppWrapper>
   )

@@ -2,6 +2,8 @@ import { Head, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import MistakeModal from '../../components/layouts/mistakeModal';
 import AppWrapper from '@/components/layouts/app-wrapper';
+import QuranHeader from '@/components/layouts/main-header';
+import { Inertia } from '@inertiajs/inertia';
 
 interface Word {
   id: number;
@@ -88,30 +90,69 @@ export default function PageIndex() {
   useEffect(() => {
     if (verses.length === 0) {
       setModalOpen(true);
+      return;
     }
-  }, [verses]);
 
-  useEffect(() => {
-    const errorsByPage = generateErrorsByPage();
+    const versesBySurah: { [key: number]: Verse[] } = {};
+    verses.forEach((verse) => {
+      const surahId = parseInt(verse.verse_key.split(':')[0]);
+      if (!versesBySurah[surahId]) {
+        versesBySurah[surahId] = [];
+      }
+      versesBySurah[surahId].push(verse);
+    });
+
+    const surahIds = Object.keys(versesBySurah).map(id => parseInt(id)).sort((a, b) => a - b);
+    const firstSurahId = surahIds[0];
+    const lastSurahId = surahIds[surahIds.length - 1];
+    const firstVerse = versesBySurah[firstSurahId][0].verse_number;
+    const lastVerse = versesBySurah[lastSurahId][versesBySurah[lastSurahId].length - 1].verse_number;
+
+    const surahDetails = surahIds.map(id => ({
+      id: id.toString(),
+      name: chapters[id].name_simple,
+      from: versesBySurah[id][0].verse_number.toString(),
+      to: versesBySurah[id][versesBySurah[id].length - 1].verse_number.toString(),
+    }));
+
     const existingData = localStorage.getItem('setoran-data');
+    let parsedData = existingData ? JSON.parse(existingData) : { recipient: '', reciter: { user_name: '', full_name: '' } };
     let dataToSave = {
-      reciter: { id: '12345', full_name: 'Ahmad Ridwan bin Abdullah' },
-      setoran_type: 'tahsin',
+      ...parsedData,
+      setoran_type: parsedData.setoran_type || 'tahsin',
       display: 'page',
       surah: {
         id: `page-${page.page_number}`,
         name: `Page ${page.page_number}`,
-        from: '1',
-        to: '1',
+        first_surah: firstSurahId.toString(),
+        last_surah: lastSurahId.toString(),
+        first_verse: firstVerse.toString(),
+        last_verse: lastVerse.toString(),
+        surah: surahDetails,
+      },
+      mistake: parsedData.mistake || {},
+    };
+
+    localStorage.setItem('setoran-data', JSON.stringify(dataToSave));
+  }, [verses, chapters, page]);
+
+  useEffect(() => {
+    const errorsByPage = generateErrorsByPage();
+    const existingData = localStorage.getItem('setoran-data');
+    let parsedData = existingData ? JSON.parse(existingData) : { recipient: '', reciter: { user_name: '', full_name: '' } };
+    let dataToSave = {
+      ...parsedData,
+      setoran_type: parsedData.setoran_type || 'tahsin',
+      display: 'page',
+      surah: {
+        ...parsedData.surah,
+        id: `page-${page.page_number}`,
+        name: `Page ${page.page_number}`,
       },
       mistake: errorsByPage,
     };
-    if (existingData) {
-      const parsedData = JSON.parse(existingData);
-      dataToSave = { ...parsedData, surah: dataToSave.surah, mistake: errorsByPage };
-    }
     localStorage.setItem('setoran-data', JSON.stringify(dataToSave));
-  }, [wordErrors, verseErrors]);
+  }, [wordErrors, verseErrors, page]);
 
   const handleClick = (type: 'word' | 'verse', id: number) => {
     if (type === 'word') {
@@ -215,6 +256,14 @@ export default function PageIndex() {
   return (
     <AppWrapper>
       <Head title="Page" />
+      <QuranHeader
+        page={1}
+        translateMode="read"
+        classNav="ms-3"
+        onFinish={() => {
+          Inertia.visit('/result-page');
+        }}
+      />
       <div className="container mx-auto max-w-3xl p-4">
         <MistakeModal
           isOpen={modalOpen}
@@ -231,7 +280,7 @@ export default function PageIndex() {
           wordErrors={wordErrors}
           verseErrors={verseErrors}
         />
-        <div className="font-arabic text-right text-3xl leading-loose text-gray-800">
+        <div className="font-arabic text-right text-3xl leading-loose text-gray-800 mt-20">
           {Object.keys(versesBySurah).map((surahId) => {
             const surah = chapters[parseInt(surahId)];
             return (
