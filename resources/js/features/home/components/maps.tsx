@@ -1,10 +1,10 @@
+import { Periode, SetoranRekap } from '@/features/home/types/setoranRekap';
+import { useForm } from '@inertiajs/react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MapContainer, TileLayer, useMap, Marker, Popup } from 'react-leaflet';
-import { Expand, Grid2X2, Minimize2, Calendar } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
-import { SetoranRekap, Periode } from '@/features/home/types/setoranRekap';
-import { useForm } from '@inertiajs/react';
+import { Calendar, Expand, Grid2X2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
 
 // Fix default icon issues
 delete L.Icon.Default.prototype._getIconUrl;
@@ -20,10 +20,7 @@ const translations = {
     ar: { title: 'تاريخ قرآني' },
 };
 
-const INDONESIA_BOUNDS = L.latLngBounds(
-    L.latLng(-11, 94),
-    L.latLng(6, 141)
-);
+const INDONESIA_BOUNDS = L.latLngBounds(L.latLng(-11, 94), L.latLng(6, 141));
 
 const MapBounds = () => {
     const map = useMap();
@@ -55,7 +52,8 @@ const MinimizeControl = ({ isExpanded, toggleExpand }: { isExpanded: boolean; to
                 container.style.justifyContent = 'center';
                 container.style.cursor = 'pointer';
                 container.title = 'Minimize map';
-                container.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>';
+                container.innerHTML =
+                    '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>';
                 container.onclick = () => {
                     toggleExpand();
                     setTimeout(() => map.invalidateSize(), 100);
@@ -80,17 +78,20 @@ interface MapsProps {
 const Maps: React.FC<MapsProps> = ({ setoranRekap, setoranRekapTotal, periodes, selectedPeriode }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [lang, setLang] = useState<'en' | 'id' | 'ar'>('en');
-    const mapRef = useRef<L.Map | null>(null);
+    const [map, setMap] = useState<L.Map | null>(null);
     const { data, setData } = useForm({
         periode: selectedPeriode || '',
     });
 
     const toggleExpand = () => {
-        setIsExpanded(prev => {
+        setIsExpanded((prev) => {
             const newState = !prev;
             setTimeout(() => {
-                if (mapRef.current) mapRef.current.invalidateSize();
-            }, 100);
+                if (map) {
+                    // console.log("Map invalidated");
+                    map.invalidateSize();
+                }
+            }, 0);
             return newState;
         });
     };
@@ -116,30 +117,26 @@ const Maps: React.FC<MapsProps> = ({ setoranRekap, setoranRekapTotal, periodes, 
     };
 
     // Determine which data to display
-    const mapData = data.periode
-        ? setoranRekap.filter(item => item.periode === data.periode)
-        : setoranRekapTotal;
+    const mapData = data.periode ? setoranRekap.filter((item) => item.periode === data.periode) : setoranRekapTotal;
 
     return (
-        <div className={`mx-auto w-full h-full ${isExpanded ? 'fixed inset-0 z-50 bg-white' : ''}`}>
-            <div className="overflow-hidden rounded-lg bg-white shadow-lg h-full w-full">
-                <div className="p-4 flex justify-between items-center">
-                    <h2 className="text-xl font-semibold text-gray-800">
-                        {translations[lang].title}
-                    </h2>
-                    <div className="flex space-x-2 items-center">
+        <div className={`mx-auto h-full w-full ${isExpanded ? 'fixed inset-0 z-50 bg-white' : ''}`}>
+            <div className="h-full w-full overflow-hidden rounded-lg bg-white shadow-lg">
+                <div className="flex items-center justify-between p-4">
+                    <h2 className="text-xl font-semibold text-gray-800">{translations[lang].title}</h2>
+                    <div className="flex items-center space-x-2">
                         <button
                             onClick={() => (window.location.href = '/dashboard')}
-                            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors hover:cursor-pointer"
+                            className="rounded-full p-2 text-gray-600 transition-colors hover:cursor-pointer hover:bg-gray-100 hover:text-gray-900"
                             aria-label="Go to dashboard"
                         >
-                            <Grid2X2 className="w-5 h-5" />
+                            <Grid2X2 className="h-5 w-5" />
                         </button>
                         <div className="relative">
                             <select
                                 value={data.periode}
                                 onChange={handlePeriodeChange}
-                                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors hover:cursor-pointer appearance-none pr-8"
+                                className="appearance-none rounded-full p-2 pr-8 text-gray-600 transition-colors hover:cursor-pointer hover:bg-gray-100 hover:text-gray-900"
                                 aria-label="Filter by period"
                             >
                                 <option value="">All</option>
@@ -152,15 +149,15 @@ const Maps: React.FC<MapsProps> = ({ setoranRekap, setoranRekapTotal, periodes, 
                                     </option>
                                 ))}
                             </select>
-                            <Calendar className="w-5 h-5 absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-600" />
+                            <Calendar className="pointer-events-none absolute top-1/2 right-2 h-5 w-5 -translate-y-1/2 transform text-gray-600" />
                         </div>
                         {!isExpanded && (
                             <button
                                 onClick={toggleExpand}
-                                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors hover:cursor-pointer"
+                                className="rounded-full p-2 text-gray-600 transition-colors hover:cursor-pointer hover:bg-gray-100 hover:text-gray-900"
                                 aria-label="Expand map"
                             >
-                                <Expand className="w-5 h-5" />
+                                <Expand className="h-5 w-5" />
                             </button>
                         )}
                     </div>
@@ -174,7 +171,7 @@ const Maps: React.FC<MapsProps> = ({ setoranRekap, setoranRekapTotal, periodes, 
                         scrollWheelZoom={true}
                         style={{ height: '100%', width: '100%' }}
                         maxBoundsViscosity={1.0}
-                        whenCreated={(map) => { mapRef.current = map; }}
+                        ref={setMap}
                     >
                         <TileLayer
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -187,16 +184,13 @@ const Maps: React.FC<MapsProps> = ({ setoranRekap, setoranRekapTotal, periodes, 
                         {mapData.map((item) => (
                             <Marker key={item.kota} position={[item.lat, item.long]}>
                                 <Popup>
-                                    {item.kota}: {item.total_setoran} setoran{' '}
-                                    {/* {data.periode ? `(${data.periode})` : '(total)'} */}
+                                    {item.kota}: {item.total_setoran} setoran {/* {data.periode ? `(${data.periode})` : '(total)'} */}
                                 </Popup>
                             </Marker>
                         ))}
                     </MapContainer>
                 </div>
-                <div className="bg-gray-50 p-3 text-sm text-gray-600">
-                    {/* Footer */}
-                </div>
+                <div className="bg-gray-50 p-3 text-sm text-gray-600">{/* Footer */}</div>
             </div>
         </div>
     );

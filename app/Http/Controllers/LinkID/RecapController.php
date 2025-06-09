@@ -68,7 +68,8 @@ class RecapController extends Controller
                         'id' => $word->id,
                         'position' => $word->position,
                         'text_uthmani' => $word->text_uthmani,
-                        'char_type_name' => $word->char_type_name
+                        'char_type_name' => $word->char_type_name,
+                        'location' => $word->location
                     ];
                 })->filter(function ($word) {
                     return $word['char_type_name'] === 'word';

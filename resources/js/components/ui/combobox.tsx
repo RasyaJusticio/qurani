@@ -28,6 +28,7 @@ interface ComboboxProps {
     notFoundText?: string;
     value?: string;
     onValueChange?: (value: string) => void;
+    className:string;
 }
 
 const Combobox: React.FC<ComboboxProps> = ({
@@ -36,7 +37,8 @@ const Combobox: React.FC<ComboboxProps> = ({
     searchPlaceholder = "Search option...",
     notFoundText = "No option found.",
     value: externalValue,
-    onValueChange
+    onValueChange,
+    className
 }) => {
   const [open, setOpen] = React.useState(false)
   const [value, setValue] = React.useState(externalValue || "")

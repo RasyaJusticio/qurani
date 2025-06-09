@@ -19,7 +19,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
 Route::get('/result', [ResultController::class, 'index'])->name('result');
-Route::get('/result-page', [ResultController::class, 'page'])->name('result.page');
+Route::get('/result/page', [ResultController::class, 'page'])->name('result.page');
 
 Route::get('/recap', function () {
     return Inertia::render('recap/index');

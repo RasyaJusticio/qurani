@@ -10,7 +10,7 @@ interface QuranHeaderProps {
     target: string;
 }
 
-const RecapHeader: React.FC<QuranHeaderProps> = ({ page, translateMode = 'read', classNav = '', target }) => {
+const PageHeader: React.FC<QuranHeaderProps> = ({ page, translateMode = 'read', classNav = '', target }) => {
     const { t } = useTranslation();
     const [screenSize, setScreenSize] = useState<'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl'>('md');
     const [setoranType, setSetoranType] = useState('');
@@ -71,7 +71,14 @@ const RecapHeader: React.FC<QuranHeaderProps> = ({ page, translateMode = 'read',
     }[screenSize];
 
     const handleClick = () => {
-            window.location.href = '/recap';
+        if (target) {
+             window.location.href = target;
+             console.log(target);
+
+        } else {
+            window.location.href = '/result/page';
+             console.log(target);
+        }
     };
 
     const urlNow = window.location.pathname;
@@ -118,7 +125,7 @@ const RecapHeader: React.FC<QuranHeaderProps> = ({ page, translateMode = 'read',
     }
 
     const noFinishButton = () => {
-        return ['dashboard', 'filter', 'result','recap'].includes(segments[segments.length - 1]);
+        return ['dashboard', 'filter', 'result'].includes(segments[segments.length - 1]);
     };
 
     return (
@@ -128,7 +135,7 @@ const RecapHeader: React.FC<QuranHeaderProps> = ({ page, translateMode = 'read',
                     <div className="cursor-pointer" onClick={() => (window.location.href = `/`)}>
                         <FontAwesomeIcon icon={faHome} className={`${iconSize} text-[#2CA4AB]`} />
                     </div>
-                    <span className={`ml-1 ${textSize}`}>/ Recap</span>
+                    <span className={`ml-1 ${textSize}`}>/ {displaySegment}</span>
                 </div>
                 {translateMode === 'read' && (
                     <div className="flex w-auto cursor-pointer items-center justify-center p-1 pe-10 text-center" onClick={handleClick}>
@@ -147,4 +154,4 @@ const RecapHeader: React.FC<QuranHeaderProps> = ({ page, translateMode = 'read',
     );
 };
 
-export default RecapHeader;
+export default PageHeader;

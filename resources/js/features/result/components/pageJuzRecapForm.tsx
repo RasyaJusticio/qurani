@@ -78,7 +78,7 @@ interface FormData {
 const t = (key: string): string => {
     const translations: { [key: string]: string } = {
         'general.hasilrekap': 'Hasil Setoran',
-        'rekapan.form.peserta': 'Peserta page',
+        'rekapan.form.peserta': 'Peserta',
         'rekapan.form.awal_surah': 'Awal Surah',
         'rekapan.form.awal_ayat': 'Awal Ayat',
         'rekapan.form.akhir_surah': 'Akhir Surah',
@@ -125,8 +125,46 @@ const PageRecapFormLayout: React.FC = () => {
 
     useEffect(() => {
         try {
-            const storedData = localStorage.getItem('setoran-data');
-            const parsedData: SetoranData | null = storedData ? JSON.parse(storedData) : null;
+            // Simulasi data dari localStorage berdasarkan input pengguna
+            const parsedData: SetoranData = {
+                reciter: {
+                    user_name: "linkid_moderator",
+                    full_name: "LinkID Moderator",
+                    user_id: "", // Tidak ada user_id di data, jadi dikosongkan
+                },
+                recipient: "4",
+                setoran_type: "tahsin",
+                display: "page",
+                page_number: "9",
+                surah: {
+                    id: "page-9",
+                    name: "Page 9",
+                    first_surah: "2",
+                    last_surah: "2",
+                    first_verse: "58",
+                    last_verse: "61",
+                    surahs: [
+                        {
+                            id: "2",
+                            name: "Al-Baqarah",
+                            from: "58",
+                            to: "61",
+                        },
+                    ],
+                },
+                mistake: {
+                    "9": {
+                        salahAyat: [],
+                        salahKata: [
+                            {
+                                salahKey: "sk-5",
+                                kata: { text: "هَـٰذِهِ" },
+                                salah: "Lupa",
+                            },
+                        ],
+                    },
+                },
+            };
 
             if (parsedData && parsedData.display === 'page') {
                 setSetoranData(parsedData);
@@ -289,7 +327,7 @@ const PageRecapFormLayout: React.FC = () => {
     const pageName: string = getPageName(setoranData);
 
     return (
-        <div className="min-h-screen bg-gray-50 py-6 mt-20">
+        <div className="min-h-screen bg-gray-50 py-6">
             <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8">
                 <div className="mb-6 text-center">
                     <h1 className="mb-1 text-2xl font-bold text-gray-900">{t('general.hasilrekap')}</h1>
@@ -302,7 +340,7 @@ const PageRecapFormLayout: React.FC = () => {
                             <input
                                 type="text"
                                 className="w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:border-transparent focus:ring-1 focus:ring-blue-500"
-                                value={form.data.reciter?.full_name || ''}
+                                value={form.data.reciter?.full_name || 'LinkID Moderator'}
                                 disabled
                             />
                         </div>
@@ -313,7 +351,7 @@ const PageRecapFormLayout: React.FC = () => {
                                 <input
                                     type="text"
                                     className="w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-900"
-                                    value={setoranData.surah.surahs.find(s => s.id === setoranData.surah.first_surah)?.name || ''}
+                                    value={setoranData.surah.surahs.find(s => s.id === setoranData.surah.first_surah)?.name || 'Al-Baqarah'}
                                     disabled
                                 />
                             </div>
@@ -322,7 +360,7 @@ const PageRecapFormLayout: React.FC = () => {
                                 <select
                                     name="first_verse"
                                     className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-1 focus:ring-blue-500"
-                                    value={form.data.first_verse}
+                                    value={form.data.first_verse || '58'}
                                     onChange={handleChange}
                                 >
                                     <option value="" className="text-sm text-gray-400">
@@ -341,7 +379,7 @@ const PageRecapFormLayout: React.FC = () => {
                                 <input
                                     type="text"
                                     className="w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-900"
-                                    value={setoranData.surah.surahs.find(s => s.id === setoranData.surah.last_surah)?.name || ''}
+                                    value={setoranData.surah.surahs.find(s => s.id === setoranData.surah.last_surah)?.name || 'Al-Baqarah'}
                                     disabled
                                 />
                             </div>
@@ -350,7 +388,7 @@ const PageRecapFormLayout: React.FC = () => {
                                 <select
                                     name="last_verse"
                                     className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-1 focus:ring-blue-500"
-                                    value={form.data.last_verse}
+                                    value={form.data.last_verse || '61'}
                                     onChange={handleChange}
                                 >
                                     <option value="" className="text-sm text-gray-400">

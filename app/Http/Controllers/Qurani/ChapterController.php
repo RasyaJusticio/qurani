@@ -16,12 +16,10 @@ class ChapterController extends Controller
 
     public function show($id, Request $request)
     {
-        // Validate chapter ID
         if ($id < 1 || $id > 114) {
             abort(404, 'Surah tidak ditemukan');
         }
 
-        // Fetch chapter details
         $surah = Chapter::findOrFail($id, [
             'id',
             'revelation_place',
@@ -32,7 +30,6 @@ class ChapterController extends Controller
             'translated_name'
         ]);
 
-        // Fetch all verses for the chapter (no pagination)
         $verses = Verses::where('verse_key', 'like', $id . ':%')
             ->orderBy('verse_number')
             ->select([
@@ -45,10 +42,9 @@ class ChapterController extends Controller
             ])
             ->get();
 
-        // Fetch words and end markers
         if ($verses->isNotEmpty()) {
             $verseKeys = $verses->pluck('verse_key')->toArray();
-            $wordsGroup = $this->fetchWordsForVerses($verseKeys); // Assuming this fetches all words
+            $wordsGroup = $this->fetchWordsForVerses($verseKeys);
             $endMarkers = Word::where(function ($query) use ($verseKeys) {
                 foreach ($verseKeys as $key) {
                     $query->orWhere('location', 'like', $key . ':%');
@@ -62,23 +58,23 @@ class ChapterController extends Controller
                     return "$surah:$verse";
                 });
 
-            $verses->transform(function ($verse) use ($wordsGroup, $endMarkers) {
+            $verses->transform(callback: function ($verse) use ($wordsGroup, $endMarkers) {
                 $verse->words = $wordsGroup->get($verse->verse_key, collect())->map(function ($word) {
                     return [
                         'id' => $word->id,
                         'position' => $word->position,
                         'text_uthmani' => $word->text_uthmani,
-                        'char_type_name' => $word->char_type_name
+                        'char_type_name' => $word->char_type_name,
+                        'location' => $word->location
                     ];
                 })->filter(function ($word) {
-                    return $word['char_type_name'] === 'word'; // Only include words, not end markers
+                    return $word['char_type_name'] === 'word';
                 })->values();
                 $verse->end_marker = $endMarkers->get($verse->verse_key, (object)['text_uthmani' => ''])->text_uthmani;
                 return $verse;
             });
         }
 
-        // Render the Inertia view
         return Inertia::render('surah/Index', [
             'surah' => [
                 'id' => $surah->id,

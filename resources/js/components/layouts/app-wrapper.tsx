@@ -37,10 +37,13 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ children }) => {
 
         const handleMessage = (event: MessageEvent) => {
             const cUser = event.data?.data?.c_user;
+
+            const oldSetoranData = JSON.parse(localStorage.getItem('setoran-data') ?? '{}');
             const setoranData = {
+                ...oldSetoranData,
                 recipient: cUser,
             }
-            localStorage.setItem('setoran-data',JSON.stringify(setoranData));
+            localStorage.setItem('setoran-data', JSON.stringify(setoranData));
             axios
                 .post('/set-cookie', {
                     u_id: cUser,

@@ -4,6 +4,7 @@ import MistakeModal from '../../components/layouts/mistakeModal';
 import AppWrapper from '@/components/layouts/app-wrapper';
 import QuranHeader from '@/components/layouts/main-header';
 import { Inertia } from '@inertiajs/inertia';
+import PageHeader from '@/components/layouts/page-juz-header';
 
 interface Word {
   id: number;
@@ -256,13 +257,11 @@ export default function PageIndex() {
   return (
     <AppWrapper>
       <Head title="Page" />
-      <QuranHeader
+      <PageHeader
         page={1}
         translateMode="read"
-        classNav="ms-3"
-        onFinish={() => {
-          Inertia.visit('/result-page');
-        }}
+        classNav=""
+        target='/result/page'
       />
       <div className="container mx-auto max-w-3xl p-4">
         <MistakeModal

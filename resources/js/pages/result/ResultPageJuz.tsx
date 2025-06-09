@@ -1,13 +1,14 @@
 import AppWrapper from '@/components/layouts/app-wrapper';
 import QuranHeader from '@/components/layouts/main-header';
-import PageRecapFormLayout from '@/features/result/components/pageRecapForm';
+import RecapHeader from '@/components/layouts/recap-header';
+import PageRecapFormLayout from '@/features/result/components/pageJuzRecapForm';
 import { Head } from '@inertiajs/react';
 
 const index = () => {
     return (
         <AppWrapper>
             <Head title="Recap" />
-            <QuranHeader page={1} translateMode="read" classNav="ms-3" target="/result-page" />
+            <RecapHeader page={1} translateMode="read" classNav="" target="/result-page" />
             <div>
                 <PageRecapFormLayout />
             </div>
