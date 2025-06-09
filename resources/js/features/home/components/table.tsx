@@ -1,6 +1,14 @@
-import { Grid2X2, SquareActivity, Check } from 'lucide-react';
-import React from 'react';
+import { Inertia } from '@inertiajs/inertia';
+import { router } from '@inertiajs/react';
 import axios from 'axios';
+import { Check, Grid2X2, SquareActivity } from 'lucide-react';
+import React from 'react';
+
+interface HistoryTableProps {
+    fluidDesign: boolean;
+    setoran: any[];
+}
+
 
 const formatTime = (timeString: string) => {
     const date = new Date(timeString);
@@ -16,7 +24,7 @@ const config = {
     PARENT_WEB: import.meta.env.VITE_PARENT_URL,
 };
 
-const HistoryTable: React.FC<{ fluidDesign: boolean; setoran: any[] }> = ({ fluidDesign, setoran }) => {
+const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => {
     const fetchSetoranDetails = async (id: number) => {
         try {
             const response = await axios.get(`/setoran/${id}`);
@@ -51,6 +59,18 @@ const HistoryTable: React.FC<{ fluidDesign: boolean; setoran: any[] }> = ({ flui
     const openUserProfile = (username: string) => {
         window.open(`${config.PARENT_WEB}/${username}`, '_blank');
     };
+    const handleSign = async (id: number) => {
+        try {
+            await axios.post(`/setoran/${id}/sign`);
+            console.log('bisa');
+            router.reload({
+                only:['setoran'],
+            });
+        } catch (error) {
+            console.error('Error signing:', error);
+            alert('Failed to sign the record');
+        }
+    };
 
     return (
         <div className={fluidDesign ? 'mt-3 w-full' : 'mx-auto mt-3 w-full'}>
@@ -82,10 +102,7 @@ const HistoryTable: React.FC<{ fluidDesign: boolean; setoran: any[] }> = ({ flui
                             <thead>
                                 <tr className="bg-gray-100">
                                     {['Time', 'Reciter', 'Recipient', 'Recite', 'Results', 'Signature'].map((header) => (
-                                        <th
-                                            key={header}
-                                            className="border border-gray-200 px-4 py-2 text-left text-sm font-medium text-gray-700"
-                                        >
+                                        <th key={header} className="border border-gray-200 px-4 py-2 text-left text-sm font-medium text-gray-700">
                                             {header}
                                         </th>
                                     ))}
@@ -94,14 +111,8 @@ const HistoryTable: React.FC<{ fluidDesign: boolean; setoran: any[] }> = ({ flui
                             <tbody>
                                 {setoran?.length > 0 ? (
                                     setoran.map((item) => (
-                                        <tr
-                                            key={item.id}
-                                            className="cursor-pointer hover:bg-gray-50"
-                                            onClick={() => fetchSetoranDetails(item.id)}
-                                        >
-                                            <td className="border border-gray-200 px-4 py-2 text-sm text-gray-600">
-                                                {formatTime(item.time)}
-                                            </td>
+                                        <tr key={item.id} className="cursor-pointer hover:bg-gray-50" onClick={() => fetchSetoranDetails(item.id)}>
+                                            <td className="border border-gray-200 px-4 py-2 text-sm text-gray-600">{formatTime(item.time)}</td>
                                             <td
                                                 className="border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:underline"
                                                 onClick={(e) => {
@@ -120,16 +131,24 @@ const HistoryTable: React.FC<{ fluidDesign: boolean; setoran: any[] }> = ({ flui
                                             >
                                                 {item.recipient}
                                             </td>
-                                            <td className="border border-gray-200 px-4 py-2 text-sm text-gray-600">
-                                                {item.recite}
-                                            </td>
-                                            <td className="border border-gray-200 px-4 py-2 text-sm text-gray-600">
-                                                {item.results}
-                                            </td>
-                                            <td className="border border-gray-200 px-4 py-2 text-sm text-gray-600">
+                                            <td className="border border-gray-200 px-4 py-2 text-sm text-gray-600">{item.recite}</td>
+                                            <td className="border border-gray-200 px-4 py-2 text-sm text-gray-600">{item.results}</td>
+                                            <td
+                                                className="border border-gray-200 px-4 py-2 text-sm text-gray-600 flex justify-center items-center"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (item.signature === 0) {
+                                                        if (window.confirm('Confirm to sign this record?')) {
+                                                            handleSign(item.id);
+                                                        }
+                                                    }
+                                                }}
+                                            >
                                                 <Check
                                                     size={20}
-                                                    className={item.signature === 0 ? 'text-gray-400' : 'text-blue-500'}
+                                                    className={
+                                                        item.signature === 0 ? 'cursor-pointer text-gray-400 hover:text-gray-600' : 'text-blue-500'
+                                                    }
                                                 />
                                             </td>
                                         </tr>

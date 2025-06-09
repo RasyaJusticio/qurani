@@ -9,6 +9,7 @@ use App\Models\Qurani\Juz;
 use Illuminate\Http\Request;
 use App\Models\LinkID\User;
 use App\Models\LinkID\QuSetoran;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cookie;
@@ -213,65 +214,65 @@ class HomeController extends Controller
     }
 
     private function getSetoran()
-{
-    try {
-        $uId = request()->cookie('u_id');
-        if (!$uId) {
+    {
+        try {
+            $uId = request()->cookie('u_id');
+            if (!$uId) {
+                return [];
+            }
+
+            return QuSetoran::select(
+                'qu_setoran.id',
+                'qu_setoran.tgl',
+                DB::raw("CONCAT(penyetor.user_firstname, ' ', penyetor.user_lastname) AS reciter_name"),
+                'penyetor.user_name AS reciter_username',
+                DB::raw("CONCAT(penerima.user_firstname, ' ', penerima.user_lastname) AS recipient_name"),
+                'penerima.user_name AS recipient_username',
+                'qu_setoran.setoran',
+                'qu_setoran.tampilan',
+                'qu_setoran.nomor',
+                'qu_setoran.info',
+                'qu_setoran.hasil',
+                'qu_setoran.ket',
+                'qu_setoran.perhalaman',
+                'qu_setoran.paraf',
+            )
+                ->join('users AS penyetor', 'qu_setoran.penyetor', '=', 'penyetor.user_id')
+                ->join('users AS penerima', 'qu_setoran.penerima', '=', 'penerima.user_id')
+                ->where(function ($query) use ($uId) {
+                    $query->where('qu_setoran.penyetor', $uId) // User sebagai reciter
+                        ->orWhere('qu_setoran.penerima', $uId); // User sebagai recipient
+                })
+                ->orderBy('qu_setoran.tgl', 'desc')
+                ->limit(10)
+                ->get()
+                ->map(function ($item) {
+                    $surahName = null;
+                    if ($item->tampilan === 'surah') {
+                        $chapter = Chapter::find($item->nomor);
+                        $surahName = $chapter ? $chapter->name_simple : null;
+                    }
+                    $display = ($item->tampilan === 'surah' && $surahName)
+                        ? $surahName
+                        : $item->nomor;
+                    return [
+                        'id' => $item->id,
+                        'time' => \Carbon\Carbon::parse($item->tgl)->toDateTimeString(),
+                        'reciter' => $item->reciter_name,
+                        'reciter_username' => $item->reciter_username,
+                        'recipient' => $item->recipient_name,
+                        'recipient_username' => $item->recipient_username,
+                        'recite' => ucfirst($item->setoran) . ' ' . ucfirst($item->tampilan) . ' ' . $display . ' Ayat ' . $item->info,
+                        'results' => $item->hasil,
+                        'signature' => $item->paraf ? 1 : 0,
+                    ];
+                })
+                ->toArray();
+        } catch (Exception $e) {
+            Log::error('Error in getSetoran', ['message' => $e->getMessage()]);
             return [];
         }
-
-        return QuSetoran::select(
-            'qu_setoran.id',
-            'qu_setoran.tgl',
-            DB::raw("CONCAT(penyetor.user_firstname, ' ', penyetor.user_lastname) AS reciter_name"),
-            'penyetor.user_name AS reciter_username',
-            DB::raw("CONCAT(penerima.user_firstname, ' ', penerima.user_lastname) AS recipient_name"),
-            'penerima.user_name AS recipient_username',
-            'qu_setoran.setoran',
-            'qu_setoran.tampilan',
-            'qu_setoran.nomor',
-            'qu_setoran.info',
-            'qu_setoran.hasil',
-            'qu_setoran.ket',
-            'qu_setoran.perhalaman',
-            'qu_setoran.paraf',
-        )
-            ->join('users AS penyetor', 'qu_setoran.penyetor', '=', 'penyetor.user_id')
-            ->join('users AS penerima', 'qu_setoran.penerima', '=', 'penerima.user_id')
-            ->where(function($query) use ($uId) {
-                $query->where('qu_setoran.penyetor', $uId) // User sebagai reciter
-                    ->orWhere('qu_setoran.penerima', $uId); // User sebagai recipient
-            })
-            ->orderBy('qu_setoran.tgl', 'desc')
-            ->limit(10)
-            ->get()
-            ->map(function ($item) {
-                $surahName = null;
-                if ($item->tampilan === 'surah') {
-                    $chapter = Chapter::find($item->nomor);
-                    $surahName = $chapter ? $chapter->name_simple : null;
-                }
-                $display = ($item->tampilan === 'surah' && $surahName)
-                    ? $surahName
-                    : $item->nomor;
-                return [
-                    'id' => $item->id,
-                    'time' => \Carbon\Carbon::parse($item->tgl)->toDateTimeString(),
-                    'reciter' => $item->reciter_name,
-                    'reciter_username' => $item->reciter_username,
-                    'recipient' => $item->recipient_name,
-                    'recipient_username' => $item->recipient_username,
-                    'recite' => ucfirst($item->setoran) . ' ' . ucfirst($item->tampilan) . ' ' . $display . ' Ayat ' . $item->info,
-                    'results' => $item->hasil,
-                    'signature' => $item->paraf ? 1 : 0,
-                ];
-            })
-            ->toArray();
-    } catch (Exception $e) {
-        Log::error('Error in getSetoran', ['message' => $e->getMessage()]);
-        return [];
     }
-}
 
     private function getSetoranRekap()
     {
@@ -350,74 +351,118 @@ class HomeController extends Controller
     }
 
     public function getSetoranById($id)
-{
-    try {
-        $setoran = QuSetoran::select(
-            'qu_setoran.id',
-            'qu_setoran.tgl',
-            'penyetor.user_name AS penyetor_username',
-            DB::raw("CONCAT(penyetor.user_firstname, ' ', penyetor.user_lastname) AS penyetor_fullname"),
-            'penerima.user_name AS penerima_username',
-            DB::raw("CONCAT(penerima.user_firstname, ' ', penerima.user_lastname) AS penerima_fullname"),
-            'qu_setoran.setoran',
-            'qu_setoran.tampilan',
-            'qu_setoran.nomor',
-            'qu_setoran.info',
-            'qu_setoran.hasil',
-            'qu_setoran.ket',
-            'qu_setoran.kesalahan',
-            'qu_setoran.perhalaman',
-            'qu_setoran.paraf',
-            'qu_setoran.paraftgl',
-            'qu_setoran.parafoleh'
-        )
-            ->join('users AS penyetor', 'qu_setoran.penyetor', '=', 'penyetor.user_id')
-            ->join('users AS penerima', 'qu_setoran.penerima', '=', 'penerima.user_id')
-            ->where('qu_setoran.id', $id)
-            ->first();
+    {
+        try {
+            $setoran = QuSetoran::select(
+                'qu_setoran.id',
+                'qu_setoran.tgl',
+                'penyetor.user_name AS penyetor_username',
+                DB::raw("CONCAT(penyetor.user_firstname, ' ', penyetor.user_lastname) AS penyetor_fullname"),
+                'penerima.user_name AS penerima_username',
+                DB::raw("CONCAT(penerima.user_firstname, ' ', penerima.user_lastname) AS penerima_fullname"),
+                'qu_setoran.setoran',
+                'qu_setoran.tampilan',
+                'qu_setoran.nomor',
+                'qu_setoran.info',
+                'qu_setoran.hasil',
+                'qu_setoran.ket',
+                'qu_setoran.kesalahan',
+                'qu_setoran.perhalaman',
+                'qu_setoran.paraf',
+                'qu_setoran.paraftgl',
+                'qu_setoran.parafoleh'
+            )
+                ->join('users AS penyetor', 'qu_setoran.penyetor', '=', 'penyetor.user_id')
+                ->join('users AS penerima', 'qu_setoran.penerima', '=', 'penerima.user_id')
+                ->where('qu_setoran.id', $id)
+                ->first();
 
-        if (!$setoran) {
-            return response()->json(['error' => 'Setoran not found'], 404);
+            if (!$setoran) {
+                return response()->json(['error' => 'Setoran not found'], 404);
+            }
+
+            $surahName = null;
+            if ($setoran->tampilan === 'surah') {
+                $chapter = Chapter::find($setoran->nomor);
+                $surahName = $chapter ? $chapter->name_simple : null;
+            }
+
+            // Check if perhalaman is a JSON string or already an array
+            $perhalaman = is_string($setoran->perhalaman)
+                ? json_decode($setoran->perhalaman, true)
+                : (is_array($setoran->perhalaman) ? $setoran->perhalaman : []);
+
+            return response()->json([
+                'id' => $setoran->id,
+                'tgl' => $setoran->tgl,
+                'penyetor' => [
+                    'username' => $setoran->penyetor_username,
+                    'fullname' => $setoran->penyetor_fullname,
+                ],
+                'penerima' => [
+                    'username' => $setoran->penerima_username,
+                    'fullname' => $setoran->penerima_fullname,
+                ],
+                'setoran' => $setoran->setoran,
+                'tampilan' => $setoran->tampilan,
+                'nomor' => $setoran->nomor,
+                'info' => $setoran->info,
+                'hasil' => $setoran->hasil,
+                'ket' => $setoran->ket,
+                'kesalahan' => $setoran->kesalahan,
+                'perhalaman' => $perhalaman,
+                'paraf' => $setoran->paraf,
+                'paraftgl' => $setoran->paraftgl,
+                'parafoleh' => $setoran->parafoleh,
+                'surah_name' => $surahName,
+            ]);
+        } catch (Exception $e) {
+            Log::error('Error in getSetoranById', ['message' => $e->getMessage()]);
+            return response()->json(['error' => 'Terjadi kesalahan saat mengambil data'], 500);
         }
-
-        $surahName = null;
-        if ($setoran->tampilan === 'surah') {
-            $chapter = Chapter::find($setoran->nomor);
-            $surahName = $chapter ? $chapter->name_simple : null;
-        }
-
-        // Check if perhalaman is a JSON string or already an array
-        $perhalaman = is_string($setoran->perhalaman)
-            ? json_decode($setoran->perhalaman, true)
-            : (is_array($setoran->perhalaman) ? $setoran->perhalaman : []);
-
-        return response()->json([
-            'id' => $setoran->id,
-            'tgl' => $setoran->tgl,
-            'penyetor' => [
-                'username' => $setoran->penyetor_username,
-                'fullname' => $setoran->penyetor_fullname,
-            ],
-            'penerima' => [
-                'username' => $setoran->penerima_username,
-                'fullname' => $setoran->penerima_fullname,
-            ],
-            'setoran' => $setoran->setoran,
-            'tampilan' => $setoran->tampilan,
-            'nomor' => $setoran->nomor,
-            'info' => $setoran->info,
-            'hasil' => $setoran->hasil,
-            'ket' => $setoran->ket,
-            'kesalahan' => $setoran->kesalahan,
-            'perhalaman' => $perhalaman,
-            'paraf' => $setoran->paraf,
-            'paraftgl' => $setoran->paraftgl,
-            'parafoleh' => $setoran->parafoleh,
-            'surah_name' => $surahName,
-        ]);
-    } catch (Exception $e) {
-        Log::error('Error in getSetoranById', ['message' => $e->getMessage()]);
-        return response()->json(['error' => 'Terjadi kesalahan saat mengambil data'], 500);
     }
-}
+    public function updateSignature(Request $request, $id)
+    {
+        try {
+            $userId = $request->cookie('u_id');
+            if (!$userId) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
+
+            $setoran = QuSetoran::find($id);
+            if (!$setoran) {
+                return response()->json(['error' => 'Setoran not found'], 404);
+            }
+
+            if ($setoran->penerima != $userId && $setoran->penyetor != $userId) {
+                return response()->json(['error' => 'Unauthorized to sign this record'], 403);
+            }
+
+            $setoran->update([
+                'paraf' => 1,
+                'paraftgl' => Carbon::now(),
+                'parafoleh' => $userId
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Signature updated successfully',
+                'data' => [
+                    'id' => $setoran->id,
+                    'signature' => 1
+                ]
+            ]);
+
+        } catch (Exception $e) {
+            Log::error('Error in SignatureController@updateSignature', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'error' => 'Failed to update signature',
+                'details' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
