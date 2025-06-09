@@ -1,6 +1,5 @@
 import { router } from '@inertiajs/react';
 import axios from 'axios';
-import Cookies from 'js-cookie';
 import React, { useEffect } from 'react';
 import IFrameGuard from './iframe-guard';
 

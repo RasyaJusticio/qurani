@@ -13,22 +13,37 @@
     },
     "placeholders": {
         "select_group": "Pilih Grup",
+        "select_member": "Pilih Anggota",
         "select_group_first": "Pilih grup terlebih dahulu",
         "select_friend": "Pilih Teman",
         "select_surah": "Pilih Surat",
         "select_juz": "Pilih Juz",
-        "select_page": "Pilih Halaman"
+        "select_page": "Pilih Halaman",
+        "search_surah": "Cari Surat",
+        "search_juz": "Cari Juz",
+        "search_page": "Cari Halaman",
+        "search_group": "Cari Grup",
+        "search_member": "Cari Anggota",
+        "search_friend": "Cari Teman"
+    },
+    "notFoundText": {
+        "member_not_found": "Anggota tidak ditemukan",
+        "group_not_found": "Grup tidak ditemukan",
+        "friend_not_found": "Teman tidak ditemukan",
+        "surah_not_found": "Surat tidak ditemukan",
+        "juz_not_found": "Juz tidak ditemukan",
+        "page_not_found": "Halaman tidak ditemukan"
     },
     "buttons": {
         "reset": "Reset",
         "submit": "Kirim",
-        "quick_select": {
+        "quick      _select": {
             "1": "Al-Fatihah",
             "36": "Yasin",
             "112": "Al-Ikhlas",
             "114": "An-Nas"
         }
-    },
+            },
     "messages": {
         "join_group_first": "Bergabung dengan grup terlebih dahulu",
         "no_friends_available": "Tidak ada teman yang tersedia"
@@ -41,6 +56,16 @@
         "surah": "Surat",
         "juz": "Juz",
         "page": "Halaman"
+    },
+    "newErrors": {
+        "Group_must_be_selected": "Pilih grup terlebih dahulu",
+        "Member_must_be_selected": "Pilih member terlebih dahulu",
+        "Friend_must_be_selected": "Pilih teman terlebih dahulu",
+        "Type_of_deposit_must_be_selected": "Pilih jenis setoran terlebih dahulu",
+        "Display_must_be_selected": "Pilih tampilan terlebih dahulu",
+        "Surah_must_be_selected": "Pilih surah terlebih dahulu",
+        "Juz_must_be_selected": "Pilih juz terlebih dahulu",
+        "Page_must_be_selected": "Pilih halaman terlebih dahulu"
     },
     "surah_list": [
         { "value": "1", "name": "Al-Fatihah (1)" },
