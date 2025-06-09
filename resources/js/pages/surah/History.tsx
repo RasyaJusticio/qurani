@@ -1,9 +1,8 @@
 import AppWrapper from '@/components/layouts/app-wrapper';
 import { Head, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
-import MistakeModal from '../../components/layouts/mistakeModal';
 import QuranHeader from '@/components/layouts/main-header';
-import { Inertia } from '@inertiajs/inertia';
+import RecapHeader from '@/components/layouts/recap-header';
 
 interface Word {
   id: number;
@@ -37,56 +36,6 @@ interface PageProps {
   surah: Surah;
   verses: Verse[];
 }
-
-
-interface Word {
-  id: number;
-  position: number;
-  text_uthmani: string;
-  char_type_name: string;
-}
-
-interface Verse {
-  id: number;
-  verse_number: number;
-  verse_key: string;
-  text_uthmani: string;
-  page_number: number;
-  juz_number: number;
-  end_marker: string;
-  words: Word[];
-}
-
-interface Surah {
-  id: number;
-  revelation_place: string;
-  bismillah_pre: boolean | null;
-  name_simple: string;
-  name_arabic: string;
-  verses_count: number;
-  translated_name: { name: string; language_name: string };
-}
-
-interface PageProps {
-  surah: Surah;
-  verses: Verse[];
-}
-
-type ErrorsByPage = {
-  [page: string]: {
-    salahAyat: Array<{
-      salahKey: string;
-      NamaSurat: string;
-      noAyat: number;
-      salah: string;
-    }>;
-    salahKata: Array<{
-      salahKey: string;
-      kata: { text: string };
-      salah: string;
-    }>;
-  };
-};
 
 const errorLabels = [
   { id: 1, key: 'sa-1', value: 'Ayat Lupa', color: '#CCCCCC', status: 1 },
@@ -111,64 +60,11 @@ const errorLabels = [
 ];
 
 export default function SurahIndex() {
-  // Mock data - ganti dengan props asli
-  const surah: Surah = {
-    id: 36,
-    revelation_place: "Mecca",
-    bismillah_pre: true,
-    name_simple: "Ya-Sin",
-    name_arabic: "يس",
-    verses_count: 83,
-    translated_name: { name: "Ya-Sin", language_name: "English" }
-  };
-
-  const verses: Verse[] = [
-    {
-      id: 1,
-      verse_number: 1,
-      verse_key: "36:1",
-      text_uthmani: "يس",
-      page_number: 440,
-      juz_number: 22,
-      end_marker: "1",
-      words: [
-        { id: 1, position: 1, text_uthmani: "يس", char_type_name: "word" }
-      ]
-    },
-    {
-      id: 2,
-      verse_number: 2,
-      verse_key: "36:2",
-      text_uthmani: "وَالْقُرْآنِ الْحَكِيمِ",
-      page_number: 440,
-      juz_number: 22,
-      end_marker: "2",
-      words: [
-        { id: 2, position: 1, text_uthmani: "وَالْقُرْآنِ", char_type_name: "word" },
-        { id: 3, position: 2, text_uthmani: "الْحَكِيمِ", char_type_name: "word" }
-      ]
-    },
-    {
-      id: 3,
-      verse_number: 3,
-      verse_key: "36:3",
-      text_uthmani: "إِنَّكَ لَمِنَ الْمُرْسَلِينَ",
-      page_number: 440,
-      juz_number: 22,
-      end_marker: "3",
-      words: [
-        { id: 4, position: 1, text_uthmani: "إِنَّكَ", char_type_name: "word" },
-        { id: 5, position: 2, text_uthmani: "لَمِنَ", char_type_name: "word" },
-        { id: 6, position: 3, text_uthmani: "الْمُرْسَلِينَ", char_type_name: "word" }
-      ]
-    }
-  ];
-
+  const { surah, verses } = usePage<PageProps>().props;
   const [wordErrors, setWordErrors] = useState<{ [key: number]: string }>({});
   const [verseErrors, setVerseErrors] = useState<{ [key: number]: string }>({});
 
   useEffect(() => {
-    // Load errors from localStorage
     const loadErrorsFromLocalStorage = () => {
       try {
         const existingData = localStorage.getItem('setoran-data');
@@ -180,11 +76,9 @@ export default function SurahIndex() {
             const newVerseErrors: { [key: number]: string } = {};
 
             data.mistake.forEach((mistakeData: any) => {
-              // Process salah_kata
               if (mistakeData.salah_kata && Array.isArray(mistakeData.salah_kata)) {
                 mistakeData.salah_kata.forEach((wordError: any) => {
                   const wordText = wordError.kata.text;
-                  // Find word by text in verses
                   verses.forEach(verse => {
                     verse.words.forEach(word => {
                       if (word.text_uthmani === wordText) {
@@ -195,11 +89,9 @@ export default function SurahIndex() {
                 });
               }
 
-              // Process salah_ayat
               if (mistakeData.salah_ayat && Array.isArray(mistakeData.salah_ayat)) {
                 mistakeData.salah_ayat.forEach((verseError: any) => {
                   const verseNumber = verseError.noAyat;
-                  // Find verse by verse_number
                   const verse = verses.find(v => v.verse_number === verseNumber);
                   if (verse) {
                     newVerseErrors[verse.id] = verseError.salahKey;
@@ -231,14 +123,12 @@ export default function SurahIndex() {
 
   return (
     <AppWrapper>
-      <div>
-        <title>Page</title>
-      </div>
-      <QuranHeader
+      <Head title={`${surah.name_simple} - Recap`} />
+      <RecapHeader
         page={1}
         translateMode="read"
         classNav="ms-3"
-        target='/result'
+        target="/result"
       />
       <div className="mx-auto max-w-3xl p-4 overflow-auto">
         <div className="mb-12 text-center mt-20">
@@ -247,37 +137,60 @@ export default function SurahIndex() {
           </p>
           {surah.bismillah_pre && (
             <p className="font-arabic mt-6 text-5xl text-gray-800" style={{ direction: 'rtl' }}>
-              بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
+              بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
             </p>
           )}
         </div>
         <div className="font-arabic text-right text-3xl leading-loose text-gray-800" style={{ direction: 'rtl' }}>
           {verses.map((verse, index) => (
             <span key={verse.id}>
-              {verse.words.map((word) => (
-                <span
-                  key={word.id}
-                  className="inline-block px-1"
-                  style={{
-                    backgroundColor: wordErrors[word.id] ? errorLabels.find((label) => label.key === wordErrors[word.id])?.color || 'transparent' : 'transparent',
-                    lineHeight: '1.5em',
-                    verticalAlign: 'middle',
-                  }}
-                >
-                  {word.text_uthmani}{' '}
-                </span>
-              ))}
+              {verse.words.map((word) => {
+                const errorLabel = wordErrors[word.id]
+                  ? errorLabels.find((label) => label.key === wordErrors[word.id])
+                  : null;
+                return (
+                  <span
+                    key={word.id}
+                    className="relative inline-block px-1 group"
+                    style={{
+                      backgroundColor: errorLabel?.color || 'transparent',
+                      lineHeight: '1.5em',
+                      verticalAlign: 'middle',
+                    }}
+                    aria-label={errorLabel ? `Kesalahan: ${errorLabel.value}` : undefined}
+                  >
+                    {word.text_uthmani}{' '}
+                    {errorLabel && (
+                      <div className="absolute left-1/2 bottom-full mb-2 hidden -translate-x-1/2 transform rounded-md bg-black px-2 py-1 text-xs text-white group-hover:block z-10 after:content-[''] after:absolute after:left-1/2 after:top-full after:-translate-x-1/2 after:border-4 after:border-transparent after:border-t-black">
+                        {errorLabel.value}
+                      </div>
+                    )}
+                  </span>
+                );
+              })}
               <span
-                className="font-arabic inline-flex items-center justify-center text-3xl text-gray-700 px-1"
+                className="font-arabic relative inline-flex items-center justify-center text-3xl text-gray-700 px-1 group"
                 style={{
-                  backgroundColor: verseErrors[verse.id] ? errorLabels.find((label) => label.key === verseErrors[verse.id])?.color || 'transparent' : 'transparent',
+                  backgroundColor: verseErrors[verse.id]
+                    ? errorLabels.find((label) => label.key === verseErrors[verse.id])?.color || 'transparent'
+                    : 'transparent',
                   lineHeight: '1.5em',
                   verticalAlign: 'middle',
                   minWidth: '2em',
                   textAlign: 'center',
                 }}
+                aria-label={
+                  verseErrors[verse.id]
+                    ? `Kesalahan: ${errorLabels.find((label) => label.key === verseErrors[verse.id])?.value}`
+                    : undefined
+                }
               >
                 ۝{verse.end_marker || verse.verse_number}
+                {verseErrors[verse.id] && (
+                  <div className="absolute left-1/2 bottom-full mb-2 hidden -translate-x-1/2 transform rounded-md bg-black px-2 py-1 text-xs text-white group-hover:block z-10 after:content-[''] after:absolute after:left-1/2 after:top-full after:-translate-x-1/2 after:border-4 after:border-transparent after:border-t-black">
+                    {errorLabels.find((label) => label.key === verseErrors[verse.id])?.value}
+                  </div>
+                )}
               </span>
               {groupedVerses[verse.page_number][groupedVerses[verse.page_number].length - 1].verse.id === verse.id && (
                 <div className="my-4 flex items-center">

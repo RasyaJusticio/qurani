@@ -190,6 +190,8 @@ const DisabledRecapFormLayout: React.FC = () => {
 
     const verseOptions: VerseOption[] = generateVerseOptions(setoranData);
     const surahName: string = getSurahName(setoranData);
+    console.log(setoranData.surah.id);
+
 
     const handleSubmit = () => {
         window.location.href = `/recap/surah/${setoranData.surah.id}`;
@@ -350,16 +352,13 @@ const DisabledRecapFormLayout: React.FC = () => {
                                                                         {idx + 1}
                                                                     </span>
                                                                     <div className="flex-1">
-                                                                        <div className="mb-1 flex items-center">
-                                                                            <span
-                                                                                className={`inline-block rounded-md px-2 py-0.5 text-xs font-medium ${getErrorTextColor(
-                                                                                    err.salahKey,
-                                                                                )} border bg-white`}
-                                                                            >
-                                                                                {err.NamaSurah} : {err.noAyat}
-                                                                            </span>
-                                                                        </div>
-                                                                        <p className="text-sm text-gray-700">{err.salah}</p>
+                                                                        <div className="flex-1 flex items-center">
+    <span className={`inline-block rounded-md px-2 py-0.5 text-xs font-medium ${getErrorTextColor(err.salahKey)} border bg-white`}>
+        {err.NamaSurah} : {err.noAyat}
+    </span>
+    <p className="text-sm text-gray-700 ml-2 text-right">{err.salah}</p>
+</div>
+                                                                        {/* <p className="text-sm text-gray-700">{err.salah}</p> */}
                                                                     </div>
                                                                 </div>
                                                             </div>

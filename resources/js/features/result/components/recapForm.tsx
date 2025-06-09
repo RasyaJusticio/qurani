@@ -473,17 +473,14 @@ const RecapFormLayout: React.FC = () => {
                                                                 <span className="mt-0.5 mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs font-medium text-gray-600">
                                                                     {idx + 1}
                                                                 </span>
-                                                                <div className="flex-1">
-                                                                    <div className="mb-1 flex items-center">
-                                                                        <span
-                                                                            className={`inline-block rounded-md px-2 py-0.5 text-xs font-medium ${getErrorTextColor(
-                                                                                err.salahKey
-                                                                            )} border bg-white`}
-                                                                        >
-                                                                            {err.NamaSurah} : {err.noAyat}
-                                                                        </span>
-                                                                    </div>
-                                                                    <p className="text-sm text-gray-700">{err.salah}</p>
+                                                                <div className="flex-1 flex items-center">
+                                                                   <div className="flex-1 flex items-center ">
+    <span className={`inline-block rounded-md px-2 py-0.5 text-xs font-medium ${getErrorTextColor(err.salahKey)} border bg-white`}>
+        Ayah : {err.noAyat}
+    </span>
+    <p className="text-sm text-gray-700 ml-2 text-right">{err.salah}</p>
+</div>
+                                                                    {/* <p className="text-sm text-gray-700">{err.salah}</p> */}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -518,17 +515,16 @@ const RecapFormLayout: React.FC = () => {
                                                                     {idx + 1}
                                                                 </span>
                                                                 <div className="flex-1">
-                                                                    <div className="mb-1 flex items-center">
-                                                                        <span
-                                                                            className={`inline-block rounded-md border bg-white px-2 py-1 text-base ${getErrorTextColor(
-                                                                                err.salahKey
-                                                                            )}`}
-                                                                            style={{ fontFamily: "'Scheherazade New', 'Amiri', serif" }}
-                                                                        >
-                                                                            {err.kata?.text || ''}
-                                                                        </span>
-                                                                    </div>
-                                                                    <p className="text-sm text-gray-700">{err.salah}</p>
+                                                                    <div className="flex-1 flex items-center">
+    <span
+        className={`inline-block rounded-md border bg-white px-2 py-1 text-base ${getErrorTextColor(err.salahKey)}`}
+        style={{ fontFamily: "'Scheherazade New', 'Amiri', serif" }}
+    >
+        {err.kata?.text || ''}
+    </span>
+    <p className="text-sm text-gray-700 ml-2 text-right">{err.salah}</p>
+</div>
+                                                                    {/* <p className="text-sm text-gray-700">{err.salah}</p> */}
                                                                 </div>
                                                             </div>
                                                         </div>

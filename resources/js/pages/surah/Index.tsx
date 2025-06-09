@@ -95,11 +95,9 @@ export default function SurahIndex() {
   const errorsByPage = generateErrorsByPage();
   const existingData = localStorage.getItem('setoran-data');
 
-  // Tentukan rentang ayat berdasarkan verses
   const startVerse = verses.length > 0 ? verses[0].verse_number : 1;
   const endVerse = verses.length > 0 ? verses[verses.length - 1].verse_number : surah.verses_count;
 
-  // Buat objek data yang akan disimpan
   let dataToSave = {
     reciter: { id: '12345', full_name: 'Ahmad Ridwan bin Abdullah' },
     setoran_type: 'tahsin',

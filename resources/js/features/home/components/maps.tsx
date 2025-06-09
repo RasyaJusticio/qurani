@@ -142,7 +142,7 @@ const Maps: React.FC<MapsProps> = ({ setoranRekap, setoranRekapTotal, periodes, 
                                 className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors hover:cursor-pointer appearance-none pr-8"
                                 aria-label="Filter by period"
                             >
-                                <option value="">Total Semua Periode</option>
+                                <option value="">All</option>
                                 {periodes.map((periode) => (
                                     <option key={periode} value={periode}>
                                         {new Date(periode + '-01').toLocaleString('id-ID', {

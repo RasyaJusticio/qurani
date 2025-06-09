@@ -38,6 +38,16 @@ interface UserData {
     signature?: string;
 }
 
+interface SavedSetoranData {
+    penyetor: string;
+    setoran: string;
+    tampilkan: string;
+    selectedGroup: string;
+    selectedSurahValue: string;
+    selectedJuz: string;
+    selectedHalaman: string;
+}
+
 const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs }) => {
     const { t } = useTranslation('form');
     const [translationsReady, setTranslationsReady] = useState(false);
@@ -59,6 +69,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
     const [selectedFriend, setSelectedFriend] = useState<string>('');
     const [selectedSurahValue, setSelectedSurahValue] = useState<string>('');
     const [currentMembers, setCurrentMembers] = useState<Friend[]>([]);
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
     const config = {
         PARENT_WEB: import.meta.env.VITE_PARENT_URL,
@@ -81,20 +92,53 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
     const halamanDropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        const savedData = localStorage.getItem('qurani-form-data');
+        if (savedData) {
+            try {
+                const parsedData: SavedSetoranData = JSON.parse(savedData);
+
+                setPenyetor(parsedData.penyetor || 'grup');
+                setSetoran(parsedData.setoran || 'tahsin');
+                setTampilkan(parsedData.tampilkan || 'surat');
+                setSelectedGroup(parsedData.selectedGroup || '');
+                setSelectedSurahValue(parsedData.selectedSurahValue || '');
+                setSelectedJuz(parsedData.selectedJuz || '');
+                setSelectedHalaman(parsedData.selectedHalaman || '');
+            } catch (error) {
+                console.error('Error parsing saved data:', error);
+            }
+        }
+    }, []);
+
+    useEffect(() => {
         if (selectedGroup) {
             const group = groups.find(g => g.group_id.toString() === selectedGroup);
             if (group && group.users) {
                 setCurrentMembers(group.users);
-                setSelectedMember('');
             } else {
                 setCurrentMembers([]);
-                setSelectedMember('');
             }
         } else {
             setCurrentMembers([]);
-            setSelectedMember('');
         }
     }, [selectedGroup, groups]);
+
+    useEffect(() => {
+        const saveFormData = () => {
+            const formData: SavedSetoranData = {
+                penyetor,
+                setoran,
+                tampilkan,
+                selectedGroup,
+                selectedSurahValue,
+                selectedJuz,
+                selectedHalaman
+            };
+            localStorage.setItem('qurani-form-data', JSON.stringify(formData));
+        };
+
+        saveFormData();
+    }, [penyetor, setoran, tampilkan, selectedGroup, selectedSurahValue, selectedJuz, selectedHalaman]);
 
     useEffect(() => {
         const loadUserData = () => {
@@ -118,8 +162,45 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
         loadTranslations();
     }, []);
 
+    const validateForm = (): boolean => {
+        const newErrors: Record<string, string> = {};
+
+        if (penyetor === 'grup') {
+            if (!selectedGroup) {
+                newErrors.group = 'Group harus dipilih';
+            }
+            if (!selectedMember) {
+                newErrors.member = 'Member harus dipilih';
+            }
+        } else if (penyetor === 'teman') {
+            if (!selectedFriend) {
+                newErrors.friend = 'Teman harus dipilih';
+            }
+        }
+
+        if (!setoran) {
+            newErrors.setoran = 'Jenis setoran harus dipilih';
+        }
+
+        if (!tampilkan) {
+            newErrors.tampilkan = 'Tampilan harus dipilih';
+        } else {
+            if (tampilkan === 'surat' && !selectedSurahValue) {
+                newErrors.surat = 'Surah harus dipilih';
+            } else if (tampilkan === 'juz' && !selectedJuz) {
+                newErrors.juz = 'Juz harus dipilih';
+            } else if (tampilkan === 'halaman' && !selectedHalaman) {
+                newErrors.halaman = 'Halaman harus dipilih';
+            }
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleQuickSelect = (value: string, name: string): void => {
         setSelectedSurahValue(value);
+        setErrors(prev => ({ ...prev, surat: '' }));
     };
 
     const getRedirectUrl = (): string => {
@@ -145,12 +226,13 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
         e.preventDefault();
+
+        if (!validateForm()) {
+            return;
+        }
+
         let reciter: { user_name: string; full_name: string } | null = null;
         if (penyetor === 'grup') {
-            if (!selectedGroup || !selectedMember) {
-                alert('Please select both a group and a member.');
-                return;
-            }
             const group = groups.find(g => g.group_id.toString() === selectedGroup);
             if (group) {
                 const member = group.users.find(u => u.user_name === selectedMember);
@@ -161,7 +243,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                     };
                 }
             }
-        } else if (penyetor === 'teman' && selectedFriend) {
+        } else if (penyetor === 'teman') {
             const friend = friends.find(f => f.user_name === selectedFriend);
             if (friend) {
                 reciter = {
@@ -207,7 +289,6 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
         }
 
         const redirectUrl = getRedirectUrl();
-        console.log(`Visiting URL: ${redirectUrl}`);
         if (redirectUrl !== '/') {
             window.location.href = redirectUrl;
         } else {
@@ -233,6 +314,8 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
         setHalamanInput('');
         setSelectedHalaman('');
         setCurrentMembers([]);
+        setErrors({});
+        localStorage.removeItem('qurani-form-data');
     };
 
     useEffect(() => {
@@ -287,7 +370,10 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                             name="penyetor"
                                             value="grup"
                                             checked={penyetor === 'grup'}
-                                            onChange={e => setPenyetor(e.target.value)}
+                                            onChange={e => {
+                                                setPenyetor(e.target.value);
+                                                setErrors(prev => ({ ...prev, group: '', member: '', friend: '' }));
+                                            }}
                                             className="mr-2 text-emerald-600 focus:ring-emerald-500"
                                         />
                                         <span className="text-sm text-neutral-950">{t('radio_options.group')}</span>
@@ -298,12 +384,16 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                             name="penyetor"
                                             value="teman"
                                             checked={penyetor === 'teman'}
-                                            onChange={e => setPenyetor(e.target.value)}
+                                            onChange={e => {
+                                                setPenyetor(e.target.value);
+                                                setErrors(prev => ({ ...prev, group: '', member: '', friend: '' }));
+                                            }}
                                             className="mr-2 text-emerald-600 focus:ring-emerald-500"
                                         />
                                         <span className="text-sm text-neutral-950">{t('radio_options.friend')}</span>
                                     </label>
                                 </div>
+                                {errors.penyetor && <p className="text-sm text-red-500">{errors.penyetor}</p>}
                             </div>
 
                             {penyetor === 'grup' && (
@@ -320,8 +410,13 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                                 searchPlaceholder="search group"
                                                 notFoundText="group not found"
                                                 value={selectedGroup}
-                                                onValueChange={setSelectedGroup}
+                                                onValueChange={(value) => {
+                                                    setSelectedGroup(value);
+                                                    setSelectedMember('');
+                                                    setErrors(prev => ({ ...prev, group: '' }));
+                                                }}
                                             />
+                                            {errors.group && <p className="mt-1 text-sm text-red-500">{errors.group}</p>}
                                         </div>
                                     </div>
                                     <div className="flex items-center space-x-2">
@@ -336,12 +431,16 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                                         label: member.user_fullname,
                                                         value: member.user_name,
                                                     }))}
-                                                    placeholder={!selectedGroup ? "select group first   " : "select member"}
+                                                    placeholder={!selectedGroup ? "select group first" : "select member"}
                                                     searchPlaceholder={!selectedGroup ? "" : "search member"}
                                                     notFoundText="member not found"
                                                     value={selectedMember}
-                                                    onValueChange={setSelectedMember}
+                                                    onValueChange={(value) => {
+                                                        setSelectedMember(value);
+                                                        setErrors(prev => ({ ...prev, member: '' }));
+                                                    }}
                                                 />
+                                                {errors.member && <p className="mt-1 text-sm text-red-500">{errors.member}</p>}
                                             </div>
                                         </div>
                                     </div>
@@ -358,8 +457,12 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                             searchPlaceholder="search friend"
                                             notFoundText="friend not found"
                                             value={selectedFriend}
-                                            onValueChange={setSelectedFriend}
+                                            onValueChange={(value) => {
+                                                setSelectedFriend(value);
+                                                setErrors(prev => ({ ...prev, friend: '' }));
+                                            }}
                                         />
+                                        {errors.friend && <p className="mt-1 text-sm text-red-500">{errors.friend}</p>}
                                     </div>
                                 </div>
                             )}
@@ -373,7 +476,10 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                             name="setoran"
                                             value="tahsin"
                                             checked={setoran === 'tahsin'}
-                                            onChange={e => setSetoran(e.target.value)}
+                                            onChange={e => {
+                                                setSetoran(e.target.value);
+                                                setErrors(prev => ({ ...prev, setoran: '' }));
+                                            }}
                                             className="mr-2 text-emerald-600 focus:ring-emerald-500"
                                         />
                                         <span className="text-sm text-neutral-950">{t('radio_options.tahsin')}</span>
@@ -384,12 +490,16 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                             name="setoran"
                                             value="tahfidz"
                                             checked={setoran === 'tahfidz'}
-                                            onChange={e => setSetoran(e.target.value)}
+                                            onChange={e => {
+                                                setSetoran(e.target.value);
+                                                setErrors(prev => ({ ...prev, setoran: '' }));
+                                            }}
                                             className="mr-2 text-emerald-600 focus:ring-emerald-500"
                                         />
                                         <span className="text-sm text-neutral-950">{t('radio_options.tahfidz')}</span>
                                     </label>
                                 </div>
+                                {errors.setoran && <p className="text-sm text-red-500">{errors.setoran}</p>}
                             </div>
 
                             <div className="flex items-center space-x-4">
@@ -401,7 +511,10 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                             name="tampilkan"
                                             value="surat"
                                             checked={tampilkan === 'surat'}
-                                            onChange={e => setTampilkan(e.target.value)}
+                                            onChange={e => {
+                                                setTampilkan(e.target.value);
+                                                setErrors(prev => ({ ...prev, tampilkan: '', surat: '', juz: '', halaman: '' }));
+                                            }}
                                             className="mr-2 text-emerald-600 focus:ring-emerald-500"
                                         />
                                         <span className="text-sm text-neutral-950">{t('radio_options.surah')}</span>
@@ -412,7 +525,10 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                             name="tampilkan"
                                             value="juz"
                                             checked={tampilkan === 'juz'}
-                                            onChange={e => setTampilkan(e.target.value)}
+                                            onChange={e => {
+                                                setTampilkan(e.target.value);
+                                                setErrors(prev => ({ ...prev, tampilkan: '', surat: '', juz: '', halaman: '' }));
+                                            }}
                                             className="mr-2 text-emerald-600 focus:ring-emerald-500"
                                         />
                                         <span className="text-sm text-neutral-950">{t('radio_options.juz')}</span>
@@ -423,12 +539,16 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                             name="tampilkan"
                                             value="halaman"
                                             checked={tampilkan === 'halaman'}
-                                            onChange={e => setTampilkan(e.target.value)}
+                                            onChange={e => {
+                                                setTampilkan(e.target.value);
+                                                setErrors(prev => ({ ...prev, tampilkan: '', surat: '', juz: '', halaman: '' }));
+                                            }}
                                             className="mr-2 text-emerald-600 focus:ring-emerald-500"
                                         />
                                         <span className="text-sm text-neutral-950">{t('radio_options.page')}</span>
                                     </label>
                                 </div>
+                                {errors.tampilkan && <p className="text-sm text-red-500">{errors.tampilkan}</p>}
                             </div>
 
                             {tampilkan === 'surat' && (
@@ -445,8 +565,12 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                                 searchPlaceholder="search surah"
                                                 notFoundText="surah not found"
                                                 value={selectedSurahValue}
-                                                onValueChange={setSelectedSurahValue}
+                                                onValueChange={(value) => {
+                                                    setSelectedSurahValue(value);
+                                                    setErrors(prev => ({ ...prev, surat: '' }));
+                                                }}
                                             />
+                                            {errors.surat && <p className="mt-1 text-sm text-red-500">{errors.surat}</p>}
                                         </div>
                                     </div>
                                     <div className="ml-24 flex flex-wrap gap-2">
@@ -479,8 +603,12 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                             searchPlaceholder="search juz"
                                             notFoundText="juz not found"
                                             value={selectedJuz}
-                                            onValueChange={setSelectedJuz}
+                                            onValueChange={(value) => {
+                                                setSelectedJuz(value);
+                                                setErrors(prev => ({ ...prev, juz: '' }));
+                                            }}
                                         />
+                                        {errors.juz && <p className="mt-1 text-sm text-red-500">{errors.juz}</p>}
                                     </div>
                                 </div>
                             )}
@@ -495,8 +623,12 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                             searchPlaceholder="search page"
                                             notFoundText="page not found"
                                             value={selectedHalaman}
-                                            onValueChange={setSelectedHalaman}
+                                            onValueChange={(value) => {
+                                                setSelectedHalaman(value);
+                                                setErrors(prev => ({ ...prev, halaman: '' }));
+                                            }}
                                         />
+                                        {errors.halaman && <p className="mt-1 text-sm text-red-500">{errors.halaman}</p>}
                                     </div>
                                 </div>
                             )}
