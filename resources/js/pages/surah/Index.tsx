@@ -234,9 +234,9 @@ export default function SurahIndex() {
 
     return (
         <AppWrapper>
-            <Head title="Page" />
+            <Head title={`${surah.name_simple} - Recap`} />
             <QuranHeader page={1} translateMode="read" target="/result" />
-            <div className="mx-auto max-w-3xl overflow-auto p-4">
+            <div className="mx-auto max-w-4xl overflow-auto p-4">
                 <MistakeModal
                     isOpen={modalOpen}
                     onClose={() => {
@@ -264,73 +264,67 @@ export default function SurahIndex() {
                         </p>
                     )}
                 </div>
-                <div className="font-arabic text-right text-3xl leading-loose text-gray-800" style={{ direction: 'rtl' }}>
-                    {verses.map((verse, index) => (
-                        <>
-                            <span
-                                key={verse.id}
-                                style={{
-                                    display: 'inline-block',
-                                    backgroundColor: verseErrors[verse.id]
-                                        ? errorLabels.find((label) => label.key === verseErrors[verse.id])?.color || 'transparent'
-                                        : 'transparent',
-                                    lineHeight: '1.5em',
-                                    verticalAlign: 'middle',
-                                }}
-                            >
-                                {verse.words.map((word) => (
-                                    <span
-                                        key={word.id}
-                                        className="inline-block cursor-pointer px-1 transition-colors duration-200 hover:text-blue-300"
-                                        style={{
-                                            backgroundColor: wordErrors[word.id]
-                                                ? errorLabels.find((label) => label.key === wordErrors[word.id])?.color || 'transparent'
-                                                : 'transparent',
-                                            lineHeight: '1.5em',
-                                            verticalAlign: 'middle',
-                                        }}
-                                        onClick={() => handleClick('word', word.id)}
-                                        role="button"
-                                        tabIndex={0}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' || e.key === ' ') {
-                                                handleClick('word', word.id);
-                                            }
-                                        }}
-                                    >
-                                        {word.text_uthmani}{' '}
-                                    </span>
-                                ))}
+                <div
+                    className="font-arabic text-3xl text-gray-800"
+                    style={{
+                        direction: 'rtl',
+                        textAlign: 'justify',
+                        textJustify: 'inter-word',
+                        lineHeight: '2',
+                        wordSpacing: '0.05em',
+                        letterSpacing: '0.03em',
+                    }}
+                >
+                    {verses.map((verse, index) => {
+                        const verseLabel = verseErrors[verse.id]
+                            ? errorLabels.find((l) => l.key === verseErrors[verse.id])
+                            : null;
+                        return (
+                            <>
                                 <span
-                                    className="inline-block cursor-pointer px-1 transition-colors duration-200 hover:text-blue-300"
-                                    style={{
-                                        lineHeight: '1.5em',
-                                        verticalAlign: 'middle',
-                                        minWidth: '2em',
-                                        textAlign: 'center',
-                                    }}
-                                    onClick={() => handleClick('verse', verse.id)}
-                                    role="button"
-                                    tabIndex={0}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                            handleClick('verse', verse.id);
-                                        }
-                                    }}
+                                    key={verse.id}
+                                    style={{ backgroundColor: verseLabel?.color || 'transparent' }}
                                 >
-                                    ۝{verse.end_marker || verse.verse_number}
+                                    {verse.words.map((word) => {
+                                        const errorLabel = wordErrors[word.id]
+                                            ? errorLabels.find((l) => l.key === wordErrors[word.id])
+                                            : null;
+                                        return (
+                                            <span
+                                                key={word.id}
+                                                className="cursor-pointer transition-colors duration-200 hover:text-blue-300"
+                                                style={{
+                                                    backgroundColor: errorLabel?.color || 'transparent',
+                                                    display: 'inline',
+                                                }}
+                                                onClick={() => handleClick('word', word.id)}
+                                            >
+                                                {word.text_uthmani}{' '}
+                                            </span>
+                                        );
+                                    })}
+                                    <span
+                                        className="cursor-pointer transition-colors duration-200 hover:text-blue-300"
+                                        style={{
+                                            backgroundColor: verseLabel?.color || 'transparent',
+                                            display: 'inline',
+                                        }}
+                                        onClick={() => handleClick('verse', verse.id)}
+                                    >
+                                        ۝{verse.end_marker || verse.verse_number}
+                                    </span>
                                 </span>
-                            </span>
-                            {groupedVerses[verse.page_number][groupedVerses[verse.page_number].length - 1].verse.id === verse.id && (
-                                <div className="my-4 flex items-center">
-                                    <hr className="flex-1 border-t border-gray-300" />
-                                    <span className="mx-4 text-sm font-medium text-gray-600">Page {verse.page_number}</span>
-                                    <hr className="flex-1 border-t border-gray-300" />
-                                </div>
-                            )}
-                            {index < verses.length - 1 && ' '}
-                        </>
-                    ))}
+                                {groupedVerses[verse.page_number][groupedVerses[verse.page_number].length - 1].verse.id === verse.id && (
+                                    <div className="my-4 flex items-center">
+                                        <hr className="flex-1 border-t border-gray-300" />
+                                        <span className="mx-4 text-sm font-medium text-gray-600">Page {verse.page_number}</span>
+                                        <hr className="flex-1 border-t border-gray-300" />
+                                    </div>
+                                )}
+                                {index < verses.length - 1 && ' '}
+                            </>
+                        );
+                    })}
                 </div>
             </div>
         </AppWrapper>

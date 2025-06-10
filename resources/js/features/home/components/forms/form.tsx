@@ -19,7 +19,7 @@ interface DropdownVisibility {
   group: boolean;
   member: boolean;
   teman: boolean;
-  surat: boolean;
+  surah: boolean;
   juz: boolean;
   halaman: boolean;
 }
@@ -35,7 +35,7 @@ interface UserData {
 interface SavedSetoranData {
   penyetor: string;
   setoran: string;
-  tampilan: string;
+  display: string;
   selectedGroup?: string;
   selectedMember?: string;
   selectedFriend?: string;
@@ -51,11 +51,11 @@ interface SavedSetoranData {
 interface FormErrors {
   penyetor?: string;
   setoran?: string;
-  tampilan?: string;
+  display?: string;
   group?: string;
   member?: string;
   friend?: string;
-  surat?: string;
+  surah?: string;
   juz?: string;
   halaman?: string;
 }
@@ -75,11 +75,11 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
   const [userData, setUserData] = useState<UserData>({});
   const [penyetor, setPenyetor] = useState<string>('grup');
   const [setoran, setSetoran] = useState<string>('tahsin');
-  const [tampilan, settampilan] = useState<string>('surat');
+  const [display, setdisplay] = useState<string>('surah');
   const [groupInput, setGroupInput] = useState<string>('');
   const [memberInput, setMemberInput] = useState<string>('');
   const [temanInput, setTemanInput] = useState<string>('');
-  const [suratInput, setSuratInput] = useState<string>('');
+  const [surahInput, setsurahInput] = useState<string>('');
   const [selectedSurahValue, setSelectedSurahValue] = useState<string>('');
   const [juzInput, setJuzInput] = useState<string>('');
   const [selectedJuz, setSelectedJuz] = useState<string>('');
@@ -94,7 +94,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
     group: false,
     member: false,
     teman: false,
-    surat: false,
+    surah: false,
     juz: false,
     halaman: false,
   });
@@ -102,7 +102,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
   const groupDropdownRef = useRef<HTMLDivElement>(null);
   const memberDropdownRef = useRef<HTMLDivElement>(null);
   const temanDropdownRef = useRef<HTMLDivElement>(null);
-  const suratDropdownRef = useRef<HTMLDivElement>(null);
+  const surahDropdownRef = useRef<HTMLDivElement>(null);
   const juzDropdownRef = useRef<HTMLDivElement>(null);
   const halamanDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -110,6 +110,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
     PARENT_WEB: import.meta.env.VITE_PARENT_URL,
   };
 
+  // Load translations
   useEffect(() => {
     const loadTranslations = async () => {
       await setupTranslations('form');
@@ -118,6 +119,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
     loadTranslations();
   }, []);
 
+  // Load user data
   useEffect(() => {
     const loadUserData = () => {
       try {
@@ -132,6 +134,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
     loadUserData();
   }, []);
 
+  // Load saved form data
   useEffect(() => {
     const savedData = localStorage.getItem('last-form-data');
     if (savedData) {
@@ -139,7 +142,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
         const parsedData: SavedSetoranData = JSON.parse(savedData);
         setPenyetor(parsedData.penyetor || 'grup');
         setSetoran(parsedData.setoran || 'tahsin');
-        settampilan(parsedData.tampilan || 'surat');
+        setdisplay(parsedData.display || 'surah');
         setSelectedGroup(parsedData.selectedGroup || '');
         setSelectedSurahValue(parsedData.selectedSurahValue || '');
         setSelectedJuz(parsedData.selectedJuz || '');
@@ -172,7 +175,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
       const formData: SavedSetoranData = {
         penyetor,
         setoran,
-        tampilan,
+        display,
         selectedGroup: penyetor === 'grup' ? selectedGroup : '',
         selectedMember: penyetor === 'grup' ? selectedMember : '',
         selectedFriend: penyetor === 'teman' ? selectedFriend : '',
@@ -186,7 +189,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
   }, [
     penyetor,
     setoran,
-    tampilan,
+    display,
     selectedGroup,
     selectedMember,
     selectedFriend,
@@ -203,7 +206,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
         { ref: groupDropdownRef, inputId: 'groupInput', key: 'group' },
         { ref: memberDropdownRef, inputId: 'memberInput', key: 'member' },
         { ref: temanDropdownRef, inputId: 'temanInput', key: 'teman' },
-        { ref: suratDropdownRef, inputId: 'suratInput', key: 'surat' },
+        { ref: surahDropdownRef, inputId: 'surahInput', key: 'surah' },
         { ref: juzDropdownRef, inputId: 'juzInput', key: 'juz' },
         { ref: halamanDropdownRef, inputId: 'halamanInput', key: 'halaman' },
       ];
@@ -231,13 +234,13 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
       if (!selectedFriend) newErrors.friend = t('errors.friend_required');
     }
     if (!setoran) newErrors.setoran = t('errors.setoran_required');
-    if (!tampilan) newErrors.tampilan = t('errors.tampilan_required');
+    if (!display) newErrors.display = t('errors.display_required');
     else {
-      if (tampilan === 'surat' && !selectedSurahValue)
-        newErrors.surat = t('errors.surat_required');
-      else if (tampilan === 'juz' && !selectedJuz)
+      if (display === 'surah' && !selectedSurahValue)
+        newErrors.surah = t('errors.surah_required');
+      else if (display === 'juz' && !selectedJuz)
         newErrors.juz = t('errors.juz_required');
-      else if (tampilan === 'halaman' && !selectedHalaman)
+      else if (display === 'halaman' && !selectedHalaman)
         newErrors.halaman = t('errors.halaman_required');
     }
     setErrors(newErrors);
@@ -246,8 +249,8 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
 
   // Get redirect URL
   const getRedirectUrl = (): string => {
-    switch (tampilan) {
-      case 'surat':
+    switch (display) {
+      case 'surah':
         return selectedSurahValue ? `/surah/${selectedSurahValue}` : '/';
       case 'juz':
         return selectedJuz ? `/juz/${selectedJuz}` : '/';
@@ -261,7 +264,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
   // Handle quick select for surah
   const handleQuickSelect = (value: string): void => {
     setSelectedSurahValue(value);
-    setErrors((prev) => ({ ...prev, surat: '' }));
+    setErrors((prev) => ({ ...prev, surah: '' }));
   };
 
   // Handle form submission
@@ -290,12 +293,12 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
     const formData: SavedSetoranData = {
       penyetor,
       setoran,
-      tampilan,
+      display,
       reciter: reciter || { user_name: '', full_name: '' },
       recipient: currentSetoranData.recipient || '',
     };
 
-    if (tampilan === 'surat' && selectedSurahValue) {
+    if (display === 'surah' && selectedSurahValue) {
       const selectedChapter = chapters.find(
         (chapter) => chapter.id.toString() === selectedSurahValue
       );
@@ -327,11 +330,11 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
   const handleReset = (): void => {
     setPenyetor('grup');
     setSetoran('tahsin');
-    settampilan('surat');
+    setdisplay('surah');
     setGroupInput('');
     setMemberInput('');
     setTemanInput('');
-    setSuratInput('');
+    setsurahInput('');
     setSelectedSurahValue('');
     setJuzInput('');
     setSelectedJuz('');
@@ -583,12 +586,12 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                   <label className="flex items-center">
                     <input
                       type="radio"
-                      name="tampilan"
-                      value="surat"
-                      checked={tampilan === 'surat'}
+                      name="display"
+                      value="surah"
+                      checked={display === 'surah'}
                       onChange={(e) => {
-                        settampilan(e.target.value);
-                        setErrors((prev) => ({ ...prev, tampilan: '', surat: '', juz: '', halaman: '' }));
+                        setdisplay(e.target.value);
+                        setErrors((prev) => ({ ...prev, display: '', surah: '', juz: '', halaman: '' }));
                       }}
                       className={`mr-2 ${
                         isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'
@@ -601,12 +604,12 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                   <label className="flex items-center">
                     <input
                       type="radio"
-                      name="tampilan"
+                      name="display"
                       value="juz"
-                      checked={tampilan === 'juz'}
+                      checked={display === 'juz'}
                       onChange={(e) => {
-                        settampilan(e.target.value);
-                        setErrors((prev) => ({ ...prev, tampilan: '', surat: '', juz: '', halaman: '' }));
+                        setdisplay(e.target.value);
+                        setErrors((prev) => ({ ...prev, display: '', surah: '', juz: '', halaman: '' }));
                       }}
                       className={`mr-2 ${
                         isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'
@@ -619,12 +622,12 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                   <label className="flex items-center">
                     <input
                       type="radio"
-                      name="tampilan"
+                      name="display"
                       value="halaman"
-                      checked={tampilan === 'halaman'}
+                      checked={display === 'halaman'}
                       onChange={(e) => {
-                        settampilan(e.target.value);
-                        setErrors((prev) => ({ ...prev, tampilan: '', surat: '', juz: '', halaman: '' }));
+                        setdisplay(e.target.value);
+                        setErrors((prev) => ({ ...prev, display: '', surah: '', juz: '', halaman: '' }));
                       }}
                       className={`mr-2 ${
                         isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'
@@ -635,10 +638,10 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                     </span>
                   </label>
                 </div>
-                {errors.tampilan && <p className="text-sm text-red-500">{errors.tampilan}</p>}
+                {errors.display && <p className="text-sm text-red-500">{errors.display}</p>}
               </div>
 
-              {tampilan === 'surat' && (
+              {display === 'surah' && (
                 <div className="space-y-4">
                   <div className="flex items-center space-x-2">
                     <label
@@ -660,11 +663,11 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                         value={selectedSurahValue}
                         onValueChange={(value) => {
                           setSelectedSurahValue(value);
-                          setErrors((prev) => ({ ...prev, surat: '' }));
+                          setErrors((prev) => ({ ...prev, surah: '' }));
                         }}
                         className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
                       />
-                      {errors.surat && <p className="mt-1 text-sm text-red-500">{errors.surat}</p>}
+                      {errors.surah && <p className="mt-1 text-sm text-red-500">{errors.surah}</p>}
                     </div>
                   </div>
                   <div className="ml-24 flex flex-wrap gap-2">
@@ -691,7 +694,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                 </div>
               )}
 
-              {tampilan === 'juz' && (
+              {display === 'juz' && (
                 <div className="flex items-center space-x-2">
                   <label
                     className={`w-24 text-sm font-medium ${
@@ -721,7 +724,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                 </div>
               )}
 
-              {tampilan === 'halaman' && (
+              {display === 'halaman' && (
                 <div className="flex items-center space-x-2">
                   <label
                     className={`w-24 text-sm font-medium ${

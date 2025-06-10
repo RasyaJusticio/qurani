@@ -1,7 +1,7 @@
 import AppWrapper from '@/components/layouts/app-wrapper';
 import RecapHeader from '@/components/layouts/recap-header';
 import { Head, usePage } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 interface Word {
     id: number;
@@ -69,6 +69,13 @@ export default function SurahIndex() {
     } | null>(null);
     const [wordErrors, setWordErrors] = useState<{ [key: number]: string }>({});
     const [verseErrors, setVerseErrors] = useState<{ [key: number]: string }>({});
+    const [tooltip, setTooltip] = useState<{
+        visible: boolean;
+        text: string;
+        x: number;
+        y: number;
+    } | null>(null);
+    const spanRefs = useRef<{ [key: string]: HTMLSpanElement }>({});
 
     useEffect(() => {
         const loadErrorsFromLocalStorage = () => {
@@ -76,13 +83,11 @@ export default function SurahIndex() {
                 const existingData = localStorage.getItem('setoran-data');
                 if (existingData) {
                     const data = JSON.parse(existingData);
-
                     if (data.mistake && typeof data.mistake === 'object') {
                         const newWordErrors: { [key: number]: string } = {};
                         const newVerseErrors: { [key: number]: string } = {};
 
                         Object.values(data.mistake).forEach((mistakeData: any) => {
-                            // Corrected to salah_kata
                             if (mistakeData.salah_kata && Array.isArray(mistakeData.salah_kata)) {
                                 mistakeData.salah_kata.forEach((wordError: any) => {
                                     const wordLocation = wordError.word_location;
@@ -96,7 +101,6 @@ export default function SurahIndex() {
                                 });
                             }
 
-                            // Corrected to salah_ayat
                             if (mistakeData.salah_ayat && Array.isArray(mistakeData.salah_ayat)) {
                                 mistakeData.salah_ayat.forEach((verseError: any) => {
                                     const verseNumber = verseError.noAyat;
@@ -121,17 +125,40 @@ export default function SurahIndex() {
     }, [verses]);
 
     useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-        if (event.key === 'Escape') {
-            setPopupError(null);
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setPopupError(null);
+                setTooltip(null);
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, []);
+
+    const handleMouseEnter = (
+        type: 'word' | 'verse',
+        id: number,
+        label: (typeof errorLabels)[0] | undefined,
+        locationText: string,
+        event: React.MouseEvent<HTMLSpanElement>,
+    ) => {
+        if (label) {
+            const rect = event.currentTarget.getBoundingClientRect();
+            setTooltip({
+                visible: true,
+                text: label.value,
+                x: rect.left + rect.width / 2,
+                y: rect.top - 10, // Position above the element
+            });
         }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-        document.removeEventListener('keydown', handleKeyDown);
+    const handleMouseLeave = () => {
+        setTooltip(null);
     };
-}, []);
 
     const groupedVerses = verses.reduce(
         (acc, verse, index) => {
@@ -149,105 +176,154 @@ export default function SurahIndex() {
         <AppWrapper>
             <Head title={`${surah.name_simple} - Recap`} />
             <RecapHeader page={1} translateMode="read" classNav="ms-3" target="/result" />
-            <div className="mx-auto max-w-3xl overflow-auto p-4">
+            <div className="mx-auto max-w-4xl overflow-auto p-4">
                 <div className="mt-20 mb-12 text-center">
                     <p className="text-lg text-gray-600">
                         {surah.name_simple} ({surah.id})
                     </p>
                     {surah.bismillah_pre && (
                         <p className="font-arabic mt-6 text-5xl text-gray-800" style={{ direction: 'rtl' }}>
-                            بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
+                            بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
                         </p>
                     )}
                 </div>
-                <div className="font-arabic text-right text-3xl leading-loose text-gray-800" style={{ direction: 'rtl' }}>
-                    {verses.map((verse) => {
-                        const verseLabel = verseErrors[verse.id] ? errorLabels.find((label) => label.key === verseErrors[verse.id]) : null;
-
+                <div
+                    className="font-arabic text-3xl text-gray-800"
+                    style={{
+                        direction: 'rtl',
+                        textAlign: 'justify',
+                        textJustify: 'inter-word',
+                        lineHeight: '2',
+                        wordSpacing: '0.05em',
+                        letterSpacing: '0.03em',
+                    }}
+                >
+                    {verses.map((verse, index) => {
+                        const verseLabel = verseErrors[verse.id]
+                            ? errorLabels.find((l) => l.key === verseErrors[verse.id])
+                            : null;
                         return (
-                            <span key={verse.id}>
+                            <>
                                 <span
-                                    style={{
-                                        display: 'inline-block',
-                                        backgroundColor: verseLabel?.color || 'transparent',
-                                        lineHeight: '1.5em',
-                                        verticalAlign: 'middle',
+                                    key={verse.id}
+                                    style={{ backgroundColor: verseLabel?.color || 'transparent' }}
+                                    ref={(el) => {
+                                        if (el) spanRefs.current[`verse-${verse.id}`] = el;
                                     }}
                                 >
                                     {verse.words.map((word) => {
                                         const errorLabel = wordErrors[word.id]
-                                            ? errorLabels.find((label) => label.key === wordErrors[word.id])
+                                            ? errorLabels.find((l) => l.key === wordErrors[word.id])
                                             : null;
-
                                         return (
                                             <span
                                                 key={word.id}
-                                                className="group relative inline-block cursor-pointer px-1 whitespace-nowrap"
-                                                style={{ backgroundColor: errorLabel?.color }}
-                                                onClick={() =>
-                                                    setPopupError({
-                                                        type: 'word',
-                                                        id: word.id,
-                                                        label: errorLabel!,
-                                                        locationText: word.text_uthmani,
-                                                    })
+                                                className="cursor-pointer transition-colors duration-200 hover:text-blue-300 relative"
+                                                style={{
+                                                    backgroundColor: errorLabel?.color || 'transparent',
+                                                    display: 'inline',
+                                                }}
+                                                ref={(el) => {
+                                                    if (el) spanRefs.current[`word-${word.id}`] = el;
+                                                }}
+                                                onClick={
+                                                    errorLabel
+                                                        ? () =>
+                                                              setPopupError({
+                                                                  type: 'word',
+                                                                  id: word.id,
+                                                                  label: errorLabel,
+                                                                  locationText: word.text_uthmani,
+                                                              })
+                                                        : undefined
                                                 }
-                                                aria-label={errorLabel ? `Kesalahan: ${errorLabel.value}` : undefined}
+                                                onMouseEnter={(e) =>
+                                                    handleMouseEnter('word', word.id, errorLabel, word.text_uthmani, e)
+                                                }
+                                                onMouseLeave={handleMouseLeave}
                                             >
                                                 {word.text_uthmani}{' '}
-                                                {errorLabel && (
-                                                    <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 transform rounded-md bg-black px-2 py-1 text-xs text-white group-hover:block after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-t-black after:content-['']">
-                                                        {errorLabel.value}
-                                                    </div>
-                                                )}
                                             </span>
                                         );
                                     })}
                                     <span
-                                        className="group relative inline-flex cursor-pointer items-center justify-center px-1 whitespace-nowrap"
-                                        style={{ backgroundColor: verseLabel?.color }}
-                                        onClick={() =>
-                                            setPopupError({
-                                                type: 'verse',
-                                                id: verse.id,
-                                                label: verseLabel!,
-                                                locationText: `Ayat ke-${verse.verse_number}`,
-                                            })
+                                        className="cursor-pointer transition-colors duration-200 hover:text-blue-300 relative"
+                                        style={{
+                                            backgroundColor: verseLabel?.color || 'transparent',
+                                            display: 'inline',
+                                        }}
+                                        ref={(el) => {
+                                            if (el) spanRefs.current[`verse-end-${verse.id}`] = el;
+                                        }}
+                                        onClick={
+                                            verseLabel
+                                                ? () =>
+                                                      setPopupError({
+                                                          type: 'verse',
+                                                          id: verse.id,
+                                                          label: verseLabel,
+                                                          locationText: `Ayat ke-${verse.verse_number}`,
+                                                      })
+                                                : undefined
                                         }
-                                        aria-label={verseLabel ? `Kesalahan: ${verseLabel.value}` : undefined}
+                                        onMouseEnter={(e) =>
+                                            handleMouseEnter('verse', verse.id, verseLabel, `Ayat ke-${verse.verse_number}`, e)
+                                        }
+                                        onMouseLeave={handleMouseLeave}
                                     >
                                         ۝{verse.end_marker || verse.verse_number}
-                                        {verseLabel && (
-                                            <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 transform rounded-md bg-black px-2 py-1 text-xs text-white group-hover:block after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-t-black after:content-['']">
-                                                {verseLabel.value}
-                                            </div>
-                                        )}
                                     </span>
-                                </span>{' '}
-                            </span>
+                                </span>
+                                {groupedVerses[verse.page_number][groupedVerses[verse.page_number].length - 1].verse.id === verse.id && (
+                                    <div className="my-4 flex items-center">
+                                        <hr className="flex-1 border-t border-gray-300" />
+                                        <span className="mx-4 text-sm font-medium text-gray-600">Page {verse.page_number}</span>
+                                        <hr className="flex-1 border-t border-gray-300" />
+                                    </div>
+                                )}
+                                {index < verses.length - 1 && ' '}
+                            </>
                         );
                     })}
                 </div>
-            </div>
-
-            {/* Popup Error Display */}
-            {popupError && (
-                <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black/55">
-                    <div className="max-w-md rounded-lg bg-white p-6 text-center shadow-lg">
-                        <p className="mb-2 text-2xl">
-                            <strong> {popupError.locationText}</strong>
-                        </p>
-                        <p className="mb-4">
-                            <span  className="rounded px-2 py-1">
-                                {popupError.label.value}
-                            </span>
-                        </p>
-                        <button onClick={() => setPopupError(null)} className="mt-2 rounded bg-blue-600 px-2 py-2 text-white text-sm hover:bg-blue-700">
-                            Tutup
-                        </button>
+                {popupError && (
+                    <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black/55">
+                        <div className="max-w-md rounded-lg bg-white p-6 text-center shadow-lg">
+                            <p className="mb-2 text-2xl">
+                                <strong>{popupError.locationText}</strong>
+                            </p>
+                            <p className="mb-4">
+                                <span className="rounded px-2 py-1">
+                                    {popupError.label.value}
+                                </span>
+                            </p>
+                            <button
+                                onClick={() => setPopupError(null)}
+                                className="mt-2 rounded bg-blue-600 px-2 py-2 text-white text-sm hover:bg-blue-700"
+                            >
+                                Tutup
+                            </button>
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
+                {tooltip && tooltip.visible && (
+                    <div
+                        className="fixed z-50 bg-black/80 text-white text-sm rounded-lg px-3 py-2 shadow-lg"
+                        style={{
+                            top: `${tooltip.y - 40}px`, // Position above the element
+                            left: `${tooltip.x}px`,
+                            transform: 'translateX(-50%)', // Center horizontally
+                            pointerEvents: 'none', // Prevent tooltip from blocking interactions
+                        }}
+                    >
+                        {tooltip.text}
+                        <div
+                            className="absolute bottom-[-8px] left-1/2 h-0 w-0 border-x-8 border-x-transparent border-t-8 border-t-black/80"
+                            style={{ transform: 'translateX(-50%)' }}
+                        />
+                    </div>
+                )}
+            </div>
         </AppWrapper>
     );
 }

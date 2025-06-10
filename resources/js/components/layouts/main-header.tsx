@@ -139,7 +139,7 @@ const QuranHeader: React.FC<QuranHeaderProps> = ({ page, translateMode = 'read',
                     <span className={`ml-1 ${textSize}`}>/ {displaySegment}</span>
                 </div>
                 {translateMode === 'read' && (
-                    <div className="flex w-auto cursor-pointer items-center justify-center p-1 pe-10 text-center" onClick={handleClick}>
+                    <div className="flex w-auto cursor-pointer items-center justify-center p-1  text-center" onClick={handleClick}>
                         {!noFinishButton() && (
                             <span className={`${buttonSize.padding} ${buttonSize.fontSize} me-5 rounded bg-[#ff6500] font-bold text-white`}>
                                 Selesai

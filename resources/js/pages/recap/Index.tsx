@@ -14,7 +14,7 @@ const index = () => {
         <RecapHeader
                 page={1}
                 translateMode="read"
-                classNav="ms-3"
+                classNav=""
                 target=""
         />
         <div>
