@@ -79,7 +79,6 @@ class RecapController extends Controller
             });
         }
 
-        // Render the Inertia view
         return Inertia::render('surah/History', [
             'surah' => [
                 'id' => $surah->id,
@@ -91,6 +90,81 @@ class RecapController extends Controller
                 'translated_name' => $surah->translated_name
             ],
             'verses' => $verses
+        ]);
+    }
+
+    public function page($id, Request $request)
+    {
+        if ($id < 1 || $id > 604) {
+            abort(404, 'Halaman tidak ditemukan');
+        }
+
+        $verses = Verses::where('page_number', $id)
+            ->orderBy('verse_key')
+            ->select([
+                'id',
+                'verse_number',
+                'verse_key',
+                'text_uthmani',
+                'page_number',
+                'juz_number'
+            ])
+            ->get();
+
+        $surahIds = $verses->map(function ($verse) {
+            return (int) explode(':', $verse->verse_key)[0];
+        })->unique()->values()->toArray();
+
+        $chapters = Chapter::whereIn('id', $surahIds)
+            ->select([
+                'id',
+                'name_arabic',
+                'name_simple',
+                'translated_name',
+                'bismillah_pre'
+            ])
+            ->get()
+            ->keyBy('id');
+
+        if ($verses->isNotEmpty()) {
+            $verseKeys = $verses->pluck('verse_key')->toArray();
+            $wordsGroup = $this->fetchWordsForVerses($verseKeys);
+            $endMarkers = Word::where(function ($query) use ($verseKeys) {
+                foreach ($verseKeys as $key) {
+                    $query->orWhere('location', 'like', $key . ':%');
+                }
+            })
+                ->where('char_type_name', 'end')
+                ->select(['location', 'text_uthmani'])
+                ->get()
+                ->keyBy(function ($word) {
+                    [$surah, $verse] = explode(':', $word->location);
+                    return "$surah:$verse";
+                });
+
+            $verses->transform(function ($verse) use ($wordsGroup, $endMarkers) {
+                $verse->words = $wordsGroup->get($verse->verse_key, collect())->map(function ($word) {
+                    return [
+                        'id' => $word->id,
+                        'position' => $word->position,
+                        'text_uthmani' => $word->text_uthmani,
+                        'char_type_name' => $word->char_type_name,
+                        'location' => $word->location
+                    ];
+                })->filter(function ($word) {
+                    return $word['char_type_name'] === 'word';
+                })->values();
+                $verse->end_marker = $endMarkers->get($verse->verse_key, (object)['text_uthmani' => ''])->text_uthmani;
+                return $verse;
+            });
+        }
+
+        return Inertia::render('page/History', [
+            'page' => [
+                'page_number' => (int)$id
+            ],
+            'verses' => $verses,
+            'chapters' => $chapters
         ]);
     }
 }

@@ -50,4 +50,5 @@ Route::post('/set-cookie', function (Request $request) {
 Route::get('/setoran/{id}', [HomeController::class, 'getSetoranById'])->name('setoran.show');
 Route::get('/recap', [HomeController::class, 'recap'])->name('recap');
 Route::get('/recap/surah/{id}',[RecapController::class,'index'])->name('recap.surah');
+Route::get('/recap/page/{id}',[RecapController::class,'page'])->name('recap.page');
 Route::post('/setoran/{id}/sign', [HomeController::class, 'updateSignature']);
