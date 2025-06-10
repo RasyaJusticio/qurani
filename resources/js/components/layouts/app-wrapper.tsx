@@ -23,7 +23,7 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ children }) => {
     );
   };
 
-  // Simpan recipient ke localStorage
+  // Save recipient to localStorage
   useEffect(() => {
     if (recipient) {
       const oldSetoranData = JSON.parse(localStorage.getItem('setoran-data') ?? '{}');
@@ -36,7 +36,7 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ children }) => {
   }, [recipient]);
 
   useEffect(() => {
-    // Cek apakah diakses langsung (bukan di dalam iframe)
+    // Check if accessed directly (not in iframe)
     if (window.self === window.top) {
       console.warn('Direct access detected, redirecting...');
       router.visit(route('redirect'));
@@ -45,7 +45,7 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ children }) => {
 
     const currentPath = window.location.pathname;
 
-    // Kirim sinyal bahwa iframe sudah siap
+    // Send signal that iframe is ready
     window.parent.postMessage(
       {
         type: 'iframe_ready',
@@ -54,20 +54,28 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ children }) => {
       parentUrl,
     );
 
-    // Juga kirim path sekarang ke parent
+    // Notify parent of current path
     notifyParentRouteChange(currentPath);
 
-    // Cek apakah sudah ada recipient di localStorage
+    // Check for existing recipient in localStorage
     const existingData = localStorage.getItem('setoran-data');
     if (existingData) {
       const parsedData = JSON.parse(existingData);
       if (parsedData.recipient) {
         setRecipient(parsedData.recipient);
       }
+    } else {
+      // Request recipient from parent if not found in localStorage
+      window.parent.postMessage(
+        {
+          type: 'request_recipient',
+        },
+        parentUrl,
+      );
     }
 
     const handleMessage = (event: MessageEvent) => {
-      // Validasi origin parent
+      // Validate parent origin
       if (event.origin !== parentUrl) {
         console.warn('Origin mismatch, redirecting...');
         router.visit(route('redirect'));
@@ -76,13 +84,13 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ children }) => {
 
       const messageData = event.data?.data || event.data;
 
-      // Tangani perubahan recipient
+      // Handle recipient change
       if (typeof messageData?.c_user === 'string') {
         setRecipient(messageData.c_user);
 
         axios
           .post('/set-cookie', { u_id: messageData.c_user })
-          .then(() => console.log('u_id berhasil dikirim ke Laravel'))
+          .then(() => console.log('u_id successfully sent to Laravel'))
           .catch(console.error);
       }
     };

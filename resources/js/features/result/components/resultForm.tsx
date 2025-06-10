@@ -1,3 +1,4 @@
+import AppWrapper from '@/components/layouts/app-wrapper';
 import { useForm, router } from '@inertiajs/react';
 import axios from 'axios';
 import { AlertCircle, CheckCircle2, ChevronDown, ChevronUp, FileText } from 'lucide-react';
@@ -14,7 +15,7 @@ interface Surah {
     name: string;
     from?: string;
     to?: string;
-    surah?: { id: string; name: string; first_verse: string; last_verse: string }[];
+    surah?: { first_surah: string; last_surah: string; name: string;}[];
 }
 
 interface SalahAyat {
@@ -42,7 +43,7 @@ interface Mistake {
 interface SetoranData {
     reciter: Reciter;
     recipient: string;
-    setoran_type: string;
+    setoran: string;
     display: string;
     surah_id: string;
     surah: Surah;
@@ -57,7 +58,7 @@ interface VerseOption {
 interface FormData {
     reciter: Reciter | null;
     recipient: string;
-    setoran_type: string;
+    setoran: string;
     display: string;
     surah_id: string;
     surah: Surah | null;
@@ -93,7 +94,7 @@ const t = (key: string): string => {
         'rekapan.form.mengirim': 'Mengirim...',
         'rekapan.form.kirim': 'Kirim',
         'rekapan.form.halaman': 'Halaman',
-        'rekapan.form.setoran_type': 'Jenis Setoran',
+        'rekapan.form.setoran': 'Jenis Setoran',
     };
     return translations[key] || key;
 };
@@ -105,7 +106,7 @@ const RecapFormLayout: React.FC = () => {
     const form = useForm<FormData>({
         reciter: null,
         recipient: '',
-        setoran_type: '',
+        setoran: '',
         display: '',
         surah_id: '',
         surah: null,
@@ -146,7 +147,7 @@ const RecapFormLayout: React.FC = () => {
                 form.setData({
                     reciter: parsedData.reciter,
                     recipient: parsedData.recipient,
-                    setoran_type: parsedData.setoran_type,
+                    setoran: parsedData.setoran,
                     display: 'surah',
                     surah_id: parsedData.surah_id,
                     surah: parsedData.surah,
@@ -250,9 +251,9 @@ const RecapFormLayout: React.FC = () => {
         const postData = {
             penyetor: form.data.reciter?.user_name || '',
             penerima: parseInt(form.data.recipient),
-            setoran: form.data.setoran_type,
+            setoran: form.data.setoran,
             tampilan: 'surah',
-            nomor: parseInt(form.data.surah_id),
+            nomor: parseInt(form.data.surah.first_surah),
             info: `${form.data.awalAyat}-${form.data.akhirAyat}`,
             hasil: form.data.kesimpulan,
             ket: form.data.catatan || null,
@@ -300,6 +301,7 @@ const RecapFormLayout: React.FC = () => {
     const surahName: string = getSurahName(setoranData);
 
     return (
+    <AppWrapper>
         <div className="min-h-screen bg-gray-50 py-6">
             <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8">
                 <div className="mb-6 text-center">
@@ -599,6 +601,7 @@ const RecapFormLayout: React.FC = () => {
                 </div>
             </div>
         </div>
+        </AppWrapper>
     );
 };
 

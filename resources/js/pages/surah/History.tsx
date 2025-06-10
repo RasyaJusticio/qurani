@@ -120,6 +120,19 @@ export default function SurahIndex() {
         loadErrorsFromLocalStorage();
     }, [verses]);
 
+    useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+        if (event.key === 'Escape') {
+            setPopupError(null);
+        }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+        document.removeEventListener('keydown', handleKeyDown);
+    };
+}, []);
+
     const groupedVerses = verses.reduce(
         (acc, verse, index) => {
             const page = verse.page_number;
@@ -219,19 +232,17 @@ export default function SurahIndex() {
 
             {/* Popup Error Display */}
             {popupError && (
-                <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
+                <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black/55">
                     <div className="max-w-md rounded-lg bg-white p-6 text-center shadow-lg">
-                        <h2 className="mb-4 text-xl font-semibold">Kesalahan pada {popupError.type === 'word' ? 'kata' : 'ayat'}</h2>
-                        <p className="mb-2">
-                            <strong>Lokasi:</strong> {popupError.locationText}
+                        <p className="mb-2 text-2xl">
+                            <strong> {popupError.locationText}</strong>
                         </p>
                         <p className="mb-4">
-                            <strong>Jenis:</strong>{' '}
-                            <span style={{ backgroundColor: popupError.label.color }} className="rounded px-2 py-1">
+                            <span  className="rounded px-2 py-1">
                                 {popupError.label.value}
                             </span>
                         </p>
-                        <button onClick={() => setPopupError(null)} className="mt-2 rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
+                        <button onClick={() => setPopupError(null)} className="mt-2 rounded bg-blue-600 px-2 py-2 text-white text-sm hover:bg-blue-700">
                             Tutup
                         </button>
                     </div>

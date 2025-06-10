@@ -111,12 +111,7 @@ export default function SurahIndex() {
             reciter: { id: '12345', full_name: 'Ahmad Ridwan bin Abdullah' },
             setoran_type: 'tahsin',
             display: 'surat',
-            surah: {
-                name: `${surah.name_simple}`,
-                first_surah: surah.id.toString(),
-                last_surah: surah.id.toString(),
-                surah: surahDetails,
-            },
+            surah: surahDetails,
             mistake: errorsByPage,
         };
 
