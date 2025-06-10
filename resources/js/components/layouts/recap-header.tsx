@@ -78,7 +78,6 @@ const RecapHeader: React.FC<QuranHeaderProps> = ({ page, translateMode = 'read',
     const segments = urlNow.split('/').filter(Boolean);
     let displaySegment = segments[segments.length - 1];
 
-    // Get current page/surah info from localStorage
     const getCurrentReadingInfo = () => {
         const setoranData = localStorage.getItem('setoran-data');
         if (setoranData) {
@@ -118,7 +117,7 @@ const RecapHeader: React.FC<QuranHeaderProps> = ({ page, translateMode = 'read',
     }
 
     const noFinishButton = () => {
-        return ['dashboard', 'filter', 'result','recap'].includes(segments[segments.length - 1]);
+        return ['dashboard', 'filter', 'result','page','recap'].includes(segments[segments.length - 1]);
     };
 
     return (

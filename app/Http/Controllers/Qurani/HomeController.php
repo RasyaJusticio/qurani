@@ -251,18 +251,21 @@ class HomeController extends Controller
                     if ($item->tampilan === 'surah') {
                         $chapter = Chapter::find($item->nomor);
                         $surahName = $chapter ? $chapter->name_simple : null;
+                        $display = $surahName ?: $item->nomor;
+                        $recite = ucfirst($item->setoran) . ' ' . ucfirst($item->tampilan) . ' ' . $display . ' Ayat ' . $item->info;
+                    } else {
+                        // For 'page' or 'juz', only show the number without verse info
+                        $display = $item->nomor;
+                        $recite = ucfirst($item->setoran) . ' ' . ucfirst($item->tampilan) . ' ' . $display;
                     }
-                    $display = ($item->tampilan === 'surah' && $surahName)
-                        ? $surahName
-                        : $item->nomor;
                     return [
                         'id' => $item->id,
-                        'time' => \Carbon\Carbon::parse($item->tgl)->toDateTimeString(),
+                        'time' => Carbon::parse($item->tgl)->toDateTimeString(),
                         'reciter' => $item->reciter_name,
                         'reciter_username' => $item->reciter_username,
                         'recipient' => $item->recipient_name,
                         'recipient_username' => $item->recipient_username,
-                        'recite' => ucfirst($item->setoran) . ' ' . ucfirst($item->tampilan) . ' ' . $display . ' Ayat ' . $item->info,
+                        'recite' => $recite,
                         'results' => $item->hasil,
                         'signature' => $item->paraf ? 1 : 0,
                     ];
@@ -382,9 +385,35 @@ class HomeController extends Controller
             }
 
             $surahName = null;
+            $infoWithSurahNames = $setoran->info;
+
             if ($setoran->tampilan === 'surah') {
                 $chapter = Chapter::find($setoran->nomor);
                 $surahName = $chapter ? $chapter->name_simple : null;
+            }
+
+            // Parse info field untuk mendapatkan nama surah
+            // Format: "112-1-114-6" -> "al-ikhlas-1-an-nas-6"
+            if ($setoran->info && preg_match_all('/(\d+)-(\d+)/', $setoran->info, $matches, PREG_SET_ORDER)) {
+                $infoParts = [];
+                foreach ($matches as $match) {
+                    $surahId = $match[1];
+                    $ayah = $match[2];
+
+                    // Ambil nama surah berdasarkan ID
+                    $chapter = Chapter::find($surahId);
+                    if ($chapter) {
+                        $surahNameSimple = strtolower(str_replace(' ', '-', $chapter->name_simple));
+                        $infoParts[] = $surahNameSimple . '-' . $ayah;
+                    } else {
+                        // Fallback jika surah tidak ditemukan
+                        $infoParts[] = $surahId . '-' . $ayah;
+                    }
+                }
+
+                if (!empty($infoParts)) {
+                    $infoWithSurahNames = implode('-', $infoParts);
+                }
             }
 
             // Check if perhalaman is a JSON string or already an array
@@ -407,6 +436,7 @@ class HomeController extends Controller
                 'tampilan' => $setoran->tampilan,
                 'nomor' => $setoran->nomor,
                 'info' => $setoran->info,
+                'info_with_surah_names' => $infoWithSurahNames,
                 'hasil' => $setoran->hasil,
                 'ket' => $setoran->ket,
                 'kesalahan' => $setoran->kesalahan,
@@ -452,7 +482,6 @@ class HomeController extends Controller
                     'signature' => 1
                 ]
             ]);
-
         } catch (Exception $e) {
             Log::error('Error in SignatureController@updateSignature', [
                 'message' => $e->getMessage(),

@@ -125,9 +125,14 @@ const PageHeader: React.FC<QuranHeaderProps> = ({ page, translateMode = 'read', 
     }
 
     const noFinishButton = () => {
-        return ['dashboard', 'filter', 'result'].includes(segments[segments.length - 1]);
-    };
-
+    const path = window.location.pathname;
+    return (
+        path === '/dashboard' ||
+        path === '/filter' ||
+        path === '/page' ||
+        path === '/result/page'
+    );
+};
     return (
         <div className={`px-6 ${classNav} fixed z-50 w-full bg-neutral-100`}>
             <div className="mt-3 mb-3 flex items-center justify-between">
@@ -140,7 +145,7 @@ const PageHeader: React.FC<QuranHeaderProps> = ({ page, translateMode = 'read', 
                 {translateMode === 'read' && (
                     <div className="flex w-auto cursor-pointer items-center justify-center p-1 pe-10 text-center" onClick={handleClick}>
                         {!noFinishButton() && (
-                            <span className={`${buttonSize.padding} ${buttonSize.fontSize} me-5 rounded bg-[#ff6500] font-bold text-white`}>
+                            <span className={`${buttonSize.padding} ${buttonSize.fontSize} ms-6 rounded bg-[#ff6500] font-bold text-white`}>
                                 Selesai
                             </span>
                         )}

@@ -12,8 +12,9 @@ interface Reciter {
 interface Surah {
     id: string;
     name: string;
-    from: string;
-    to: string;
+    from?: string;
+    to?: string;
+    surah?: { id: string; name: string; first_verse: string; last_verse: string }[];
 }
 
 interface SalahAyat {
@@ -133,6 +134,15 @@ const RecapFormLayout: React.FC = () => {
                     };
                 });
 
+                // Find the first_verse and last_verse from surah.surah array
+                let awalAyat = parsedData.surah?.from || '';
+                let akhirAyat = parsedData.surah?.to || '';
+                if (parsedData.surah?.surah && parsedData.surah.surah.length > 0) {
+                    const surahEntry = parsedData.surah.surah[0]; // Assuming single surah for SurahIndex
+                    awalAyat = surahEntry.first_verse;
+                    akhirAyat = surahEntry.last_verse;
+                }
+
                 form.setData({
                     reciter: parsedData.reciter,
                     recipient: parsedData.recipient,
@@ -141,8 +151,8 @@ const RecapFormLayout: React.FC = () => {
                     surah_id: parsedData.surah_id,
                     surah: parsedData.surah,
                     mistake: transformedMistake,
-                    awalAyat: parsedData.surah?.from || '',
-                    akhirAyat: parsedData.surah?.to || '',
+                    awalAyat,
+                    akhirAyat,
                     kesimpulan: '',
                     catatan: '',
                 });
@@ -184,8 +194,18 @@ const RecapFormLayout: React.FC = () => {
 
     const generateVerseOptions = (parsedData: SetoranData | null): VerseOption[] => {
         if (!parsedData?.surah) return [];
-        const from = parseInt(parsedData.surah.from, 10);
-        const to = parseInt(parsedData.surah.to, 10);
+
+        // Use first_verse and last_verse from surah.surah if available
+        let from = 1;
+        let to = 1;
+        if (parsedData.surah.surah && parsedData.surah.surah.length > 0) {
+            from = parseInt(parsedData.surah.surah[0].first_verse, 10);
+            to = parseInt(parsedData.surah.surah[0].last_verse, 10);
+        } else if (parsedData.surah.from && parsedData.surah.to) {
+            from = parseInt(parsedData.surah.from, 10);
+            to = parseInt(parsedData.surah.to, 10);
+        }
+
         const options: VerseOption[] = [];
         for (let i = from; i <= to; i++) {
             options.push({ value: i.toString(), label: `Ayat ${i}` });
@@ -244,7 +264,7 @@ const RecapFormLayout: React.FC = () => {
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
-                    Accept : "application/json",
+                    Accept: 'application/json',
                 },
             })
             .then((response) => {
@@ -474,13 +494,14 @@ const RecapFormLayout: React.FC = () => {
                                                                     {idx + 1}
                                                                 </span>
                                                                 <div className="flex-1 flex items-center">
-                                                                   <div className="flex-1 flex items-center ">
-    <span className={`inline-block rounded-md px-2 py-0.5 text-xs font-medium ${getErrorTextColor(err.salahKey)} border bg-white`}>
-        Ayah : {err.noAyat}
-    </span>
-    <p className="text-sm text-gray-700 ml-2 text-right">{err.salah}</p>
-</div>
-                                                                    {/* <p className="text-sm text-gray-700">{err.salah}</p> */}
+                                                                    <span
+                                                                        className={`inline-block rounded-md px-2 py-0.5 text-xs font-medium ${getErrorTextColor(
+                                                                            err.salahKey
+                                                                        )} border bg-white`}
+                                                                    >
+                                                                        Ayah : {err.noAyat}
+                                                                    </span>
+                                                                    <p className="ml-2 text-sm text-gray-700 text-right">{err.salah}</p>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -515,16 +536,17 @@ const RecapFormLayout: React.FC = () => {
                                                                     {idx + 1}
                                                                 </span>
                                                                 <div className="flex-1">
-                                                                    <div className="flex-1 flex items-center">
-    <span
-        className={`inline-block rounded-md border bg-white px-2 py-1 text-base ${getErrorTextColor(err.salahKey)}`}
-        style={{ fontFamily: "'Scheherazade New', 'Amiri', serif" }}
-    >
-        {err.kata?.text || ''}
-    </span>
-    <p className="text-sm text-gray-700 ml-2 text-right">{err.salah}</p>
-</div>
-                                                                    {/* <p className="text-sm text-gray-700">{err.salah}</p> */}
+                                                                    <div className="flex items-center">
+                                                                        <span
+                                                                            className={`inline-block rounded-md border bg-white px-2 py-1 text-base ${getErrorTextColor(
+                                                                                err.salahKey
+                                                                            )}`}
+                                                                            style={{ fontFamily: "'Scheherazade New', 'Amiri', serif" }}
+                                                                        >
+                                                                            {err.kata?.text || ''}
+                                                                        </span>
+                                                                        <p className="ml-2 text-sm text-gray-700 text-right">{err.salah}</p>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>

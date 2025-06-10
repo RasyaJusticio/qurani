@@ -1,7 +1,7 @@
 import AppWrapper from '@/components/layouts/app-wrapper';
 import QuranHeader from '@/components/layouts/main-header';
 import RecapHeader from '@/components/layouts/recap-header';
-import PageRecapFormLayout from '@/features/result/components/pageJuzRecapForm';
+import PageRecapFormLayout from '@/features/result/components/pageJuzResultForm';
 import { Head } from '@inertiajs/react';
 
 const index = () => {

@@ -38,6 +38,8 @@ interface Surah {
     name: string;
     from: string;
     to: string;
+    info?: string;
+    info_full?: string;
 }
 
 interface SalahAyat {
@@ -53,13 +55,12 @@ interface SalahKata {
     salah: string;
 }
 
-// Updated interface to match actual data structure
 interface MistakeItem {
     halaman: string;
     kesimpulan: string | null;
     catatan: string | null;
-    salah_ayat: SalahAyat[]; // Changed from salahAyat to salah_ayat
-    salah_kata: SalahKata[]; // Changed from salahKata to salah_kata
+    salah_ayat: SalahAyat[];
+    salah_kata: SalahKata[];
 }
 
 interface SetoranData {
@@ -68,9 +69,10 @@ interface SetoranData {
     setoran_type: string;
     surah_id: string;
     surah: Surah;
-    mistake: MistakeItem[]; // Changed from object to array
+    mistake: MistakeItem[];
     conclusion: string;
     ket: string;
+    tampilan: string; // Added to handle display type
 }
 
 interface VerseOption {
@@ -106,6 +108,39 @@ const t = (key: string): string => {
     return translations[key] || key;
 };
 
+const getSurahNameById = (id: string): string => {
+    return `Surah ${id}`;
+};
+
+const parseInfo = (info: string): { startSurah: string; startAyah: string; endSurah: string; endAyah: string } | null => {
+    if (!info) return null;
+    const parts = info.split('-');
+    if (parts.length !== 4) return null;
+    return {
+        startSurah: parts[0],
+        startAyah: parts[1],
+        endSurah: parts[2],
+        endAyah: parts[3],
+    };
+};
+
+const parseInfoFull = (infoFull: string): { startSurah: string; startAyah: string; endSurah: string; endAyah: string } | null => {
+    if (!infoFull) return null;
+    const parts = infoFull.split('-');
+    const digitIndices = parts.map((part, index) => (/\d+/.test(part) ? index : -1)).filter(index => index !== -1);
+    if (digitIndices.length !== 2) return null;
+    const startAyatIndex = digitIndices[0];
+    const endAyatIndex = digitIndices[1];
+    const startSurahParts = parts.slice(0, startAyatIndex);
+    const endSurahParts = parts.slice(startAyatIndex + 1, endAyatIndex);
+    return {
+        startSurah: startSurahParts.join('-'),
+        startAyah: parts[startAyatIndex],
+        endSurah: endSurahParts.join('-'),
+        endAyah: parts[endAyatIndex],
+    };
+};
+
 const DisabledRecapFormLayout: React.FC = () => {
     const [panels, setPanels] = useState<{ [key: string]: boolean }>({});
     const [setoranData, setSetoranData] = useState<SetoranData | null>(null);
@@ -115,10 +150,7 @@ const DisabledRecapFormLayout: React.FC = () => {
             const storedData = localStorage.getItem('setoran-data');
             if (storedData) {
                 const parsedData: SetoranData = JSON.parse(storedData);
-
-                // Validate and normalize the data structure
                 if (parsedData.mistake && Array.isArray(parsedData.mistake)) {
-                    // Data is already in correct format, just ensure all fields exist
                     const normalizedMistakes = parsedData.mistake.map((item) => ({
                         halaman: item.halaman || '',
                         kesimpulan: item.kesimpulan || '',
@@ -128,8 +160,6 @@ const DisabledRecapFormLayout: React.FC = () => {
                     }));
 
                     setSetoranData({ ...parsedData, mistake: normalizedMistakes });
-
-                    // Initialize panels state
                     const initialPanels: { [key: string]: boolean } = {};
                     normalizedMistakes.forEach((item) => {
                         initialPanels[item.halaman] = true;
@@ -150,11 +180,9 @@ const DisabledRecapFormLayout: React.FC = () => {
 
     const generateVerseOptions = (parsedData: SetoranData | null): VerseOption[] => {
         if (!parsedData?.surah) return [];
-
         const from = parseInt(parsedData.surah.from, 10);
         const to = parseInt(parsedData.surah.to, 10);
         const options: VerseOption[] = [];
-
         for (let i = from; i <= to; i++) {
             options.push({ value: i.toString(), label: `Ayat ${i}` });
         }
@@ -173,10 +201,6 @@ const DisabledRecapFormLayout: React.FC = () => {
         return salahKey?.includes('tajweed') ? 'text-red-700' : 'text-orange-700';
     };
 
-    const getSurahName = (parsedData: SetoranData | null): string => {
-        return parsedData?.surah?.name || 'Unknown Surah';
-    };
-
     if (!setoranData) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -188,14 +212,41 @@ const DisabledRecapFormLayout: React.FC = () => {
         );
     }
 
-    const verseOptions: VerseOption[] = generateVerseOptions(setoranData);
-    const surahName: string = getSurahName(setoranData);
-    console.log(setoranData.surah.id);
+    // Determine values based on tampilan
+    let awalSurah: string;
+let awalAyat: string;
+let akhirSurah: string;
+let akhirAyat: string;
 
+if (setoranData.tampilan === 'surah') {
+    awalSurah = setoranData.surah.name || 'Unknown Surah';
+    awalAyat = setoranData.surah.from || '';
+    akhirSurah = setoranData.surah.name || 'Unknown Surah';
+    akhirAyat = setoranData.surah.to || '';
+} else if (setoranData.tampilan === 'page' || setoranData.tampilan === 'juz') {
+    const parsedInfo = parseInfoFull(setoranData.surah.info_full || '');
+    if (parsedInfo) {
+        awalSurah = parsedInfo.startSurah;
+        awalAyat = parsedInfo.startAyah;
+        akhirSurah = parsedInfo.endSurah;
+        akhirAyat = parsedInfo.endAyah;
+    } else {
+        awalSurah = 'Unknown';
+        awalAyat = '';
+        akhirSurah = 'Unknown';
+        akhirAyat = '';
+    }
+} else {
+    awalSurah = 'Unknown';
+    awalAyat = '';
+    akhirSurah = 'Unknown';
+    akhirAyat = '';
+}
 
     const handleSubmit = () => {
         window.location.href = `/recap/surah/${setoranData.surah.id}`;
     };
+
     return (
         <ErrorBoundary>
             <div className="min-h-screen bg-gray-50 py-6 pt-20">
@@ -220,7 +271,7 @@ const DisabledRecapFormLayout: React.FC = () => {
                                     <input
                                         type="text"
                                         className="w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-900"
-                                        value={surahName}
+                                        value={awalSurah}
                                         disabled
                                     />
                                 </div>
@@ -229,7 +280,7 @@ const DisabledRecapFormLayout: React.FC = () => {
                                     <input
                                         type="text"
                                         className="w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-900"
-                                        value={setoranData.surah?.from || ''}
+                                        value={awalAyat}
                                         disabled
                                     />
                                 </div>
@@ -238,7 +289,7 @@ const DisabledRecapFormLayout: React.FC = () => {
                                     <input
                                         type="text"
                                         className="w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-900"
-                                        value={surahName}
+                                        value={akhirSurah}
                                         disabled
                                     />
                                 </div>
@@ -247,7 +298,7 @@ const DisabledRecapFormLayout: React.FC = () => {
                                     <input
                                         type="text"
                                         className="w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-900"
-                                        value={setoranData.surah?.to || ''}
+                                        value={akhirAyat}
                                         disabled
                                     />
                                 </div>
@@ -297,7 +348,9 @@ const DisabledRecapFormLayout: React.FC = () => {
                                         <div className="flex items-center">
                                             <FileText className="mr-2 h-4 w-4 text-blue-600" />
                                             <h3 className="text-base font-medium text-gray-900">
-                                                {`${surahName} - ${t('rekapan.form.halaman')} ${mistakeItem.halaman}`}
+                                                {setoranData.tampilan === 'surah'
+                                                    ? `${setoranData.surah.name} - ${t('rekapan.form.halaman')} ${mistakeItem.halaman}`
+                                                    : `Page ${mistakeItem.halaman}`}
                                             </h3>
                                             <div className="ml-3 flex items-center space-x-2">
                                                 {(mistakeItem.salah_ayat || []).length > 0 && (
@@ -352,13 +405,14 @@ const DisabledRecapFormLayout: React.FC = () => {
                                                                         {idx + 1}
                                                                     </span>
                                                                     <div className="flex-1">
-                                                                        <div className="flex-1 flex items-center">
-    <span className={`inline-block rounded-md px-2 py-0.5 text-xs font-medium ${getErrorTextColor(err.salahKey)} border bg-white`}>
-        {err.NamaSurah} : {err.noAyat}
-    </span>
-    <p className="text-sm text-gray-700 ml-2 text-right">{err.salah}</p>
-</div>
-                                                                        {/* <p className="text-sm text-gray-700">{err.salah}</p> */}
+                                                                        <div className="flex flex-1 items-center">
+                                                                            <span
+                                                                                className={`inline-block rounded-md px-2 py-0.5 text-xs font-medium ${getErrorTextColor(err.salahKey)} border bg-white`}
+                                                                            >
+                                                                                {err.NamaSurah} : {err.noAyat}
+                                                                            </span>
+                                                                            <p className="ml-2 text-right text-sm text-gray-700">{err.salah}</p>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -392,15 +446,9 @@ const DisabledRecapFormLayout: React.FC = () => {
                                                                         {idx + 1}
                                                                     </span>
                                                                     <div className="flex flex-1 items-center">
-                                                                        {' '}
-                                                                        {/* Tambahkan flex dan items-center di sini */}
                                                                         <div className="mr-3">
-                                                                            {' '}
-                                                                            {/* Tambahkan margin kanan untuk spasi */}
                                                                             <span
-                                                                                className={`inline-block rounded-md border bg-white px-2 py-1 text-base ${getErrorTextColor(
-                                                                                    err.salahKey,
-                                                                                )}`}
+                                                                                className={`inline-block rounded-md border bg-white px-2 py-1 text-base ${getErrorTextColor(err.salahKey)}`}
                                                                                 style={{ fontFamily: "'Scheherazade New', 'Amiri', serif" }}
                                                                             >
                                                                                 {err.kata?.text || ''}
@@ -419,9 +467,7 @@ const DisabledRecapFormLayout: React.FC = () => {
                                             <div className="border-t border-gray-200 pt-4">
                                                 <div className="grid grid-cols-1 gap-4">
                                                     <div>
-                                                        <label className="mb-1 block text-xs font-medium text-gray-700">
-                                                            {t('rekapan.form.kesimpulan')}
-                                                        </label>
+                                                        <label className="mb-1 block text-xs font-medium text-gray-700">{t('rekapan.form.kesimpulan')}</label>
                                                         <input
                                                             type="text"
                                                             className="w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-900"
@@ -430,9 +476,7 @@ const DisabledRecapFormLayout: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="mb-1 block text-xs font-medium text-gray-700">
-                                                            {t('rekapan.form.catatan')}
-                                                        </label>
+                                                        <label className="mb-1 block text-xs font-medium text-gray-700">{t('rekapan.form.catatan')}</label>
                                                         <textarea
                                                             className="w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-900"
                                                             rows={2}

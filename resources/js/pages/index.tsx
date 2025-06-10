@@ -23,13 +23,28 @@ interface IndexProps {
     setoranRekapTotal: SetoranRekapTotal[];
     periodes: Periode[];
     selectedPeriode: Periode | null;
-    u_id:Number;
+    u_id: Number;
 }
 
-const Index: React.FC<IndexProps> = ({ friends, groups, chapters, juzs, userSettings, setoran, setoranRekap, periodes, selectedPeriode, setoranRekapTotal, u_id }) => {
+const Index: React.FC<IndexProps> = ({
+    friends,
+    groups,
+    chapters,
+    juzs,
+    userSettings,
+    setoran,
+    setoranRekap,
+    periodes,
+    selectedPeriode,
+    setoranRekapTotal,
+    u_id,
+}) => {
+
     useEffect(() => {
         console.log('cookie:', u_id);
+        localStorage.removeItem('setoran-data');
     }, [setoranRekap]);
+
 
     return (
         <AppWrapper>

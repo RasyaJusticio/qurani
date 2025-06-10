@@ -61,6 +61,12 @@ const errorLabels = [
 
 export default function SurahIndex() {
     const { surah, verses } = usePage<PageProps>().props;
+    const [popupError, setPopupError] = useState<{
+        type: 'word' | 'verse';
+        id: number;
+        label: (typeof errorLabels)[0];
+        locationText: string;
+    } | null>(null);
     const [wordErrors, setWordErrors] = useState<{ [key: number]: string }>({});
     const [verseErrors, setVerseErrors] = useState<{ [key: number]: string }>({});
 
@@ -142,74 +148,95 @@ export default function SurahIndex() {
                     )}
                 </div>
                 <div className="font-arabic text-right text-3xl leading-loose text-gray-800" style={{ direction: 'rtl' }}>
-                    {verses.map((verse, index) => (
-                        <span key={verse.id}>
-                            <span
-                                style={{
-                                    display: 'inline-block',
-                                    backgroundColor: verseErrors[verse.id]
-                                        ? errorLabels.find((label) => label.key === verseErrors[verse.id])?.color || 'transparent'
-                                        : 'transparent',
-                                    lineHeight: '1.5em',
-                                    verticalAlign: 'middle',
-                                }}
-                            >
-                                {verse.words.map((word) => {
-                                    const errorLabel = wordErrors[word.id] ? errorLabels.find((label) => label.key === wordErrors[word.id]) : null;
-                                    return (
-                                        <span
-                                            key={word.id}
-                                            className="group relative inline-block px-1"
-                                            style={{
-                                                backgroundColor: errorLabel?.color || 'transparent',
-                                                lineHeight: '1.5em',
-                                                verticalAlign: 'middle',
-                                            }}
-                                            aria-label={errorLabel ? `Kesalahan: ${errorLabel.value}` : undefined}
-                                        >
-                                            {word.text_uthmani}{' '}
-                                            {errorLabel && (
-                                                <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 transform rounded-md bg-black px-2 py-1 text-xs text-white group-hover:block after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-t-black after:content-['']">
-                                                    {errorLabel.value}
-                                                </div>
-                                            )}
-                                        </span>
-                                    );
-                                })}
+                    {verses.map((verse) => {
+                        const verseLabel = verseErrors[verse.id] ? errorLabels.find((label) => label.key === verseErrors[verse.id]) : null;
+
+                        return (
+                            <span key={verse.id}>
                                 <span
-                                    className="font-arabic group relative inline-flex items-center justify-center px-1 text-3xl text-gray-700"
                                     style={{
+                                        display: 'inline-block',
+                                        backgroundColor: verseLabel?.color || 'transparent',
                                         lineHeight: '1.5em',
                                         verticalAlign: 'middle',
-                                        minWidth: '2em',
-                                        textAlign: 'center',
                                     }}
-                                    aria-label={
-                                        verseErrors[verse.id]
-                                            ? `Kesalahan: ${errorLabels.find((label) => label.key === verseErrors[verse.id])?.value}`
-                                            : undefined
-                                    }
                                 >
-                                    ۝{verse.end_marker || verse.verse_number}
-                                    {verseErrors[verse.id] && (
-                                        <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 transform rounded-md bg-black px-2 py-1 text-xs text-white group-hover:block after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-t-black after:content-['']">
-                                            {errorLabels.find((label) => label.key === verseErrors[verse.id])?.value}
-                                        </div>
-                                    )}
-                                </span>
+                                    {verse.words.map((word) => {
+                                        const errorLabel = wordErrors[word.id]
+                                            ? errorLabels.find((label) => label.key === wordErrors[word.id])
+                                            : null;
+
+                                        return (
+                                            <span
+                                                key={word.id}
+                                                className="group relative inline-block cursor-pointer px-1 whitespace-nowrap"
+                                                style={{ backgroundColor: errorLabel?.color }}
+                                                onClick={() =>
+                                                    setPopupError({
+                                                        type: 'word',
+                                                        id: word.id,
+                                                        label: errorLabel!,
+                                                        locationText: word.text_uthmani,
+                                                    })
+                                                }
+                                                aria-label={errorLabel ? `Kesalahan: ${errorLabel.value}` : undefined}
+                                            >
+                                                {word.text_uthmani}{' '}
+                                                {errorLabel && (
+                                                    <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 transform rounded-md bg-black px-2 py-1 text-xs text-white group-hover:block after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-t-black after:content-['']">
+                                                        {errorLabel.value}
+                                                    </div>
+                                                )}
+                                            </span>
+                                        );
+                                    })}
+                                    <span
+                                        className="group relative inline-flex cursor-pointer items-center justify-center px-1 whitespace-nowrap"
+                                        style={{ backgroundColor: verseLabel?.color }}
+                                        onClick={() =>
+                                            setPopupError({
+                                                type: 'verse',
+                                                id: verse.id,
+                                                label: verseLabel!,
+                                                locationText: `Ayat ke-${verse.verse_number}`,
+                                            })
+                                        }
+                                        aria-label={verseLabel ? `Kesalahan: ${verseLabel.value}` : undefined}
+                                    >
+                                        ۝{verse.end_marker || verse.verse_number}
+                                        {verseLabel && (
+                                            <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 transform rounded-md bg-black px-2 py-1 text-xs text-white group-hover:block after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-t-black after:content-['']">
+                                                {verseLabel.value}
+                                            </div>
+                                        )}
+                                    </span>
+                                </span>{' '}
                             </span>
-                            {groupedVerses[verse.page_number][groupedVerses[verse.page_number].length - 1].verse.id === verse.id && (
-                                <div className="my-4 flex items-center">
-                                    <hr className="flex-1 border-t border-gray-300" />
-                                    <span className="mx-4 text-sm font-medium text-gray-600">Page {verse.page_number}</span>
-                                    <hr className="flex-1 border-t border-gray-300" />
-                                </div>
-                            )}
-                            {index < verses.length - 1 && ' '}
-                        </span>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
+
+            {/* Popup Error Display */}
+            {popupError && (
+                <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
+                    <div className="max-w-md rounded-lg bg-white p-6 text-center shadow-lg">
+                        <h2 className="mb-4 text-xl font-semibold">Kesalahan pada {popupError.type === 'word' ? 'kata' : 'ayat'}</h2>
+                        <p className="mb-2">
+                            <strong>Lokasi:</strong> {popupError.locationText}
+                        </p>
+                        <p className="mb-4">
+                            <strong>Jenis:</strong>{' '}
+                            <span style={{ backgroundColor: popupError.label.color }} className="rounded px-2 py-1">
+                                {popupError.label.value}
+                            </span>
+                        </p>
+                        <button onClick={() => setPopupError(null)} className="mt-2 rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            )}
         </AppWrapper>
     );
 }

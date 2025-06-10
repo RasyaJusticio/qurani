@@ -8,6 +8,7 @@ import { Friend } from '../../types/friend';
 import { Group } from '../../types/group';
 import { Juz } from '../../types/juz';
 import { pages } from '../../constanst/pages';
+import { useTheme } from '../../../../components/layouts/theme-context';
 
 interface Option {
     value: string;
@@ -42,17 +43,20 @@ interface SavedSetoranData {
     penyetor: string;
     setoran: string;
     tampilkan: string;
-    selectedGroup: string;
-    selectedSurahValue: string;
-    selectedJuz: string;
-    selectedHalaman: string;
+    selectedGroup?: string;
+    selectedMember?: string;
+    selectedFriend?: string;
+    selectedSurahValue?: string;
+    selectedJuz?: string;
+    selectedHalaman?: string;
+    reciter?: { user_name: string; full_name: string };
 }
 
 const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs }) => {
     const { t } = useTranslation('form');
     const [translationsReady, setTranslationsReady] = useState(false);
     const [userData, setUserData] = useState<UserData>({});
-    const [isDarkMode, setIsDarkMode] = useState(false);
+    const { isDarkMode } = useTheme();
     const [penyetor, setPenyetor] = useState<string>('grup');
     const [setoran, setSetoran] = useState<string>('tahsin');
     const [tampilkan, setTampilkan] = useState<string>('surat');
@@ -93,12 +97,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
     const halamanDropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const themeValue = localStorage.getItem('theme');
-        setIsDarkMode(themeValue === '1');
-    }, []);
-
-    useEffect(() => {
-        const savedData = localStorage.getItem('qurani-form-data');
+        const savedData = localStorage.getItem('setoran-data');
         if (savedData) {
             try {
                 const parsedData: SavedSetoranData = JSON.parse(savedData);
@@ -109,6 +108,13 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                 setSelectedSurahValue(parsedData.selectedSurahValue || '');
                 setSelectedJuz(parsedData.selectedJuz || '');
                 setSelectedHalaman(parsedData.selectedHalaman || '');
+                // Only set member or friend if they match the penyetor type
+                if (parsedData.penyetor === 'grup' && parsedData.selectedMember) {
+                    setSelectedMember(parsedData.selectedMember);
+                }
+                if (parsedData.penyetor === 'teman' && parsedData.selectedFriend) {
+                    setSelectedFriend(parsedData.selectedFriend);
+                }
             } catch (error) {
                 console.error('Error parsing saved data:', error);
             }
@@ -134,15 +140,17 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                 penyetor,
                 setoran,
                 tampilkan,
-                selectedGroup,
+                selectedGroup: penyetor === 'grup' ? selectedGroup : '',
+                selectedMember: penyetor === 'grup' ? selectedMember : '',
+                selectedFriend: penyetor === 'teman' ? selectedFriend : '',
                 selectedSurahValue,
                 selectedJuz,
-                selectedHalaman
+                selectedHalaman,
             };
-            localStorage.setItem('qurani-form-data', JSON.stringify(formData));
+            localStorage.setItem('setoran-data', JSON.stringify(formData));
         };
         saveFormData();
-    }, [penyetor, setoran, tampilkan, selectedGroup, selectedSurahValue, selectedJuz, selectedHalaman]);
+    }, [penyetor, setoran, tampilkan, selectedGroup, selectedMember, selectedFriend, selectedSurahValue, selectedJuz, selectedHalaman]);
 
     useEffect(() => {
         const loadUserData = () => {
@@ -228,6 +236,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
         if (!validateForm()) {
             return;
         }
+
         let reciter: { user_name: string; full_name: string } | null = null;
         if (penyetor === 'grup') {
             const group = groups.find(g => g.group_id.toString() === selectedGroup);
@@ -249,36 +258,26 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                 };
             }
         }
-        let existingData = {};
-        try {
-            const stored = localStorage.getItem('setoran-data');
-            if (stored) {
-                existingData = JSON.parse(stored);
-            }
-        } catch (error) {
-            console.error('Error parsing existing setoran-data:', error);
-        }
-        const newSetoranData: any = {
+
+        const formData: SavedSetoranData = {
+            penyetor,
+            setoran,
+            tampilkan,
+            selectedGroup: penyetor === 'grup' ? selectedGroup : '',
+            selectedMember: penyetor === 'grup' ? selectedMember : '',
+            selectedFriend: penyetor === 'teman' ? selectedFriend : '',
+            selectedSurahValue: tampilkan === 'surat' ? selectedSurahValue : '',
+            selectedJuz: tampilkan === 'juz' ? selectedJuz : '',
+            selectedHalaman: tampilkan === 'halaman' ? selectedHalaman : '',
             reciter: reciter || { user_name: '', full_name: '' },
-            setoran_type: setoran,
-            display: tampilkan,
         };
-        if (tampilkan === 'surat' && selectedSurahValue) {
-            newSetoranData.surah_id = selectedSurahValue;
-        } else if (tampilkan === 'juz' && selectedJuz) {
-            newSetoranData.juz_id = selectedJuz;
-        } else if (tampilkan === 'halaman' && selectedHalaman) {
-            newSetoranData.page_number = selectedHalaman;
-        }
-        const finalSetoranData = {
-            ...existingData,
-            ...newSetoranData
-        };
+
         try {
-            localStorage.setItem('setoran-data', JSON.stringify(finalSetoranData));
+            localStorage.setItem('setoran-data', JSON.stringify(formData));
         } catch (error) {
             console.error('Error saving setoran-data:', error);
         }
+
         const redirectUrl = getRedirectUrl();
         if (redirectUrl !== '/') {
             window.location.href = redirectUrl;
@@ -306,7 +305,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
         setSelectedHalaman('');
         setCurrentMembers([]);
         setErrors({});
-        localStorage.removeItem('qurani-form-data');
+        localStorage.removeItem('setoran-data');
     };
 
     useEffect(() => {
@@ -333,10 +332,10 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
     if (!translationsReady) return null;
 
     return (
-        <div className={`flex w-full justify-center ${isDarkMode ? 'dark bg-gray-900' : 'bg-white'}`}>
+        <div className={`flex w-full justify-center`}>
             <div className="w-full max-w-2xl">
-                <div className={`min-h-[520px] overflow-hidden rounded-lg shadow-lg ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
-                    <div className={`px-6 py-3 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                <div className={`min-h-[520px] overflow-hidden rounded-lg shadow-lg ${isDarkMode ? 'bg-[rgb(38,45,52)]' : 'bg-white'}`}>
+                    <div className={`px-6 py-3 ${isDarkMode ? 'bg-[rgb(38,45,52)]' : 'bg-white'}`}>
                         <div className="flex items-center justify-between">
                             <h2 className={`text-2xl font-semibold ${isDarkMode ? 'text-white' : 'text-black'}`}>{t('header')}</h2>
                             <button
@@ -376,7 +375,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                                 setPenyetor(e.target.value);
                                                 setErrors(prev => ({ ...prev, group: '', member: '', friend: '' }));
                                             }}
-                                            className={`.mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
+                                            className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
                                         />
                                         <span className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-neutral-950'}`}>{t('radio_options.friend')}</span>
                                     </label>

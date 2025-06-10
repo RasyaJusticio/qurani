@@ -112,8 +112,8 @@ export default function PageIndex() {
     const surahDetails = surahIds.map(id => ({
       id: id.toString(),
       name: chapters[id].name_simple,
-      from: versesBySurah[id][0].verse_number.toString(),
-      to: versesBySurah[id][versesBySurah[id].length - 1].verse_number.toString(),
+      first_verse: versesBySurah[id][0].verse_number.toString(),
+      last_verse: versesBySurah[id][versesBySurah[id].length - 1].verse_number.toString(),
     }));
 
     const existingData = localStorage.getItem('setoran-data');
@@ -123,12 +123,9 @@ export default function PageIndex() {
       setoran_type: parsedData.setoran_type || 'tahsin',
       display: 'page',
       surah: {
-        id: `page-${page.page_number}`,
         name: `Page ${page.page_number}`,
         first_surah: firstSurahId.toString(),
         last_surah: lastSurahId.toString(),
-        first_verse: firstVerse.toString(),
-        last_verse: lastVerse.toString(),
         surah: surahDetails,
       },
       mistake: parsedData.mistake || {},
@@ -145,6 +142,7 @@ export default function PageIndex() {
       ...parsedData,
       setoran_type: parsedData.setoran_type || 'tahsin',
       display: 'page',
+      page_number: page.page_number,
       surah: {
         ...parsedData.surah,
         id: `page-${page.page_number}`,
@@ -279,7 +277,7 @@ export default function PageIndex() {
           wordErrors={wordErrors}
           verseErrors={verseErrors}
         />
-        <div className="font-arabic text-right text-3xl leading-loose text-gray-800 mt-20">
+        <div className="font-arabic text-right text-3xl leading-loose text-gray-800 mt-20" style={{ direction: 'rtl' }}>
           {Object.keys(versesBySurah).map((surahId) => {
             const surah = chapters[parseInt(surahId)];
             return (
@@ -295,12 +293,28 @@ export default function PageIndex() {
                 </div>
                 <div className="font-arabic text-right text-3xl leading-loose text-gray-800">
                   {versesBySurah[parseInt(surahId)].map((verse, index) => (
-                    <span key={verse.id}>
+                    <span
+                      key={verse.id}
+                      style={{
+                        display: 'inline-block',
+                        backgroundColor: verseErrors[verse.id]
+                          ? errorLabels.find((label) => label.key === verseErrors[verse.id])?.color || 'transparent'
+                          : 'transparent',
+                        lineHeight: '1.5em',
+                        verticalAlign: 'middle',
+                      }}
+                    >
                       {verse.words.map((word) => (
                         <span
                           key={word.id}
-                          className="transition-colors duration-200 hover:text-blue-300 cursor-pointer"
-                          style={{ backgroundColor: wordErrors[word.id] ? errorLabels.find((label) => label.key === wordErrors[word.id])?.color || 'transparent' : 'transparent' }}
+                          className="inline-block cursor-pointer px-1 transition-colors duration-200 hover:text-blue-300"
+                          style={{
+                            backgroundColor: wordErrors[word.id]
+                              ? errorLabels.find((label) => label.key === wordErrors[word.id])?.color || 'transparent'
+                              : 'transparent',
+                            lineHeight: '1.5em',
+                            verticalAlign: 'middle',
+                          }}
                           onClick={() => handleClick('word', word.id)}
                           role="button"
                           tabIndex={0}
@@ -314,8 +328,13 @@ export default function PageIndex() {
                         </span>
                       ))}
                       <span
-                        className="font-arabic inline-flex items-center justify-center text-xl text-gray-700 cursor-pointer"
-                        style={{ backgroundColor: verseErrors[verse.id] ? errorLabels.find((label) => label.key === verseErrors[verse.id])?.color || 'transparent' : 'transparent' }}
+                        className="inline-block cursor-pointer px-1 transition-colors duration-200 hover:text-blue-300"
+                        style={{
+                          lineHeight: '1.5em',
+                          verticalAlign: 'middle',
+                          minWidth: '2em',
+                          textAlign: 'center',
+                        }}
                         onClick={() => handleClick('verse', verse.id)}
                         role="button"
                         tabIndex={0}

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { AlertCircle, CheckCircle2, ChevronDown, ChevronUp, FileText } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
+// Interfaces for TypeScript types
 interface Reciter {
     user_id: string;
     user_name: string;
@@ -12,8 +13,8 @@ interface Reciter {
 interface Surah {
     id: string;
     name: string;
-    from: string;
-    to: string;
+    first_verse: string;
+    last_verse: string;
 }
 
 interface SalahAyat {
@@ -51,14 +52,9 @@ interface SetoranData {
         last_surah: string;
         first_verse: string;
         last_verse: string;
-        surahs: Surah[];
+        surah: Surah[];
     };
     mistake: { [page: string]: { salahAyat: SalahAyat[]; salahKata: SalahKata[] } };
-}
-
-interface VerseOption {
-    value: string;
-    label: string;
 }
 
 interface FormData {
@@ -67,14 +63,17 @@ interface FormData {
     setoran_type: string;
     display: string;
     page_number: string;
-    surah: { id: string; name: string; first_surah: string; last_surah: string; first_verse: string; last_verse: string; surahs: Surah[] } | null;
-    mistake: { [page: string]: { salahAyat: SalahAyat[]; salahKata: SalahKata[]; kesimpulan: string; catatan: string } };
+    surah: { id: string; name: string; first_surah: string; last_surah: string; first_verse: string; last_verse: string; surah: Surah[] } | null;
+    mistake: Mistake;
     kesimpulan: string;
     catatan: string;
-    first_verse: string;
-    last_verse: string;
+    selected_first_surah: string;
+    selected_first_ayat: string;
+    selected_last_surah: string;
+    selected_last_ayat: string;
 }
 
+// Translation function
 const t = (key: string): string => {
     const translations: { [key: string]: string } = {
         'general.hasilrekap': 'Hasil Setoran',
@@ -119,86 +118,51 @@ const PageRecapFormLayout: React.FC = () => {
         mistake: {},
         kesimpulan: '',
         catatan: '',
-        first_verse: '',
-        last_verse: '',
+        selected_first_surah: '',
+        selected_first_ayat: '',
+        selected_last_surah: '',
+        selected_last_ayat: '',
     });
 
     useEffect(() => {
         try {
-            // Simulasi data dari localStorage berdasarkan input pengguna
-            const parsedData: SetoranData = {
-                reciter: {
-                    user_name: "linkid_moderator",
-                    full_name: "LinkID Moderator",
-                    user_id: "", // Tidak ada user_id di data, jadi dikosongkan
-                },
-                recipient: "4",
-                setoran_type: "tahsin",
-                display: "page",
-                page_number: "9",
-                surah: {
-                    id: "page-9",
-                    name: "Page 9",
-                    first_surah: "2",
-                    last_surah: "2",
-                    first_verse: "58",
-                    last_verse: "61",
-                    surahs: [
-                        {
-                            id: "2",
-                            name: "Al-Baqarah",
-                            from: "58",
-                            to: "61",
-                        },
-                    ],
-                },
-                mistake: {
-                    "9": {
-                        salahAyat: [],
-                        salahKata: [
-                            {
-                                salahKey: "sk-5",
-                                kata: { text: "هَـٰذِهِ" },
-                                salah: "Lupa",
-                            },
-                        ],
-                    },
-                },
-            };
-
-            if (parsedData && parsedData.display === 'page') {
-                setSetoranData(parsedData);
-                const transformedMistake: {
-                    [page: string]: { salahAyat: SalahAyat[]; salahKata: SalahKata[]; kesimpulan: string; catatan: string };
-                } = {};
-                Object.entries(parsedData.mistake).forEach(([page, data]) => {
-                    transformedMistake[page] = {
-                        ...data,
+            const data = localStorage.getItem('setoran-data');
+            if (data) {
+                const parsedData: SetoranData = JSON.parse(data);
+                if (parsedData && parsedData.display === 'page' && parsedData.surah && Array.isArray(parsedData.surah.surah)) {
+                    setSetoranData(parsedData);
+                    const transformedMistake: Mistake = {};
+                    Object.entries(parsedData.mistake).forEach(([page, data]) => {
+                        transformedMistake[page] = {
+                            ...data,
+                            kesimpulan: '',
+                            catatan: '',
+                        };
+                    });
+                    form.setData({
+                        reciter: parsedData.reciter,
+                        recipient: parsedData.recipient,
+                        setoran_type: parsedData.setoran_type,
+                        display: 'page',
+                        page_number: parsedData.page_number,
+                        surah: parsedData.surah,
+                        mistake: transformedMistake,
+                        selected_first_surah: parsedData.surah.first_surah,
+                        selected_first_ayat: parsedData.surah.first_verse,
+                        selected_last_surah: parsedData.surah.last_surah,
+                        selected_last_ayat: parsedData.surah.last_verse,
                         kesimpulan: '',
                         catatan: '',
-                    };
-                });
-
-                form.setData({
-                    reciter: parsedData.reciter,
-                    recipient: parsedData.recipient,
-                    setoran_type: parsedData.setoran_type,
-                    display: 'page',
-                    page_number: parsedData.page_number,
-                    surah: parsedData.surah,
-                    mistake: transformedMistake,
-                    first_verse: parsedData.surah?.first_verse || '',
-                    last_verse: parsedData.surah?.last_verse || '',
-                    kesimpulan: '',
-                    catatan: '',
-                });
-
-                if (parsedData.mistake) {
-                    const initialPanels: { [key: string]: boolean } = {};
-                    Object.keys(parsedData.mistake).forEach((key) => {
-                        initialPanels[key] = true;
                     });
-                    setPanels(initialPanels);
+                    if (parsedData.mistake) {
+                        const initialPanels: { [key: string]: boolean } = {};
+                        Object.keys(parsedData.mistake).forEach((key) => {
+                            initialPanels[key] = true;
+                        });
+                        setPanels(initialPanels);
+                    }
+                } else {
+                    setSetoranData(null);
                 }
             } else {
                 setSetoranData(null);
@@ -209,10 +173,28 @@ const PageRecapFormLayout: React.FC = () => {
         }
     }, []);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const key = e.target.name || e.target.id;
+    useEffect(() => {
+        if (form.data.selected_first_surah) {
+            const surah = setoranData?.surah.surah.find(s => s.id === form.data.selected_first_surah);
+            if (surah) {
+                form.setData('selected_first_ayat', surah.first_verse);
+            }
+        }
+    }, [form.data.selected_first_surah]);
+
+    useEffect(() => {
+        if (form.data.selected_last_surah) {
+            const surah = setoranData?.surah.surah.find(s => s.id === form.data.selected_last_surah);
+            if (surah) {
+                form.setData('selected_last_ayat', surah.last_verse);
+            }
+        }
+    }, [form.data.selected_last_surah]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLTextAreaElement>) => {
+        const key = e.target.name as keyof FormData;
         const value = e.target.value;
-        form.setData(key as keyof FormData, value);
+        form.setData(key, value);
     };
 
     const handlePageChange = (page: string, field: 'kesimpulan' | 'catatan') => (
@@ -228,17 +210,23 @@ const PageRecapFormLayout: React.FC = () => {
         });
     };
 
-    const generateVerseOptions = (surahs: Surah[]): VerseOption[] => {
-        const options: VerseOption[] = [];
-        surahs.forEach((surah) => {
-            const from = parseInt(surah.from, 10);
-            const to = parseInt(surah.to, 10);
-            for (let i = from; i <= to; i++) {
-                options.push({ value: i.toString(), label: `Ayat ${i} (${surah.name})` });
-            }
-        });
-        return options;
+    const getAyatOptions = (surahId: string) => {
+        const surah = setoranData?.surah.surah.find(s => s.id === surahId);
+        if (surah) {
+            const from = parseInt(surah.first_verse, 10);
+            const to = parseInt(surah.last_verse, 10);
+            return Array.from({ length: to - from + 1 }, (_, i) => ({
+                value: (from + i).toString(),
+                label: `Ayat ${from + i}`,
+            }));
+        }
+        return [];
     };
+
+    const surahOptions = setoranData?.surah.surah.map(s => ({
+        value: s.id,
+        label: s.name,
+    })) || [];
 
     const togglePanel = (page: string): void => {
         setPanels((prev) => ({ ...prev, [page]: !prev[page] }));
@@ -259,13 +247,16 @@ const PageRecapFormLayout: React.FC = () => {
     const handleSubmit = (e: React.FormEvent): void => {
         e.preventDefault();
         form.clearErrors();
-
         if (!form.data.kesimpulan) form.setError('kesimpulan', 'Pilih kesimpulan');
-        if (!form.data.first_verse) form.setError('first_verse', 'Pilih awal ayat');
-        if (!form.data.last_verse) form.setError('last_verse', 'Pilih akhir ayat');
-
+        if (!form.data.selected_first_surah) form.setError('selected_first_surah', 'Pilih awal surah');
+        if (!form.data.selected_first_ayat) form.setError('selected_first_ayat', 'Pilih awal ayat');
+        if (!form.data.selected_last_surah) form.setError('selected_last_surah', 'Pilih akhir surah');
+        if (!form.data.selected_last_ayat) form.setError('selected_last_ayat', 'Pilih akhir ayat');
         if (Object.keys(form.errors).length > 0) return;
 
+        const firstVerse = `${form.data.selected_first_surah}-${form.data.selected_first_ayat}`;
+        const lastVerse = `${form.data.selected_last_surah}-${form.data.selected_last_ayat}`;
+        const info = `${firstVerse}-${lastVerse}`;
         const perhalamanData = Object.entries(form.data.mistake).map(([page, data]) => ({
             halaman: page,
             kesimpulan: data.kesimpulan,
@@ -280,7 +271,7 @@ const PageRecapFormLayout: React.FC = () => {
             setoran: form.data.setoran_type,
             tampilan: 'page',
             nomor: parseInt(form.data.page_number),
-            info: `${form.data.first_verse}-${form.data.last_verse}`,
+            info: info,
             hasil: form.data.kesimpulan,
             ket: form.data.catatan || null,
             perhalaman: perhalamanData,
@@ -294,7 +285,7 @@ const PageRecapFormLayout: React.FC = () => {
                     Accept: 'application/json',
                 },
             })
-            .then((response) => {
+            .then(() => {
                 alert('Data berhasil dikirim!');
                 localStorage.removeItem('setoran-data');
                 router.visit('/');
@@ -303,7 +294,7 @@ const PageRecapFormLayout: React.FC = () => {
                 if (error.response && error.response.status === 422) {
                     const errors = error.response.data.errors;
                     Object.keys(errors).forEach((key) => {
-                        form.setError(key, errors[key][0]);
+                        form.setError(key as keyof FormData, errors[key][0]);
                     });
                 } else {
                     console.error('Error:', error);
@@ -312,7 +303,7 @@ const PageRecapFormLayout: React.FC = () => {
             });
     };
 
-    if (!setoranData) {
+    if (!setoranData || !setoranData.surah || !Array.isArray(setoranData.surah.surah)) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-gray-50">
                 <div className="text-center">
@@ -323,7 +314,6 @@ const PageRecapFormLayout: React.FC = () => {
         );
     }
 
-    const verseOptions: VerseOption[] = generateVerseOptions(setoranData.surah.surahs);
     const pageName: string = getPageName(setoranData);
 
     return (
@@ -332,7 +322,6 @@ const PageRecapFormLayout: React.FC = () => {
                 <div className="mb-6 text-center">
                     <h1 className="mb-1 text-2xl font-bold text-gray-900">{t('general.hasilrekap')}</h1>
                 </div>
-
                 <div className="mb-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
                     <div className="mb-4 grid grid-cols-1 gap-4">
                         <div>
@@ -344,66 +333,80 @@ const PageRecapFormLayout: React.FC = () => {
                                 disabled
                             />
                         </div>
-
                         <div className="grid grid-cols-2 gap-3">
                             <div>
                                 <label className="mb-1 block text-xs font-medium text-gray-700">{t('rekapan.form.awal_surah')}</label>
-                                <input
-                                    type="text"
-                                    className="w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-900"
-                                    value={setoranData.surah.surahs.find(s => s.id === setoranData.surah.first_surah)?.name || 'Al-Baqarah'}
-                                    disabled
-                                />
+                                <select
+                                    name="selected_first_surah"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-1 focus:ring-blue-500"
+                                    value={form.data.selected_first_surah}
+                                    onChange={handleChange}
+                                >
+                                    {surahOptions.map(option => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                {form.errors.selected_first_surah && (
+                                    <p className="mt-1 text-xs text-red-500">{form.errors.selected_first_surah}</p>
+                                )}
                             </div>
                             <div>
                                 <label className="mb-1 block text-xs font-medium text-gray-700">{t('rekapan.form.awal_ayat')}</label>
                                 <select
-                                    name="first_verse"
+                                    name="selected_first_ayat"
                                     className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-1 focus:ring-blue-500"
-                                    value={form.data.first_verse || '58'}
+                                    value={form.data.selected_first_ayat}
                                     onChange={handleChange}
                                 >
-                                    <option value="" className="text-sm text-gray-400">
-                                        {t('rekapan.form.awal_ayat')}
-                                    </option>
-                                    {verseOptions.map((option) => (
+                                    {getAyatOptions(form.data.selected_first_surah).map(option => (
                                         <option key={option.value} value={option.value}>
                                             {option.label}
                                         </option>
                                     ))}
                                 </select>
-                                {form.errors.first_verse && <p className="mt-1 text-xs text-red-500">{form.errors.first_verse}</p>}
+                                {form.errors.selected_first_ayat && (
+                                    <p className="mt-1 text-xs text-red-500">{form.errors.selected_first_ayat}</p>
+                                )}
                             </div>
                             <div>
                                 <label className="mb-1 block text-xs font-medium text-gray-700">{t('rekapan.form.akhir_surah')}</label>
-                                <input
-                                    type="text"
-                                    className="w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-900"
-                                    value={setoranData.surah.surahs.find(s => s.id === setoranData.surah.last_surah)?.name || 'Al-Baqarah'}
-                                    disabled
-                                />
+                                <select
+                                    name="selected_last_surah"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-1 focus:ring-blue-500"
+                                    value={form.data.selected_last_surah}
+                                    onChange={handleChange}
+                                >
+                                    {surahOptions.map(option => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                {form.errors.selected_last_surah && (
+                                    <p className="mt-1 text-xs text-red-500">{form.errors.selected_last_surah}</p>
+                                )}
                             </div>
                             <div>
                                 <label className="mb-1 block text-xs font-medium text-gray-700">{t('rekapan.form.akhir_ayat')}</label>
                                 <select
-                                    name="last_verse"
+                                    name="selected_last_ayat"
                                     className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-1 focus:ring-blue-500"
-                                    value={form.data.last_verse || '61'}
+                                    value={form.data.selected_last_ayat}
                                     onChange={handleChange}
                                 >
-                                    <option value="" className="text-sm text-gray-400">
-                                        {t('rekapan.form.akhir_ayat')}
-                                    </option>
-                                    {verseOptions.map((option) => (
+                                    {getAyatOptions(form.data.selected_last_surah).map(option => (
                                         <option key={option.value} value={option.value}>
                                             {option.label}
                                         </option>
                                     ))}
                                 </select>
-                                {form.errors.last_verse && <p className="mt-1 text-xs text-red-500">{form.errors.last_verse}</p>}
+                                {form.errors.selected_last_ayat && (
+                                    <p className="mt-1 text-xs text-red-500">{form.errors.selected_last_ayat}</p>
+                                )}
                             </div>
                         </div>
-
                         <div>
                             <label className="mb-1 block text-xs font-medium text-gray-700">{t('rekapan.form.kesimpulan')}</label>
                             <select
@@ -424,7 +427,6 @@ const PageRecapFormLayout: React.FC = () => {
                             {form.errors.kesimpulan && <p className="mt-1 text-xs text-red-500">{form.errors.kesimpulan}</p>}
                         </div>
                     </div>
-
                     <div className="mb-4">
                         <label className="mb-1 block text-xs font-medium text-gray-700">{t('rekapan.form.catatan')}</label>
                         <textarea
@@ -437,7 +439,6 @@ const PageRecapFormLayout: React.FC = () => {
                         />
                         {form.errors.catatan && <p className="mt-1 text-xs text-red-500">{form.errors.catatan}</p>}
                     </div>
-
                     <div className="flex justify-end">
                         <button
                             type="button"
@@ -450,7 +451,6 @@ const PageRecapFormLayout: React.FC = () => {
                     </div>
                     {form.errors.submit && <p className="mt-2 text-xs text-red-500">{form.errors.submit}</p>}
                 </div>
-
                 <div className="space-y-3">
                     {Object.entries(setoranData.mistake || {})
                         .sort(([pageA], [pageB]) => parseInt(pageA) - parseInt(pageB))
@@ -492,7 +492,6 @@ const PageRecapFormLayout: React.FC = () => {
                                         <ChevronDown className="h-4 w-4 text-gray-500" />
                                     )}
                                 </div>
-
                                 {panels[page] && (
                                     <div className="space-y-4 p-4">
                                         <div>
@@ -538,7 +537,6 @@ const PageRecapFormLayout: React.FC = () => {
                                                 </div>
                                             )}
                                         </div>
-
                                         <div>
                                             <div className="mb-3 flex items-center">
                                                 <AlertCircle className="mr-2 h-4 w-4 text-orange-500" />
@@ -583,7 +581,6 @@ const PageRecapFormLayout: React.FC = () => {
                                                 </div>
                                             )}
                                         </div>
-
                                         <div className="border-t border-gray-200 pt-4">
                                             <div className="grid grid-cols-1 gap-4">
                                                 <div>
@@ -598,13 +595,11 @@ const PageRecapFormLayout: React.FC = () => {
                                                         <option value="" className="text-sm text-gray-400">
                                                             {t('rekapan.form.pilih_kesimpulan')}
                                                         </option>
-                                                        {['Excellent', 'Very Good', 'Good', 'Pass', 'Weak', 'Not Pass'].map(
-                                                            (option) => (
-                                                                <option key={option} value={option}>
-                                                                    {t(`rekapan.kesimpulan_options.${option}`)}
-                                                                </option>
-                                                            )
-                                                        )}
+                                                        {['Excellent', 'Very Good', 'Good', 'Pass', 'Weak', 'Not Pass'].map((option) => (
+                                                            <option key={option} value={option}>
+                                                                {t(`rekapan.kesimpulan_options.${option}`)}
+                                                            </option>
+                                                        ))}
                                                     </select>
                                                 </div>
                                                 <div>

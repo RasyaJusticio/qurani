@@ -110,18 +110,18 @@ const MistakeModal: FC<MistakeModalProps> = ({
                 </div>
               ))}
             </div>
-            {currentErrorKey && (
-              <button
-                onClick={onRemoveLabel}
-                className="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-200"
-              >
-                Hapus Tanda
-              </button>
-            )}
-            <div className="flex justify-center mt-4">
+            <div className="flex justify-center gap-2 mt-4">
+              {currentErrorKey && (
+                <button
+                  onClick={onRemoveLabel}
+                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-200"
+                >
+                  Hapus Tanda
+                </button>
+              )}
               <button
                 onClick={onClose}
-                className="px-3 py-1 bg-blue-300 text-white rounded hover:bg-blue-400 transition-colors duration-200"
+                className="px-4 py-2 bg-blue-300 text-white rounded hover:bg-blue-400 transition-colors duration-200"
               >
                 Tutup
               </button>

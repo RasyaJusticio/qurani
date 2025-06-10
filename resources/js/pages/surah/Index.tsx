@@ -49,7 +49,7 @@ type ErrorsByPage = {
         salahKata: Array<{
             salahKey: string;
             kata: { text: string };
-            word_location: string; // Added word_location field
+            word_location: string;
             salah: string;
         }>;
     };
@@ -99,15 +99,23 @@ export default function SurahIndex() {
         const startVerse = verses.length > 0 ? verses[0].verse_number : 1;
         const endVerse = verses.length > 0 ? verses[verses.length - 1].verse_number : surah.verses_count;
 
+        const pageNumber = verses.length > 0 ? verses[0].page_number : 1;
+        const surahDetails = [{
+            id: surah.id.toString(),
+            name: surah.name_simple,
+            first_verse: startVerse.toString(),
+            last_verse: endVerse.toString(),
+        }];
+
         let dataToSave = {
             reciter: { id: '12345', full_name: 'Ahmad Ridwan bin Abdullah' },
             setoran_type: 'tahsin',
             display: 'surat',
             surah: {
-                id: surah.id.toString(),
-                name: surah.name_simple,
-                from: startVerse.toString(),
-                to: endVerse.toString(),
+                name: `${surah.name_simple}`,
+                first_surah: surah.id.toString(),
+                last_surah: surah.id.toString(),
+                surah: surahDetails,
             },
             mistake: errorsByPage,
         };
@@ -118,7 +126,7 @@ export default function SurahIndex() {
         }
 
         localStorage.setItem('setoran-data', JSON.stringify(dataToSave));
-    }, [wordErrors, verseErrors]);
+    }, [wordErrors, verseErrors, surah, verses]);
 
     const handleClick = (type: 'word' | 'verse', id: number) => {
         if (type === 'word') {
@@ -206,7 +214,7 @@ export default function SurahIndex() {
                         errorsByPage[page].salahKata.push({
                             salahKey: errorKey,
                             kata: { text: word.text_uthmani },
-                            word_location: word.location, // Added word_location
+                            word_location: word.location,
                             salah: errorLabel.value,
                         });
                     }
