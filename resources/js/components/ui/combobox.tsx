@@ -28,7 +28,7 @@ interface ComboboxProps {
     notFoundText?: string;
     value?: string;
     onValueChange?: (value: string) => void;
-    className:string;
+    className?: string;
 }
 
 const Combobox: React.FC<ComboboxProps> = ({

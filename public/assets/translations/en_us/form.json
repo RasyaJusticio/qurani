@@ -5,7 +5,7 @@
         "group": "Group",
         "member": "Member",
         "friend": "Friend",
-        "recite": "Recite",
+        "recite": "Recitation",
         "display": "Display",
         "surah": "Surah",
         "juz": "Juz",
@@ -13,11 +13,26 @@
     },
     "placeholders": {
         "select_group": "Select Group",
+        "select_member": "Select Member",
         "select_group_first": "Select a group first",
         "select_friend": "Select Friend",
         "select_surah": "Select Surah",
         "select_juz": "Select Juz",
-        "select_page": "Select Page"
+        "select_page": "Select Page",
+        "search_surah": "Search Surah",
+        "search_juz": "Search Juz",
+        "search_page": "Search Page",
+        "search_group": "Search Group",
+        "search_member": "Search Member",
+        "search_friend": "Search Friend"
+    },
+    "notFoundText": {
+        "member_not_found": "Member not found",
+        "group_not_found": "Group not found",
+        "friend_not_found": "Friend not found",
+        "surah_not_found": "Surah not found",
+        "juz_not_found": "Juz not found",
+        "page_not_found": "Page not found"
     },
     "buttons": {
         "reset": "Reset",
@@ -41,6 +56,16 @@
         "surah": "Surah",
         "juz": "Juz",
         "page": "Page"
+    },
+    "newErrors": {
+        "Group_must_be_selected": "Please select a group first",
+        "Member_must_be_selected": "Please select a member first",
+        "Friend_must_be_selected": "Please select a friend first",
+        "Type_of_deposit_must_be_selected": "Please select a type of recitation first",
+        "Display_must_be_selected": "Please select a display option first",
+        "Surah_must_be_selected": "Please select a surah first",
+        "Juz_must_be_selected": "Please select a juz first",
+        "Page_must_be_selected": "Please select a page first"
     },
     "surah_list": [
         { "value": "1", "name": "Al-Fatihah (1)" },
