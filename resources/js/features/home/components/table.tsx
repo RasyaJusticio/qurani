@@ -15,10 +15,10 @@ const formatTime = (timeString: string) => {
     const date = new Date(timeString);
     const day = date.getDate();
     const monthNames = ['januari', 'februari', 'maret', 'april', 'mei', 'juni', 'juli', 'agustus', 'september', 'oktober', 'november', 'desember'];
-    const month = monthNames[date.getMonth()];
+    const month = ucfirst(monthNames[date.getMonth()]);
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
-    return `${day}-${month} ${hours}.${minutes}`;
+    return `${day} ${month} ${hours}.${minutes}`;
 };
 
 const config = {
@@ -89,7 +89,7 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                 <div className="w-full overflow-x-auto">
                     <div className="relative rounded-lg bg-white p-6 shadow-lg">
                         <div className="mb-4 flex items-center justify-between">
-                            <h2 className="text-2xl font-semibold">History</h2>
+                            <h2 className="text-2xl font-semibold">{t('history.title')}</h2>
                             <div className="flex gap-2">
                                 <button
                                     className="rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
@@ -164,7 +164,7 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                                                 {t(`history.table.ratings.${item.results}`, item.results)?.toString()}
                                             </td>
                                             <td
-                                                className={`border ${isDarkMode ? 'border-gray-600' : 'border-gray-200'} flex items-center justify-center px-4 py-2 text-sm`}
+                                                className={`border ${isDarkMode ? 'border-gray-600' : 'border-gray-200'} px-4 py-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} flex items-center justify-center`}
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     if (item.signature === 0) {
