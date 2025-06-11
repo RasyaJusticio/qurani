@@ -120,7 +120,6 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                 setSelectedSurahValue(parsedData.selectedSurahValue || '');
                 setSelectedJuz(parsedData.selectedJuz || '');
                 setSelectedHalaman(parsedData.selectedHalaman || '');
-                // Only set member or friend if they match the penyetor type
                 if (parsedData.penyetor === 'grup' && parsedData.selectedMember) {
                     setSelectedMember(parsedData.selectedMember);
                 }
@@ -133,7 +132,6 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
         }
     }, []);
 
-  // Update current members when selected group changes
   useEffect(() => {
     const group = groups.find((g) => g.group_id.toString() === selectedGroup);
     setCurrentMembers(group?.users || []);
@@ -144,7 +142,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
             const formData: SavedSetoranData = {
                 penyetor,
                 setoran,
-                display: tampilkan, // Add this line to satisfy the SavedSetoranData interface
+                display: tampilkan,
                 tampilkan,
                 selectedGroup: penyetor === 'grup' ? selectedGroup : '',
                 selectedMember: penyetor === 'grup' ? selectedMember : '',
@@ -182,51 +180,31 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
     const validateForm = (): boolean => {
         const newErrors: Record<string, string> = {};
         if (penyetor === 'grup') {
-            if (!selectedGroup) {
-                newErrors.group = t('newErrors.Group_must_be_selected');
-            }
-            if (!selectedMember) {
-                newErrors.member = t('newErrors.Member_must_be_selected');
-            }
+            if (!selectedGroup) newErrors.group = t('newErrors.Group_must_be_selected');
+            if (!selectedMember) newErrors.member = t('newErrors.Member_must_be_selected');
         } else if (penyetor === 'teman') {
-            if (!selectedFriend) {
-                newErrors.friend = t('newErrors.Friend_must_be_selected');
-            }
+            if (!selectedFriend) newErrors.friend = t('newErrors.Friend_must_be_selected');
         }
-        if (!setoran) {
-            newErrors.setoran = t('newErrors.Type_of_deposit_must_be_selected');
-        }
-
-        if (!tampilkan) {
-            newErrors.tampilkan = t('newErrors.Display_must_be_selected');
-        } else {
-            if (tampilkan === 'surat' && !selectedSurahValue) {
-                newErrors.surat = t('newErrors.Surah_must_be_selected');
-            } else if (tampilkan === 'juz' && !selectedJuz) {
-                newErrors.juz = t('newErrors.Juz_must_be_selected');
-            } else if (tampilkan === 'halaman' && !selectedHalaman) {
-                newErrors.halaman = t('newErrors.Page_must_be_selected');
-            }
+        if (!setoran) newErrors.setoran = t('newErrors.Type_of_deposit_must_be_selected');
+        if (!tampilkan) newErrors.tampilkan = t('newErrors.Display_must_be_selected');
+        else {
+            if (tampilkan === 'surat' && !selectedSurahValue) newErrors.surah = t('newErrors.Surah_must_be_selected');
+            else if (tampilkan === 'juz' && !selectedJuz) newErrors.juz = t('newErrors.Juz_must_be_selected');
+            else if (tampilkan === 'halaman' && !selectedHalaman) newErrors.halaman = t('newErrors.Page_must_be_selected');
         }
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
-  // Get redirect URL
   const getRedirectUrl = (): string => {
     switch (display) {
-      case 'surah':
-        return selectedSurahValue ? `/surah/${selectedSurahValue}` : '/';
-      case 'juz':
-        return selectedJuz ? `/juz/${selectedJuz}` : '/';
-      case 'halaman':
-        return selectedHalaman ? `/page/${selectedHalaman}` : '/';
-      default:
-        return '/';
+      case 'surah': return selectedSurahValue ? `/surah/${selectedSurahValue}` : '/';
+      case 'juz': return selectedJuz ? `/juz/${selectedJuz}` : '/';
+      case 'halaman': return selectedHalaman ? `/page/${selectedHalaman}` : '/';
+      default: return '/';
     }
   };
 
-  // Handle quick select for surah
   const handleQuickSelect = (value: string): void => {
     setSelectedSurahValue(value);
     setErrors((prev) => ({ ...prev, surah: '' }));
@@ -234,24 +212,18 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
         e.preventDefault();
-        if (!validateForm()) {
-            return;
-        }
+        if (!validateForm()) return;
 
     let reciter: { user_name: string; full_name: string } | null = null;
     if (penyetor === 'grup') {
       const group = groups.find((g) => g.group_id.toString() === selectedGroup);
       if (group) {
         const member = group.users.find((u) => u.user_name === selectedMember);
-        if (member) {
-          reciter = { user_name: member.user_name, full_name: member.user_fullname };
-        }
+        if (member) reciter = { user_name: member.user_name, full_name: member.user_fullname };
       }
     } else if (penyetor === 'teman') {
       const friend = friends.find((f) => f.user_name === selectedFriend);
-      if (friend) {
-        reciter = { user_name: friend.user_name, full_name: friend.user_fullname };
-      }
+      if (friend) reciter = { user_name: friend.user_name, full_name: friend.user_fullname };
     }
 
     const formData: SavedSetoranData = {
@@ -263,9 +235,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
     };
 
     if (display === 'surah' && selectedSurahValue) {
-      const selectedChapter = chapters.find(
-        (chapter) => chapter.id.toString() === selectedSurahValue
-      );
+      const selectedChapter = chapters.find((chapter) => chapter.id.toString() === selectedSurahValue);
       if (selectedChapter) {
         formData.surah = {
           id: selectedChapter.id,
@@ -283,11 +253,8 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
     }
 
     const redirectUrl = getRedirectUrl();
-    if (redirectUrl !== '/') {
-      window.location.href = redirectUrl;
-    } else {
-      alert(t('errors.invalid_selection'));
-    }
+    if (redirectUrl !== '/') window.location.href = redirectUrl;
+    else alert(t('errors.invalid_selection'));
   };
 
     const handleReset = (): void => {
@@ -319,7 +286,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                 { ref: groupDropdownRef, inputId: 'groupInput', key: 'group' },
                 { ref: memberDropdownRef, inputId: 'memberInput', key: 'member' },
                 { ref: temanDropdownRef, inputId: 'temanInput', key: 'teman' },
-                { ref: surahDropdownRef, inputId: 'suratInput', key: 'surat' },
+                { ref: surahDropdownRef, inputId: 'suratInput', key: 'surah' },
                 { ref: juzDropdownRef, inputId: 'juzInput', key: 'juz' },
                 { ref: halamanDropdownRef, inputId: 'halamanInput', key: 'halaman' },
             ];
@@ -390,7 +357,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                 <div className="space-y-4">
                                     <div className="flex items-center space-x-2">
                                         <label className={`w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.group')}</label>
-                                        <div className="relative flex-1">
+                                        <div className="w-96">
                                             <Combobox
                                                 options={groups.map(group => ({
                                                     label: group.group_title,
@@ -412,7 +379,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                     </div>
                                     <div className="flex items-center space-x-2">
                                         <label className={`w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.member')}</label>
-                                        <div className="relative flex-1">
+                                        <div className="w-96">
                                             <div
                                                 className={`${!selectedGroup ? 'pointer-events-none opacity-50' : ''}`}
                                                 title={!selectedGroup ? 'Please select a group first' : ''}
@@ -449,7 +416,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                             {penyetor === 'teman' && (
                                 <div className="flex items-center space-x-2">
                                     <label className={`w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.friend')}</label>
-                                    <div className="relative flex-1">
+                                    <div className="w-96">
                                         <Combobox
                                             options={friends.map(friend => ({ label: friend.user_fullname, value: friend.user_name }))}
                                             placeholder={t('placeholders.select_friend')}
@@ -467,7 +434,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                 </div>
                             )}
                             <div className="flex items-center space-x-4">
-                                <label className={`w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray Mi-700'}`}>{t('labels.recite')}</label>
+                                <label className={`w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.recite')}</label>
                                 <div className="flex space-x-4">
                                     <label className="flex items-center">
                                         <input
@@ -552,7 +519,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                 <div className="space-y-4">
                                     <div className="flex items-center space-x-2">
                                         <label className={`w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.surah')}</label>
-                                        <div className="relative flex-1">
+                                        <div className="w-96">
                                             <Combobox
                                                 options={chapters.map(chapter => ({
                                                     label: chapter.name + ' (' + chapter.id + ')',
@@ -573,10 +540,10 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                     </div>
                                     <div className="ml-24 flex flex-wrap gap-2">
                                         {[
-                                            { value: '1', name: t('Al-Fatihah') },
-                                            { value: '36', name: t('Yasin') },
-                                            { value: '112', name: t('Al-Ikhlas') },
-                                            { value: '114', name: t('An-Nas') },
+                                            { value: '1', name: t('buttons.quick_select.1') },
+                                            { value: '36', name: t('buttons.quick_select.36') },
+                                            { value: '112', name: t('buttons.quick_select.112') },
+                                            { value: '114', name: t('buttons.quick_select.114') },
                                         ].map(button => (
                                             <button
                                                 key={button.value}
@@ -588,7 +555,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                             </button>
                                         ))}
                                     </div>
-                                    <div className="ml-24 flex space-x-3 pt-4">
+                                    <div className="ml-26 flex space-x-3 pt-4">
                                         <button
                                             type="button"
                                             onClick={handleReset}
@@ -606,22 +573,24 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                 </div>
                             )}
                             {tampilkan === 'juz' && (
-                                <div className="flex items-center space-x-2">
-                                    <label className={`w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.juz')}</label>
-                                    <div className="relative flex-1">
-                                        <Combobox
-                                            options={juzs.map(juz => ({ label: juz.id.toString(), value: juz.id.toString() }))}
-                                            placeholder={t('placeholders.select_juz')}
-                                            searchPlaceholder={t('placeholders.search_juz')}
-                                            notFoundText={t('notFoundText.juz_not_found')}
-                                            value={selectedJuz}
-                                            onValueChange={(value) => {
-                                                setSelectedJuz(value);
-                                                setErrors(prev => ({ ...prev, juz: '' }));
-                                            }}
-                                            className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
-                                        />
-                                        {errors.juz && <p className="mt-1 text-sm text-red-500">{errors.juz}</p>}
+                                <div className="space-y-4">
+                                    <div className="flex items-center space-x-2">
+                                        <label className={`w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.juz')}</label>
+                                        <div className="w-96">
+                                            <Combobox
+                                                options={juzs.map(juz => ({ label: juz.id.toString(), value: juz.id.toString() }))}
+                                                placeholder={t('placeholders.select_juz')}
+                                                searchPlaceholder={t('placeholders.search_juz')}
+                                                notFoundText={t('notFoundText.juz_not_found')}
+                                                value={selectedJuz}
+                                                onValueChange={(value) => {
+                                                    setSelectedJuz(value);
+                                                    setErrors(prev => ({ ...prev, juz: '' }));
+                                                }}
+                                                className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
+                                            />
+                                            {errors.juz && <p className="mt-1 text-sm text-red-500">{errors.juz}</p>}
+                                        </div>
                                     </div>
                                     <div className="ml-24 flex space-x-3 pt-4">
                                         <button
@@ -641,22 +610,24 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                 </div>
                             )}
                             {tampilkan === 'halaman' && (
-                                <div className="flex items-center space-x-2">
-                                    <label className={`w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.page')}</label>
-                                    <div className="relative flex-1">
-                                        <Combobox
-                                            options={pages.map(page => ({ label: page.toString(), value: page.toString() }))}
-                                            placeholder={t('placeholders.select_page')}
-                                            searchPlaceholder={t('placeholders.search_page')}
-                                            notFoundText={t('notFoundText.page_not_found')}
-                                            value={selectedHalaman}
-                                            onValueChange={(value) => {
-                                                setSelectedHalaman(value);
-                                                setErrors(prev => ({ ...prev, halaman: '' }));
-                                            }}
-                                            className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
-                                        />
-                                        {errors.halaman && <p className="mt-1 text-sm text-red-500">{errors.halaman}</p>}
+                                <div className="space-y-4">
+                                    <div className="flex items-center space-x-2">
+                                        <label className={`w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.page')}</label>
+                                        <div className="w-96">
+                                            <Combobox
+                                                options={pages.map(page => ({ label: page.toString(), value: page.toString() }))}
+                                                placeholder={t('placeholders.select_page')}
+                                                searchPlaceholder={t('placeholders.search_page')}
+                                                notFoundText={t('notFoundText.page_not_found')}
+                                                value={selectedHalaman}
+                                                onValueChange={(value) => {
+                                                    setSelectedHalaman(value);
+                                                    setErrors(prev => ({ ...prev, halaman: '' }));
+                                                }}
+                                                className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
+                                            />
+                                            {errors.halaman && <p className="mt-1 text-sm text-red-500">{errors.halaman}</p>}
+                                        </div>
                                     </div>
                                     <div className="ml-24 flex space-x-3 pt-4">
                                         <button
