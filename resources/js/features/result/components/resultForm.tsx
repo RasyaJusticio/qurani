@@ -260,8 +260,6 @@ const ResultFormLayout: React.FC = () => {
     perhalaman: perhalamanData,   // Ubah struktur
   };
 
-  console.log(postData);
-
   axios.post('/api/result', postData, {
     headers: {
       'Content-Type': 'application/json',
