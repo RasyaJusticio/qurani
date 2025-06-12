@@ -85,7 +85,7 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
     };
 
     return (
-        <div className={fluidDesign ? 'mt-3 w-full' : 'mx-auto mt-3 w-full'}>
+        <div className={fluidDesign ? 'mt-3 w-full' : 'mx-auto mt-3 w-full max-w-4xl'}>
             <div className="flex w-full justify-center">
                 <div className="w-full overflow-x-auto">
                     <div className={`relative rounded-lg p-6 shadow-lg ${isDarkMode ? 'bg-[rgb(38,45,52)]' : 'bg-white'}`}>
@@ -112,7 +112,7 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                             </div>
                         </div>
 
-                        <table className={`w-full border-collapse border ${isDarkMode ? 'border-gray-600' : 'border-gray-200'}`}>
+                        <table className="w-full border-collapse border hidden md:table">
                             <thead>
                                 <tr className={`${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
                                     {['time', 'reciter', 'recipient', 'recite', 'results', 'signature'].map((header) => (
@@ -197,6 +197,75 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                                 )}
                             </tbody>
                         </table>
+
+                        {/* Mobile View */}
+                        <div className="block md:hidden w-full">
+                            {setoran?.length > 0 ? (
+                                setoran.map((item) => (
+                                    <div
+                                        key={item.id}
+                                        className={`flex flex-col cursor-pointer ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} p-2 border-b ${isDarkMode ? 'border-gray-600' : 'border-gray-200'}`}
+                                        onClick={() => fetchSetoranDetails(item.id)}
+                                    >
+                                        {['time', 'reciter', 'recipient', 'recite', 'results', 'signature'].map((col) => {
+                                            const value = (() => {
+                                                switch (col) {
+                                                    case 'time':
+                                                        return formatTime(item.time);
+                                                    case 'reciter':
+                                                        return item.reciter;
+                                                    case 'recipient':
+                                                        return item.recipient;
+                                                    case 'recite':
+                                                        return item.recite;
+                                                    case 'results':
+                                                        return t(`history.table.ratings.${item.results}`, item.results)?.toString();
+                                                    case 'signature':
+                                                        return (
+                                                            <Check
+                                                                size={20}
+                                                                className={
+                                                                    item.signature === 0
+                                                                        ? `cursor-pointer ${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`
+                                                                        : 'text-blue-500'
+                                                                }
+                                                            />
+                                                        );
+                                                    default:
+                                                        return '';
+                                                }
+                                            })();
+
+                                            const className = `px-4 py-2 text-sm ${isDarkMode ? 'text-gray-200' : 'text-gray-700'} ${
+                                                col === 'reciter' || col === 'recipient' ? 'hover:underline' : ''
+                                            } ${col === 'signature' ? 'flex items-center justify-center' : ''}`;
+
+                                            return (
+                                                <div
+                                                    key={col}
+                                                    className={className}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (col === 'reciter') openUserProfile(item.reciter_username);
+                                                        if (col === 'recipient') openUserProfile(item.recipient_username);
+                                                        if (col === 'signature' && item.signature === 0) {
+                                                            if (window.confirm(t('confirm.sign_record'))) handleSign(item.id);
+                                                        }
+                                                    }}
+                                                >
+                                                    <span className="font-medium">{t(`history.table.${col}`)}: </span>
+                                                    {value}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ))
+                            ) : (
+                                <div className={`border px-4 py-2 text-center text-sm ${isDarkMode ? 'border-gray-600 text-gray-300' : 'border-gray-200 text-gray-600'}`}>
+                                    {t('history.table.noData')}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

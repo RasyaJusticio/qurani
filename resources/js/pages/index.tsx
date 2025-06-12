@@ -49,7 +49,7 @@ const Index: React.FC<IndexProps> = ({
     return (
         <AppWrapper>
             <Head title="Qurani" />
-            <div className="mt-15 flex w-full justify-center px-18 py-6">
+            <div className="mt-15 flex w-full justify-center px-8 py-6">
                 <div className="flex w-full flex-col gap-2">
                     <div className="flex flex-col gap-2 md:flex-row">
                         <div className="w-full">

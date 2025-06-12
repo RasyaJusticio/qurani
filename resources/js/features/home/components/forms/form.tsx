@@ -48,7 +48,6 @@ interface SavedSetoranData {
   surah?: Chapter;
 }
 
-// Define FormErrors type for validation errors
 interface FormErrors {
   penyetor?: string;
   setoran?: string;
@@ -68,7 +67,6 @@ interface QuraniFormProps {
   juzs: Juz[];
 }
 
-// QuraniCard component
 const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs }) => {
   const { t } = useTranslation('form');
   const { isDarkMode } = useTheme();
@@ -76,7 +74,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
   const [userData, setUserData] = useState<UserData>({});
   const [penyetor, setPenyetor] = useState<string>('grup');
   const [setoran, setSetoran] = useState<string>('tahsin');
-  const [display, setdisplay] = useState<string>('surah');
+  const [display, setdisplay] = useState<string>('surat');
   const [tampilkan, setTampilkan] = useState<string>('surat');
   const [groupInput, setGroupInput] = useState<string>('');
   const [memberInput, setMemberInput] = useState<string>('');
@@ -108,93 +106,93 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
   const juzDropdownRef = useRef<HTMLDivElement>(null);
   const halamanDropdownRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        const savedData = localStorage.getItem('setoran-data');
-        if (savedData) {
-            try {
-                const parsedData: SavedSetoranData = JSON.parse(savedData);
-                setPenyetor(parsedData.penyetor || 'grup');
-                setSetoran(parsedData.setoran || 'tahsin');
-                setTampilkan(parsedData.tampilkan || 'surat');
-                setSelectedGroup(parsedData.selectedGroup || '');
-                setSelectedSurahValue(parsedData.selectedSurahValue || '');
-                setSelectedJuz(parsedData.selectedJuz || '');
-                setSelectedHalaman(parsedData.selectedHalaman || '');
-                if (parsedData.penyetor === 'grup' && parsedData.selectedMember) {
-                    setSelectedMember(parsedData.selectedMember);
-                }
-                if (parsedData.penyetor === 'teman' && parsedData.selectedFriend) {
-                    setSelectedFriend(parsedData.selectedFriend);
-                }
-            } catch (error) {
-                console.error('Error parsing saved data:', error);
-            }
+  useEffect(() => {
+    const savedData = localStorage.getItem('setoran-data');
+    if (savedData) {
+      try {
+        const parsedData: SavedSetoranData = JSON.parse(savedData);
+        setPenyetor(parsedData.penyetor || 'grup');
+        setSetoran(parsedData.setoran || 'tahsin');
+        setTampilkan(parsedData.tampilkan || 'surat');
+        setSelectedGroup(parsedData.selectedGroup || '');
+        setSelectedSurahValue(parsedData.selectedSurahValue || '');
+        setSelectedJuz(parsedData.selectedJuz || '');
+        setSelectedHalaman(parsedData.selectedHalaman || '');
+        if (parsedData.penyetor === 'grup' && parsedData.selectedMember) {
+          setSelectedMember(parsedData.selectedMember);
         }
-    }, []);
+        if (parsedData.penyetor === 'teman' && parsedData.selectedFriend) {
+          setSelectedFriend(parsedData.selectedFriend);
+        }
+      } catch (error) {
+        console.error('Error parsing saved data:', error);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const group = groups.find((g) => g.group_id.toString() === selectedGroup);
     setCurrentMembers(group?.users || []);
   }, [selectedGroup, groups]);
 
-    useEffect(() => {
-        const saveFormData = () => {
-            const formData: SavedSetoranData = {
-                penyetor,
-                setoran,
-                display: tampilkan,
-                tampilkan,
-                selectedGroup: penyetor === 'grup' ? selectedGroup : '',
-                selectedMember: penyetor === 'grup' ? selectedMember : '',
-                selectedFriend: penyetor === 'teman' ? selectedFriend : '',
-                selectedSurahValue,
-                selectedJuz,
-                selectedHalaman,
-            };
-            localStorage.setItem('setoran-data', JSON.stringify(formData));
-        };
-        saveFormData();
-    }, [penyetor, setoran, tampilkan, selectedGroup, selectedMember, selectedFriend, selectedSurahValue, selectedJuz, selectedHalaman]);
-
-    useEffect(() => {
-        const loadUserData = () => {
-            try {
-                const storedParentData = localStorage.getItem('parent_data');
-                if (storedParentData) {
-                    const parsedParentData = JSON.parse(storedParentData);
-                    setUserData(parsedParentData);
-                }
-            } catch (error) {}
-        };
-        loadUserData();
-    }, []);
-
-    useEffect(() => {
-        const loadTranslations = async () => {
-            await setupTranslations('form');
-            setTranslationsReady(true);
-        };
-        loadTranslations();
-    }, []);
-
-    const validateForm = (): boolean => {
-        const newErrors: Record<string, string> = {};
-        if (penyetor === 'grup') {
-            if (!selectedGroup) newErrors.group = t('newErrors.Group_must_be_selected');
-            if (!selectedMember) newErrors.member = t('newErrors.Member_must_be_selected');
-        } else if (penyetor === 'teman') {
-            if (!selectedFriend) newErrors.friend = t('newErrors.Friend_must_be_selected');
-        }
-        if (!setoran) newErrors.setoran = t('newErrors.Type_of_deposit_must_be_selected');
-        if (!tampilkan) newErrors.tampilkan = t('newErrors.Display_must_be_selected');
-        else {
-            if (tampilkan === 'surat' && !selectedSurahValue) newErrors.surah = t('newErrors.Surah_must_be_selected');
-            else if (tampilkan === 'juz' && !selectedJuz) newErrors.juz = t('newErrors.Juz_must_be_selected');
-            else if (tampilkan === 'halaman' && !selectedHalaman) newErrors.halaman = t('newErrors.Page_must_be_selected');
-        }
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+  useEffect(() => {
+    const saveFormData = () => {
+      const formData: SavedSetoranData = {
+        penyetor,
+        setoran,
+        display: tampilkan,
+        tampilkan,
+        selectedGroup: penyetor === 'grup' ? selectedGroup : '',
+        selectedMember: penyetor === 'grup' ? selectedMember : '',
+        selectedFriend: penyetor === 'teman' ? selectedFriend : '',
+        selectedSurahValue,
+        selectedJuz,
+        selectedHalaman,
+      };
+      localStorage.setItem('setoran-data', JSON.stringify(formData));
     };
+    saveFormData();
+  }, [penyetor, setoran, tampilkan, selectedGroup, selectedMember, selectedFriend, selectedSurahValue, selectedJuz, selectedHalaman]);
+
+  useEffect(() => {
+    const loadUserData = () => {
+      try {
+        const storedParentData = localStorage.getItem('parent_data');
+        if (storedParentData) {
+          const parsedParentData = JSON.parse(storedParentData);
+          setUserData(parsedParentData);
+        }
+      } catch (error) {}
+    };
+    loadUserData();
+  }, []);
+
+  useEffect(() => {
+    const loadTranslations = async () => {
+      await setupTranslations('form');
+      setTranslationsReady(true);
+    };
+    loadTranslations();
+  }, []);
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    if (penyetor === 'grup') {
+      if (!selectedGroup) newErrors.group = t('newErrors.Group_must_be_selected');
+      if (!selectedMember) newErrors.member = t('newErrors.Member_must_be_selected');
+    } else if (penyetor === 'teman') {
+      if (!selectedFriend) newErrors.friend = t('newErrors.Friend_must_be_selected');
+    }
+    if (!setoran) newErrors.setoran = t('newErrors.Type_of_deposit_must_be_selected');
+    if (!tampilkan) newErrors.tampilkan = t('newErrors.Display_must_be_selected');
+    else {
+      if (tampilkan === 'surat' && !selectedSurahValue) newErrors.surah = t('newErrors.Surah_must_be_selected');
+      else if (tampilkan === 'juz' && !selectedJuz) newErrors.juz = t('newErrors.Juz_must_be_selected');
+      else if (tampilkan === 'halaman' && !selectedHalaman) newErrors.halaman = t('newErrors.Page_must_be_selected');
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const getRedirectUrl = (): string => {
     switch (display) {
@@ -210,9 +208,9 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
     setErrors((prev) => ({ ...prev, surah: '' }));
   };
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
-        e.preventDefault();
-        if (!validateForm()) return;
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
+    e.preventDefault();
+    if (!validateForm()) return;
 
     let reciter: { user_name: string; full_name: string } | null = null;
     if (penyetor === 'grup') {
@@ -257,401 +255,401 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
     else alert(t('errors.invalid_selection'));
   };
 
-    const handleReset = (): void => {
-        setPenyetor('grup');
-        setSetoran('tahsin');
-        setTampilkan('surat');
-        setGroupInput('');
-        setMemberInput('');
-        setTemanInput('');
-        setsurahInput('');
-        setSelectedSurahValue('');
-        setSelectedGroup('');
-        setSelectedMember('');
-        setSelectedFriend('');
-        setSelectedSurahValue('');
-        setJuzInput('');
-        setSelectedJuz('');
-        setHalamanInput('');
-        setSelectedHalaman('');
-        setCurrentMembers([]);
-        setErrors({});
-        localStorage.removeItem('setoran-data');
-    };
+  const handleReset = (): void => {
+    setPenyetor('grup');
+    setSetoran('tahsin');
+    setTampilkan('surat');
+    setGroupInput('');
+    setMemberInput('');
+    setTemanInput('');
+    setsurahInput('');
+    setSelectedSurahValue('');
+    setSelectedGroup('');
+    setSelectedMember('');
+    setSelectedFriend('');
+    setSelectedSurahValue('');
+    setJuzInput('');
+    setSelectedJuz('');
+    setHalamanInput('');
+    setSelectedHalaman('');
+    setCurrentMembers([]);
+    setErrors({});
+    localStorage.removeItem('setoran-data');
+  };
 
-    useEffect(() => {
-        const handleClickOutside = (e: MouseEvent): void => {
-            const target = e.target as Node;
-            const dropdowns = [
-                { ref: groupDropdownRef, inputId: 'groupInput', key: 'group' },
-                { ref: memberDropdownRef, inputId: 'memberInput', key: 'member' },
-                { ref: temanDropdownRef, inputId: 'temanInput', key: 'teman' },
-                { ref: surahDropdownRef, inputId: 'suratInput', key: 'surah' },
-                { ref: juzDropdownRef, inputId: 'juzInput', key: 'juz' },
-                { ref: halamanDropdownRef, inputId: 'halamanInput', key: 'halaman' },
-            ];
-            dropdowns.forEach(({ ref, inputId, key }) => {
-                if (ref.current && !ref.current.contains(target) && !document.getElementById(inputId)?.contains(target)) {
-                    setDropdownVisibility(prev => ({ ...prev, [key]: false }));
-                }
-            });
-        };
-        document.addEventListener('click', handleClickOutside);
-        return () => document.removeEventListener('click', handleClickOutside);
-    }, []);
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent): void => {
+      const target = e.target as Node;
+      const dropdowns = [
+        { ref: groupDropdownRef, inputId: 'groupInput', key: 'group' },
+        { ref: memberDropdownRef, inputId: 'memberInput', key: 'member' },
+        { ref: temanDropdownRef, inputId: 'temanInput', key: 'teman' },
+        { ref: surahDropdownRef, inputId: 'suratInput', key: 'surah' },
+        { ref: juzDropdownRef, inputId: 'juzInput', key: 'juz' },
+        { ref: halamanDropdownRef, inputId: 'halamanInput', key: 'halaman' },
+      ];
+      dropdowns.forEach(({ ref, inputId, key }) => {
+        if (ref.current && !ref.current.contains(target) && !document.getElementById(inputId)?.contains(target)) {
+          setDropdownVisibility(prev => ({ ...prev, [key]: false }));
+        }
+      });
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   if (!translationsReady) return null;
 
-    return (
-        <div className={`flex w-full justify-center`}>
-            <div className="w-full max-w-2xl">
-                <div className={`min-h-[520px] overflow-hidden rounded-lg shadow-lg ${isDarkMode ? 'bg-[rgb(38,45,52)]' : 'bg-white'}`}>
-                    <div className={`px-6 py-3 ${isDarkMode ? 'bg-[rgb(38,45,52)]' : 'bg-white'}`}>
-                        <div className="flex items-center justify-between">
-                            <h2 className={`text-2xl font-semibold ${isDarkMode ? 'text-white' : 'text-black'}`}>{t('header')}</h2>
-                            <button
-                                className={`rounded-full p-2 hover:cursor-pointer ${isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
-                                onClick={() => (window.top.location.href = `${config.PARENT_WEB}/settings/qurani`)}
-                            >
-                                <Settings size={20} />
-                            </button>
-                        </div>
-                    </div>
-                    <div className="p-6">
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="flex items-center space-x-4">
-                                <label className={`w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.reciter')}</label>
-                                <div className="flex space-x-4">
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="penyetor"
-                                            value="grup"
-                                            checked={penyetor === 'grup'}
-                                            onChange={e => {
-                                                setPenyetor(e.target.value);
-                                                setErrors(prev => ({ ...prev, group: '', member: '', friend: '' }));
-                                            }}
-                                            className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
-                                        />
-                                        <span className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-neutral-950'}`}>{t('radio_options.group')}</span>
-                                    </label>
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="penyetor"
-                                            value="teman"
-                                            checked={penyetor === 'teman'}
-                                            onChange={e => {
-                                                setPenyetor(e.target.value);
-                                                setErrors(prev => ({ ...prev, group: '', member: '', friend: '' }));
-                                            }}
-                                            className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
-                                        />
-                                        <span className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-neutral-950'}`}>{t('radio_options.friend')}</span>
-                                    </label>
-                                </div>
-                                {errors.penyetor && <p className="text-sm text-red-500">{errors.penyetor}</p>}
-                            </div>
-                            {penyetor === 'grup' && (
-                                <div className="space-y-4">
-                                    <div className="flex items-center space-x-2">
-                                        <label className={`w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.group')}</label>
-                                        <div className="w-96">
-                                            <Combobox
-                                                options={groups.map(group => ({
-                                                    label: group.group_title,
-                                                    value: group.group_id.toString()
-                                                }))}
-                                                placeholder={t('placeholders.select_group')}
-                                                searchPlaceholder={t('placeholders.search_group')}
-                                                notFoundText={t('notFoundText.group_not_found')}
-                                                value={selectedGroup}
-                                                onValueChange={(value) => {
-                                                    setSelectedGroup(value);
-                                                    setSelectedMember('');
-                                                    setErrors(prev => ({ ...prev, group: '' }));
-                                                }}
-                                                className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
-                                            />
-                                            {errors.group && <p className="mt-1 text-sm text-red-500">{errors.group}</p>}
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <label className={`w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.member')}</label>
-                                        <div className="w-96">
-                                            <div
-                                                className={`${!selectedGroup ? 'pointer-events-none opacity-50' : ''}`}
-                                                title={!selectedGroup ? 'Please select a group first' : ''}
-                                            >
-                                                <Combobox
-                                                    options={currentMembers.map(member => ({
-                                                        label: member.user_fullname,
-                                                        value: member.user_name,
-                                                    }))}
-                                                    placeholder={
-                                                    !selectedGroup
-                                                        ? t('placeholders.select_group_first')
-                                                        : t('placeholders.select_member')
-                                                    }
-                                                    searchPlaceholder={
-                                                    !selectedGroup
-                                                        ? ''
-                                                        : t('placeholders.search_member')
-                                                    }
-                                                    notFoundText={t('notFoundText.member_not_found')}
-                                                    value={selectedMember}
-                                                    onValueChange={(value) => {
-                                                        setSelectedMember(value);
-                                                        setErrors(prev => ({ ...prev, member: '' }));
-                                                    }}
-                                                    className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
-                                                />
-                                                {errors.member && <p className="mt-1 text-sm text-red-500">{errors.member}</p>}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                            {penyetor === 'teman' && (
-                                <div className="flex items-center space-x-2">
-                                    <label className={`w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.friend')}</label>
-                                    <div className="w-96">
-                                        <Combobox
-                                            options={friends.map(friend => ({ label: friend.user_fullname, value: friend.user_name }))}
-                                            placeholder={t('placeholders.select_friend')}
-                                            searchPlaceholder={t('placeholders.search_friend')}
-                                            notFoundText={t('notFoundText.friend_not_found')}
-                                            value={selectedFriend}
-                                            onValueChange={(value) => {
-                                                setSelectedFriend(value);
-                                                setErrors(prev => ({ ...prev, friend: '' }));
-                                            }}
-                                            className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
-                                        />
-                                        {errors.friend && <p className="mt-1 text-sm text-red-500">{errors.friend}</p>}
-                                    </div>
-                                </div>
-                            )}
-                            <div className="flex items-center space-x-4">
-                                <label className={`w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.recite')}</label>
-                                <div className="flex space-x-4">
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="setoran"
-                                            value="tahsin"
-                                            checked={setoran === 'tahsin'}
-                                            onChange={e => {
-                                                setSetoran(e.target.value);
-                                                setErrors(prev => ({ ...prev, setoran: '' }));
-                                            }}
-                                            className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
-                                        />
-                                        <span className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-neutral-950'}`}>{t('radio_options.tahsin')}</span>
-                                    </label>
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="setoran"
-                                            value="tahfidz"
-                                            checked={setoran === 'tahfidz'}
-                                            onChange={e => {
-                                                setSetoran(e.target.value);
-                                                setErrors(prev => ({ ...prev, setoran: '' }));
-                                            }}
-                                            className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
-                                        />
-                                        <span className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-neutral-950'}`}>{t('radio_options.tahfidz')}</span>
-                                    </label>
-                                </div>
-                                {errors.setoran && <p className="text-sm text-red-500">{errors.setoran}</p>}
-                            </div>
-                            <div className="flex items-center space-x-4">
-                                <label className={`w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.display')}</label>
-                                <div className="flex space-x-4">
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="tampilkan"
-                                            value="surat"
-                                            checked={tampilkan === 'surat'}
-                                            onChange={e => {
-                                                setTampilkan(e.target.value);
-                                                setErrors(prev => ({ ...prev, tampilkan: '', surah: '', juz: '', halaman: '' }));
-                                            }}
-                                            className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
-                                        />
-                                        <span className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-neutral-950'}`}>{t('radio_options.surah')}</span>
-                                    </label>
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="tampilkan"
-                                            value="juz"
-                                            checked={tampilkan === 'juz'}
-                                            onChange={e => {
-                                                setTampilkan(e.target.value);
-                                                setErrors(prev => ({ ...prev, tampilkan: '', surah: '', juz: '', halaman: '' }));
-                                            }}
-                                            className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
-                                        />
-                                        <span className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-neutral-950'}`}>{t('radio_options.juz')}</span>
-                                    </label>
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="tampilkan"
-                                            value="halaman"
-                                            checked={tampilkan === 'halaman'}
-                                            onChange={e => {
-                                                setTampilkan(e.target.value);
-                                                setErrors(prev => ({ ...prev, tampilkan: '', surah: '', juz: '', halaman: '' }));
-                                            }}
-                                            className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
-                                        />
-                                        <span className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-neutral-950'}`}>{t('radio_options.page')}</span>
-                                    </label>
-                                </div>
-                                {errors.display && <p className="text-sm text-red-500">{errors.display}</p>}
-                            </div>
-                            {tampilkan === 'surat' && (
-                                <div className="space-y-4">
-                                    <div className="flex items-center space-x-2">
-                                        <label className={`w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.surah')}</label>
-                                        <div className="w-96">
-                                            <Combobox
-                                                options={chapters.map(chapter => ({
-                                                    label: chapter.name + ' (' + chapter.id + ')',
-                                                    value: chapter.id.toString(),
-                                                }))}
-                                                placeholder={t('placeholders.select_surah')}
-                                                searchPlaceholder={t('placeholders.search_surah')}
-                                                notFoundText={t('notFoundText.surah_not_found')}
-                                                value={selectedSurahValue}
-                                                onValueChange={(value) => {
-                                                    setSelectedSurahValue(value);
-                                                    setErrors(prev => ({ ...prev, surah: '' }));
-                                                }}
-                                                className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
-                                            />
-                                            {errors.surah && <p className="mt-1 text-sm text-red-500">{errors.surah}</p>}
-                                        </div>
-                                    </div>
-                                    <div className="ml-24 flex flex-wrap gap-2">
-                                        {[
-                                            { value: '1', name: t('buttons.quick_select.1') },
-                                            { value: '36', name: t('buttons.quick_select.36') },
-                                            { value: '112', name: t('buttons.quick_select.112') },
-                                            { value: '114', name: t('buttons.quick_select.114') },
-                                        ].map(button => (
-                                            <button
-                                                key={button.value}
-                                                type="button"
-                                                className={`rounded-full px-3 py-1 text-xs hover:cursor-pointer ${isDarkMode ? 'bg-gray-600 text-gray-200 hover:bg-gray-500' : 'bg-gray-300 text-black hover:bg-gray-400'}`}
-                                                onClick={() => handleQuickSelect(button.value)}
-                                            >
-                                                {button.name}
-                                            </button>
-                                        ))}
-                                    </div>
-                                    <div className="ml-26 flex space-x-3 pt-4">
-                                        <button
-                                            type="button"
-                                            onClick={handleReset}
-                                            className={`rounded-md px-4 py-2 text-sm font-medium hover:cursor-pointer ${isDarkMode ? 'bg-gray-600 text-gray-200 hover:bg-gray-500' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-                                        >
-                                            {t('buttons.reset')}
-                                        </button>
-                                        <button
-                                            type="submit"
-                                            className={`rounded-md px-4 py-2 text-sm font-medium text-white hover:cursor-pointer ${isDarkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-[rgb(94,114,228)] hover:bg-[rgb(57,69,138)]'}`}
-                                        >
-                                            {t('buttons.submit')}
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-                            {tampilkan === 'juz' && (
-                                <div className="space-y-4">
-                                    <div className="flex items-center space-x-2">
-                                        <label className={`w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.juz')}</label>
-                                        <div className="w-96">
-                                            <Combobox
-                                                options={juzs.map(juz => ({ label: juz.id.toString(), value: juz.id.toString() }))}
-                                                placeholder={t('placeholders.select_juz')}
-                                                searchPlaceholder={t('placeholders.search_juz')}
-                                                notFoundText={t('notFoundText.juz_not_found')}
-                                                value={selectedJuz}
-                                                onValueChange={(value) => {
-                                                    setSelectedJuz(value);
-                                                    setErrors(prev => ({ ...prev, juz: '' }));
-                                                }}
-                                                className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
-                                            />
-                                            {errors.juz && <p className="mt-1 text-sm text-red-500">{errors.juz}</p>}
-                                        </div>
-                                    </div>
-                                    <div className="ml-24 flex space-x-3 pt-4">
-                                        <button
-                                            type="button"
-                                            onClick={handleReset}
-                                            className={`rounded-md px-4 py-2 text-sm font-medium hover:cursor-pointer ${isDarkMode ? 'bg-gray-600 text-gray-200 hover:bg-gray-500' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-                                        >
-                                            {t('buttons.reset')}
-                                        </button>
-                                        <button
-                                            type="submit"
-                                            className={`rounded-md px-4 py-2 text-sm font-medium text-white hover:cursor-pointer ${isDarkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-[rgb(94,114,228)] hover:bg-[rgb(57,69,138)]'}`}
-                                        >
-                                            {t('buttons.submit')}
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-                            {tampilkan === 'halaman' && (
-                                <div className="space-y-4">
-                                    <div className="flex items-center space-x-2">
-                                        <label className={`w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.page')}</label>
-                                        <div className="w-96">
-                                            <Combobox
-                                                options={pages.map(page => ({ label: page.toString(), value: page.toString() }))}
-                                                placeholder={t('placeholders.select_page')}
-                                                searchPlaceholder={t('placeholders.search_page')}
-                                                notFoundText={t('notFoundText.page_not_found')}
-                                                value={selectedHalaman}
-                                                onValueChange={(value) => {
-                                                    setSelectedHalaman(value);
-                                                    setErrors(prev => ({ ...prev, halaman: '' }));
-                                                }}
-                                                className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
-                                            />
-                                            {errors.halaman && <p className="mt-1 text-sm text-red-500">{errors.halaman}</p>}
-                                        </div>
-                                    </div>
-                                    <div className="ml-24 flex space-x-3 pt-4">
-                                        <button
-                                            type="button"
-                                            onClick={handleReset}
-                                            className={`rounded-md px-4 py-2 text-sm font-medium hover:cursor-pointer ${isDarkMode ? 'bg-gray-600 text-gray-200 hover:bg-gray-500' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-                                        >
-                                            {t('buttons.reset')}
-                                        </button>
-                                        <button
-                                            type="submit"
-                                            className={`rounded-md px-4 py-2 text-sm font-medium text-white hover:cursor-pointer ${isDarkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-[rgb(94,114,228)] hover:bg-[rgb(57,69,138)]'}`}
-                                        >
-                                            {t('buttons.submit')}
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-                        </form>
-                    </div>
-                </div>
+  return (
+    <div className={`flex w-full justify-center px-0`}>
+      <div className="w-full max-w-md md:max-w-xl lg:max-w-2xl">
+        <div className={`min-h-[520px] overflow-hidden rounded-lg shadow-lg ${isDarkMode ? 'bg-[rgb(38,45,52)]' : 'bg-white'}`}>
+          <div className={`px-4 py-3 md:px-6 ${isDarkMode ? 'bg-[rgb(38,45,52)]' : 'bg-white'}`}>
+            <div className="flex items-center justify-between">
+              <h2 className={`text-xl sm:text-2xl font-semibold ${isDarkMode ? 'text-white' : 'text-black'}`}>{t('header')}</h2>
+              <button
+                className={`rounded-full p-2 hover:cursor-pointer ${isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
+                onClick={() => (window.top.location.href = `${config.PARENT_WEB}/settings/qurani`)}
+              >
+                <Settings size={20} />
+              </button>
             </div>
+          </div>
+          <div className="p-4 sm:p-6">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+              <div className="flex flex-col sm:flex-row items-center sm:space-x-4">
+                <label className={`w-full sm:w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.reciter')}</label>
+                <div className="flex flex-row space-x-4 w-full">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="penyetor"
+                      value="grup"
+                      checked={penyetor === 'grup'}
+                      onChange={e => {
+                        setPenyetor(e.target.value);
+                        setErrors(prev => ({ ...prev, group: '', member: '', friend: '' }));
+                      }}
+                      className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
+                    />
+                    <span className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-neutral-950'}`}>{t('radio_options.group')}</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="penyetor"
+                      value="teman"
+                      checked={penyetor === 'teman'}
+                      onChange={e => {
+                        setPenyetor(e.target.value);
+                        setErrors(prev => ({ ...prev, group: '', member: '', friend: '' }));
+                      }}
+                      className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
+                    />
+                    <span className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-neutral-950'}`}>{t('radio_options.friend')}</span>
+                  </label>
+                </div>
+                {errors.penyetor && <p className="text-sm text-red-500">{errors.penyetor}</p>}
+              </div>
+              {penyetor === 'grup' && (
+                <div className="space-y-4">
+                  <div className="flex flex-col sm:flex-row items-center sm:space-x-2">
+                    <label className={`w-full sm:w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.group')}</label>
+                    <div className="w-full sm:w-96">
+                      <Combobox
+                        options={groups.map(group => ({
+                          label: group.group_title,
+                          value: group.group_id.toString()
+                        }))}
+                        placeholder={t('placeholders.select_group')}
+                        searchPlaceholder={t('placeholders.search_group')}
+                        notFoundText={t('notFoundText.group_not_found')}
+                        value={selectedGroup}
+                        onValueChange={(value) => {
+                          setSelectedGroup(value);
+                          setSelectedMember('');
+                          setErrors(prev => ({ ...prev, group: '' }));
+                        }}
+                        className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
+                      />
+                      {errors.group && <p className="mt-1 text-sm text-red-500">{errors.group}</p>}
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-center sm:space-x-2">
+                    <label className={`w-full sm:w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.member')}</label>
+                    <div className="w-full sm:w-96">
+                      <div
+                        className={`${!selectedGroup ? 'pointer-events-none opacity-50' : ''}`}
+                        title={!selectedGroup ? 'Please select a group first' : ''}
+                      >
+                        <Combobox
+                          options={currentMembers.map(member => ({
+                            label: member.user_fullname,
+                            value: member.user_name,
+                          }))}
+                          placeholder={
+                            !selectedGroup
+                              ? t('placeholders.select_group_first')
+                              : t('placeholders.select_member')
+                          }
+                          searchPlaceholder={
+                            !selectedGroup
+                              ? ''
+                              : t('placeholders.search_member')
+                          }
+                          notFoundText={t('notFoundText.member_not_found')}
+                          value={selectedMember}
+                          onValueChange={(value) => {
+                            setSelectedMember(value);
+                            setErrors(prev => ({ ...prev, member: '' }));
+                          }}
+                          className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
+                        />
+                        {errors.member && <p className="mt-1 text-sm text-red-500">{errors.member}</p>}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {penyetor === 'teman' && (
+                <div className="flex flex-col sm:flex-row items-center sm:space-x-2">
+                  <label className={`w-full sm:w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.friend')}</label>
+                  <div className="w-full sm:w-96">
+                    <Combobox
+                      options={friends.map(friend => ({ label: friend.user_fullname, value: friend.user_name }))}
+                      placeholder={t('placeholders.select_friend')}
+                      searchPlaceholder={t('placeholders.search_friend')}
+                      notFoundText={t('notFoundText.friend_not_found')}
+                      value={selectedFriend}
+                      onValueChange={(value) => {
+                        setSelectedFriend(value);
+                        setErrors(prev => ({ ...prev, friend: '' }));
+                      }}
+                      className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
+                    />
+                    {errors.friend && <p className="mt-1 text-sm text-red-500">{errors.friend}</p>}
+                  </div>
+                </div>
+              )}
+              <div className="flex flex-col sm:flex-row items-center sm:space-x-4">
+                <label className={`w-full sm:w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.recite')}</label>
+                <div className="flex flex-row space-x-4 w-full">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="setoran"
+                      value="tahsin"
+                      checked={setoran === 'tahsin'}
+                      onChange={e => {
+                        setSetoran(e.target.value);
+                        setErrors(prev => ({ ...prev, setoran: '' }));
+                      }}
+                      className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
+                    />
+                    <span className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-neutral-950'}`}>{t('radio_options.tahsin')}</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="setoran"
+                      value="tahfidz"
+                      checked={setoran === 'tahfidz'}
+                      onChange={e => {
+                        setSetoran(e.target.value);
+                        setErrors(prev => ({ ...prev, setoran: '' }));
+                      }}
+                      className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
+                    />
+                    <span className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-neutral-950'}`}>{t('radio_options.tahfidz')}</span>
+                  </label>
+                </div>
+                {errors.setoran && <p className="text-sm text-red-500">{errors.setoran}</p>}
+              </div>
+              <div className="flex flex-col sm:flex-row items-center sm:space-x-4">
+                <label className={`w-full sm:w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.display')}</label>
+                <div className="flex flex-row space-x-4 w-full">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="tampilkan"
+                      value="surat"
+                      checked={tampilkan === 'surat'}
+                      onChange={e => {
+                        setTampilkan(e.target.value);
+                        setErrors(prev => ({ ...prev, tampilkan: '', surah: '', juz: '', halaman: '' }));
+                      }}
+                      className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
+                    />
+                    <span className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-neutral-950'}`}>{t('radio_options.surah')}</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="tampilkan"
+                      value="juz"
+                      checked={tampilkan === 'juz'}
+                      onChange={e => {
+                        setTampilkan(e.target.value);
+                        setErrors(prev => ({ ...prev, tampilkan: '', surah: '', juz: '', halaman: '' }));
+                      }}
+                      className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
+                    />
+                    <span className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-neutral-950'}`}>{t('radio_options.juz')}</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="tampilkan"
+                      value="halaman"
+                      checked={tampilkan === 'halaman'}
+                      onChange={e => {
+                        setTampilkan(e.target.value);
+                        setErrors(prev => ({ ...prev, tampilkan: '', surah: '', juz: '', halaman: '' }));
+                      }}
+                      className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
+                    />
+                    <span className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-neutral-950'}`}>{t('radio_options.page')}</span>
+                  </label>
+                </div>
+                {errors.display && <p className="text-sm text-red-500">{errors.display}</p>}
+              </div>
+              {tampilkan === 'surat' && (
+                <div className="space-y-4">
+                  <div className="flex flex-col sm:flex-row items-center sm:space-x-2">
+                    <label className={`w-full sm:w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.surah')}</label>
+                    <div className="w-full sm:w-96">
+                      <Combobox
+                        options={chapters.map(chapter => ({
+                          label: chapter.name + ' (' + chapter.id + ')',
+                          value: chapter.id.toString(),
+                        }))}
+                        placeholder={t('placeholders.select_surah')}
+                        searchPlaceholder={t('placeholders.search_surah')}
+                        notFoundText={t('notFoundText.surah_not_found')}
+                        value={selectedSurahValue}
+                        onValueChange={(value) => {
+                          setSelectedSurahValue(value);
+                          setErrors(prev => ({ ...prev, surah: '' }));
+                        }}
+                        className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
+                      />
+                      {errors.surah && <p className="mt-1 text-sm text-red-500">{errors.surah}</p>}
+                    </div>
+                  </div>
+                  <div className="ml-0 sm:ml-24 flex flex-wrap gap-2">
+                    {[
+                      { value: '1', name: t('buttons.quick_select.1') },
+                      { value: '36', name: t('buttons.quick_select.36') },
+                      { value: '112', name: t('buttons.quick_select.112') },
+                      { value: '114', name: t('buttons.quick_select.114') },
+                    ].map(button => (
+                      <button
+                        key={button.value}
+                        type="button"
+                        className={`rounded-full px-3 py-1 text-xs hover:cursor-pointer ${isDarkMode ? 'bg-gray-600 text-gray-200 hover:bg-gray-500' : 'bg-gray-300 text-black hover:bg-gray-400'}`}
+                        onClick={() => handleQuickSelect(button.value)}
+                      >
+                        {button.name}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="ml-0 sm:ml-26 flex flex-col sm:flex-row space-x-0 sm:space-x-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={handleReset}
+                      className={`w-full sm:w-auto rounded-md px-4 py-2 text-sm font-medium hover:cursor-pointer ${isDarkMode ? 'bg-gray-600 text-gray-200 hover:bg-gray-500' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                    >
+                      {t('buttons.reset')}
+                    </button>
+                    <button
+                      type="submit"
+                      className={`w-full sm:w-auto rounded-md px-4 py-2 text-sm font-medium text-white hover:cursor-pointer ${isDarkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-[rgb(94,114,228)] hover:bg-[rgb(57,69,138)]'}`}
+                    >
+                      {t('buttons.submit')}
+                    </button>
+                  </div>
+                </div>
+              )}
+              {tampilkan === 'juz' && (
+                <div className="space-y-4">
+                  <div className="flex flex-col sm:flex-row items-center sm:space-x-2">
+                    <label className={`w-full sm:w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.juz')}</label>
+                    <div className="w-full sm:w-96">
+                      <Combobox
+                        options={juzs.map(juz => ({ label: juz.id.toString(), value: juz.id.toString() }))}
+                        placeholder={t('placeholders.select_juz')}
+                        searchPlaceholder={t('placeholders.search_juz')}
+                        notFoundText={t('notFoundText.juz_not_found')}
+                        value={selectedJuz}
+                        onValueChange={(value) => {
+                          setSelectedJuz(value);
+                          setErrors(prev => ({ ...prev, juz: '' }));
+                        }}
+                        className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
+                      />
+                      {errors.juz && <p className="mt-1 text-sm text-red-500">{errors.juz}</p>}
+                    </div>
+                  </div>
+                  <div className="ml-0 sm:ml-24 flex flex-col sm:flex-row space-x-0 sm:space-x-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={handleReset}
+                      className={`w-full sm:w-auto rounded-md px-4 py-2 text-sm font-medium hover:cursor-pointer ${isDarkMode ? 'bg-gray-600 text-gray-200 hover:bg-gray-500' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                    >
+                      {t('buttons.reset')}
+                    </button>
+                    <button
+                      type="submit"
+                      className={`w-full sm:w-auto rounded-md px-4 py-2 text-sm font-medium text-white hover:cursor-pointer ${isDarkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-[rgb(94,114,228)] hover:bg-[rgb(57,69,138)]'}`}
+                    >
+                      {t('buttons.submit')}
+                    </button>
+                  </div>
+                </div>
+              )}
+              {tampilkan === 'halaman' && (
+                <div className="space-y-4">
+                  <div className="flex flex-col sm:flex-row items-center sm:space-x-2">
+                    <label className={`w-full sm:w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.page')}</label>
+                    <div className="w-full sm:w-96">
+                      <Combobox
+                        options={pages.map(page => ({ label: page.toString(), value: page.toString() }))}
+                        placeholder={t('placeholders.select_page')}
+                        searchPlaceholder={t('placeholders.search_page')}
+                        notFoundText={t('notFoundText.page_not_found')}
+                        value={selectedHalaman}
+                        onValueChange={(value) => {
+                          setSelectedHalaman(value);
+                          setErrors(prev => ({ ...prev, halaman: '' }));
+                        }}
+                        className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
+                      />
+                      {errors.halaman && <p className="mt-1 text-sm text-red-500">{errors.halaman}</p>}
+                    </div>
+                  </div>
+                  <div className="ml-0 sm:ml-24 flex flex-col sm:flex-row space-x-0 sm:space-x-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={handleReset}
+                      className={`w-full sm:w-auto rounded-md px-4 py-2 text-sm font-medium hover:cursor-pointer ${isDarkMode ? 'bg-gray-600 text-gray-200 hover:bg-gray-500' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                    >
+                      {t('buttons.reset')}
+                    </button>
+                    <button
+                      type="submit"
+                      className={`w-full sm:w-auto rounded-md px-4 py-2 text-sm font-medium text-white hover:cursor-pointer ${isDarkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-[rgb(94,114,228)] hover:bg-[rgb(57,69,138)]'}`}
+                    >
+                      {t('buttons.submit')}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </form>
+          </div>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 export default QuraniCard;
