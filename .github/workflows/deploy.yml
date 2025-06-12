@@ -22,6 +22,8 @@ jobs:
         ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
           set -e
 
+          source ~/.profile 2>/dev/null
+
           cd /www/wwwroot/qurani.link.id
 
           echo "[github-actions] >> Pulling latest changes from main branch..."
