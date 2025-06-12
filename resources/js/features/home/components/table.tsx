@@ -1,3 +1,4 @@
+// table.tsx
 import { setupTranslations } from '@/features/i18n/i18n';
 import { router } from '@inertiajs/react';
 import axios from 'axios';
@@ -21,13 +22,13 @@ const formatTime = (timeString: string) => {
     return `${day} ${month} ${hours}.${minutes}`;
 };
 
-const config = {
-    PARENT_WEB: import.meta.env.VITE_PARENT_URL,
-};
-
 const ucfirst = (str: string) => {
     if (!str) return str;
     return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+const config = {
+    PARENT_WEB: import.meta.env.VITE_PARENT_URL,
 };
 
 const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => {
@@ -84,22 +85,24 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
     };
 
     return (
-        <div className={fluidDesign ? 'mt-3 w-full' : 'mx-auto mt-3 w-full'}>
+        <div className={fluidDesign ? 'mt-3 w-full' : 'mx-auto mt-3 w-full max-w-4xl'}>
             <div className="flex w-full justify-center">
                 <div className="w-full overflow-x-auto">
-                    <div className="relative rounded-lg bg-white p-6 shadow-lg">
+                    <div className={`relative rounded-lg p-6 shadow-lg ${isDarkMode ? 'bg-[rgb(38,45,52)]' : 'bg-white'}`}>
                         <div className="mb-4 flex items-center justify-between">
-                            <h2 className="text-2xl font-semibold">{t('history.title')}</h2>
+                            <h2 className={`text-2xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+                              {t('history.title')}
+                            </h2>
                             <div className="flex gap-2">
                                 <button
-                                    className="rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                                    className="rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white"
                                     aria-label={t('history.table.table_view')}
                                     onClick={() => (window.location.href = '/dashboard')}
                                 >
                                     <SquareActivity size={20} />
                                 </button>
                                 <button
-                                    className="rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                                    className="rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white"
                                     title="Qurani Setting"
                                     aria-label="Settings"
                                     onClick={() => (window.location.href = '/filter')}
@@ -109,13 +112,13 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                             </div>
                         </div>
 
-                        <table className={`w-full border-collapse border ${isDarkMode ? 'border-gray-600' : 'border-gray-200'}`}>
+                        <table className="w-full border-collapse border hidden md:table">
                             <thead>
-                                <tr className={`${isDarkMode ? 'bg-[rgb(48,55,62)]' : 'bg-gray-100'}`}>
+                                <tr className={`${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
                                     {['time', 'reciter', 'recipient', 'recite', 'results', 'signature'].map((header) => (
                                         <th
                                             key={header}
-                                            className={`border ${isDarkMode ? 'border-gray-600' : 'border-gray-200'} px-4 py-2 text-left text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}
+                                            className={`border px-4 py-2 text-left text-sm font-medium ${isDarkMode ? 'border-gray-600 text-gray-200' : 'border-gray-200 text-gray-700'}`}
                                         >
                                             {t(`history.table.${header}`)}
                                         </th>
@@ -127,69 +130,66 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                                     setoran.map((item) => (
                                         <tr
                                             key={item.id}
-                                            className={`cursor-pointer hover:${isDarkMode ? 'bg-[rgb(48,55,62)]' : 'bg-gray-50'}`}
+                                            className={`cursor-pointer ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}
                                             onClick={() => fetchSetoranDetails(item.id)}
                                         >
-                                            <td
-                                                className={`border ${isDarkMode ? 'border-gray-600' : 'border-gray-200'} px-4 py-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
-                                            >
-                                                {formatTime(item.time)}
-                                            </td>
-                                            <td
-                                                className={`border ${isDarkMode ? 'border-gray-600' : 'border-gray-200'} px-4 py-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} hover:underline`}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    openUserProfile(item.reciter_username);
-                                                }}
-                                            >
-                                                {item.reciter}
-                                            </td>
-                                            <td
-                                                className={`border ${isDarkMode ? 'border-gray-600' : 'border-gray-200'} px-4 py-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} hover:underline`}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    openUserProfile(item.recipient_username);
-                                                }}
-                                            >
-                                                {item.recipient}
-                                            </td>
-                                            <td
-                                                className={`border ${isDarkMode ? 'border-gray-600' : 'border-gray-200'} px-4 py-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
-                                            >
-                                                {item.recite}
-                                            </td>
-                                            <td
-                                                className={`border ${isDarkMode ? 'border-gray-600' : 'border-gray-200'} px-4 py-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
-                                            >
-                                                {t(`history.table.ratings.${item.results}`, item.results)?.toString()}
-                                            </td>
-                                            <td
-                                                className={`border ${isDarkMode ? 'border-gray-600' : 'border-gray-200'} px-4 py-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} flex items-center justify-center`}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    if (item.signature === 0) {
-                                                        if (window.confirm(t('confirm.sign_record'))) {
-                                                            handleSign(item.id);
-                                                        }
+                                            {['time', 'reciter', 'recipient', 'recite', 'results', 'signature'].map((col, idx) => {
+                                                const value = (() => {
+                                                    switch (col) {
+                                                        case 'time':
+                                                            return formatTime(item.time);
+                                                        case 'reciter':
+                                                            return item.reciter;
+                                                        case 'recipient':
+                                                            return item.recipient;
+                                                        case 'recite':
+                                                            return item.recite;
+                                                        case 'results':
+                                                            return t(`history.table.ratings.${item.results}`, item.results)?.toString();
+                                                        case 'signature':
+                                                            return (
+                                                                <Check
+                                                                    size={20}
+                                                                    className={
+                                                                        item.signature === 0
+                                                                            ? `cursor-pointer ${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`
+                                                                            : 'text-blue-500'
+                                                                    }
+                                                                />
+                                                            );
+                                                        default:
+                                                            return '';
                                                     }
-                                                }}
-                                            >
-                                                <Check
-                                                    size={20}
-                                                    className={
-                                                        item.signature === 0
-                                                            ? `cursor-pointer ${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`
-                                                            : 'text-blue-500'
-                                                    }
-                                                />
-                                            </td>
+                                                })();
+
+                                                const tdClass = `border px-4 py-2 text-sm ${isDarkMode ? 'border-gray-600 text-gray-200' : 'border-gray-200 text-gray-700'} ${
+                                                    col === 'reciter' || col === 'recipient' ? 'hover:underline' : ''
+                                                }`;
+
+                                                return (
+                                                    <td
+                                                        key={col}
+                                                        className={`${tdClass} ${col === 'signature' ? 'flex items-center justify-center' : ''}`}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            if (col === 'reciter') openUserProfile(item.reciter_username);
+                                                            if (col === 'recipient') openUserProfile(item.recipient_username);
+                                                            if (col === 'signature' && item.signature === 0) {
+                                                                if (window.confirm(t('confirm.sign_record'))) handleSign(item.id);
+                                                            }
+                                                        }}
+                                                    >
+                                                        {value}
+                                                    </td>
+                                                );
+                                            })}
                                         </tr>
                                     ))
                                 ) : (
                                     <tr>
                                         <td
                                             colSpan={6}
-                                            className={`border ${isDarkMode ? 'border-gray-600' : 'border-gray-200'} px-4 py-2 text-center text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
+                                            className={`border px-4 py-2 text-center text-sm ${isDarkMode ? 'border-gray-600 text-gray-300' : 'border-gray-200 text-gray-600'}`}
                                         >
                                             {t('history.table.noData')}
                                         </td>
@@ -197,6 +197,75 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                                 )}
                             </tbody>
                         </table>
+
+                        {/* Mobile View */}
+                        <div className="block md:hidden w-full">
+                            {setoran?.length > 0 ? (
+                                setoran.map((item) => (
+                                    <div
+                                        key={item.id}
+                                        className={`flex flex-col cursor-pointer ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} p-2 border-b ${isDarkMode ? 'border-gray-600' : 'border-gray-200'}`}
+                                        onClick={() => fetchSetoranDetails(item.id)}
+                                    >
+                                        {['time', 'reciter', 'recipient', 'recite', 'results', 'signature'].map((col) => {
+                                            const value = (() => {
+                                                switch (col) {
+                                                    case 'time':
+                                                        return formatTime(item.time);
+                                                    case 'reciter':
+                                                        return item.reciter;
+                                                    case 'recipient':
+                                                        return item.recipient;
+                                                    case 'recite':
+                                                        return item.recite;
+                                                    case 'results':
+                                                        return t(`history.table.ratings.${item.results}`, item.results)?.toString();
+                                                    case 'signature':
+                                                        return (
+                                                            <Check
+                                                                size={20}
+                                                                className={
+                                                                    item.signature === 0
+                                                                        ? `cursor-pointer ${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`
+                                                                        : 'text-blue-500'
+                                                                }
+                                                            />
+                                                        );
+                                                    default:
+                                                        return '';
+                                                }
+                                            })();
+
+                                            const className = `px-4 py-2 text-sm ${isDarkMode ? 'text-gray-200' : 'text-gray-700'} ${
+                                                col === 'reciter' || col === 'recipient' ? 'hover:underline' : ''
+                                            } ${col === 'signature' ? 'flex items-center justify-center' : ''}`;
+
+                                            return (
+                                                <div
+                                                    key={col}
+                                                    className={className}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (col === 'reciter') openUserProfile(item.reciter_username);
+                                                        if (col === 'recipient') openUserProfile(item.recipient_username);
+                                                        if (col === 'signature' && item.signature === 0) {
+                                                            if (window.confirm(t('confirm.sign_record'))) handleSign(item.id);
+                                                        }
+                                                    }}
+                                                >
+                                                    <span className="font-medium">{t(`history.table.${col}`)}: </span>
+                                                    {value}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ))
+                            ) : (
+                                <div className={`border px-4 py-2 text-center text-sm ${isDarkMode ? 'border-gray-600 text-gray-300' : 'border-gray-200 text-gray-600'}`}>
+                                    {t('history.table.noData')}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

@@ -36,8 +36,8 @@
     },
     "buttons": {
         "reset": "Reset",
-        "submit": "Kirim",
-        "quick      _select": {
+        "submit": "Mulai",
+        "quick_select": {
             "1": "Al-Fatihah",
             "36": "Yasin",
             "112": "Al-Ikhlas",
