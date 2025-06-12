@@ -28,6 +28,8 @@ jobs:
           git pull origin main
 
           echo "[github-actions] >> Installing Node.js dependencies..."
+          export NVM_DIR="/www/server/nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
           nvm use 22
           npm install
 
