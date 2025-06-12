@@ -9,6 +9,7 @@ import { Friend } from '../../types/friend';
 import { Group } from '../../types/group';
 import { Juz } from '../../types/juz';
 import { pages } from '../../constanst/pages';
+import { usePage } from '@inertiajs/react'; // Import usePage from Inertia
 
 interface Option {
   label: string;
@@ -48,6 +49,7 @@ interface SavedSetoranData {
   surah?: Chapter;
 }
 
+// Define FormErrors type for validation errors
 interface FormErrors {
   penyetor?: string;
   setoran?: string;
@@ -67,15 +69,17 @@ interface QuraniFormProps {
   juzs: Juz[];
 }
 
+// QuraniCard component
 const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs }) => {
   const { t } = useTranslation('form');
   const { isDarkMode } = useTheme();
+  const { props } = usePage(); // Get Inertia page props
   const [translationsReady, setTranslationsReady] = useState<boolean>(false);
   const [userData, setUserData] = useState<UserData>({});
   const [penyetor, setPenyetor] = useState<string>('grup');
   const [setoran, setSetoran] = useState<string>('tahsin');
-  const [display, setdisplay] = useState<string>('surat');
-  const [tampilkan, setTampilkan] = useState<string>('surat');
+  const [display, setdisplay] = useState<string>('surah');
+  const [tampilkan, setTampilkan] = useState<string>('surah');
   const [groupInput, setGroupInput] = useState<string>('');
   const [memberInput, setMemberInput] = useState<string>('');
   const [temanInput, setTemanInput] = useState<string>('');
@@ -113,7 +117,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
         const parsedData: SavedSetoranData = JSON.parse(savedData);
         setPenyetor(parsedData.penyetor || 'grup');
         setSetoran(parsedData.setoran || 'tahsin');
-        setTampilkan(parsedData.tampilkan || 'surat');
+        setTampilkan(parsedData.tampilkan || 'surah');
         setSelectedGroup(parsedData.selectedGroup || '');
         setSelectedSurahValue(parsedData.selectedSurahValue || '');
         setSelectedJuz(parsedData.selectedJuz || '');
@@ -130,50 +134,51 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
     }
   }, []);
 
+  // Update current members when selected group changes
   useEffect(() => {
     const group = groups.find((g) => g.group_id.toString() === selectedGroup);
     setCurrentMembers(group?.users || []);
   }, [selectedGroup, groups]);
 
-  useEffect(() => {
-    const saveFormData = () => {
-      const formData: SavedSetoranData = {
-        penyetor,
-        setoran,
-        display: tampilkan,
-        tampilkan,
-        selectedGroup: penyetor === 'grup' ? selectedGroup : '',
-        selectedMember: penyetor === 'grup' ? selectedMember : '',
-        selectedFriend: penyetor === 'teman' ? selectedFriend : '',
-        selectedSurahValue,
-        selectedJuz,
-        selectedHalaman,
-      };
-      localStorage.setItem('setoran-data', JSON.stringify(formData));
-    };
-    saveFormData();
-  }, [penyetor, setoran, tampilkan, selectedGroup, selectedMember, selectedFriend, selectedSurahValue, selectedJuz, selectedHalaman]);
+    useEffect(() => {
+        const saveFormData = () => {
+            const formData: SavedSetoranData = {
+                penyetor,
+                setoran,
+                display: tampilkan, // Add this line to satisfy the SavedSetoranData interface
+                tampilkan,
+                selectedGroup: penyetor === 'grup' ? selectedGroup : '',
+                selectedMember: penyetor === 'grup' ? selectedMember : '',
+                selectedFriend: penyetor === 'teman' ? selectedFriend : '',
+                selectedSurahValue,
+                selectedJuz,
+                selectedHalaman,
+            };
+            localStorage.setItem('setoran-data', JSON.stringify(formData));
+        };
+        saveFormData();
+    }, [penyetor, setoran, tampilkan, selectedGroup, selectedMember, selectedFriend, selectedSurahValue, selectedJuz, selectedHalaman]);
 
-  useEffect(() => {
-    const loadUserData = () => {
-      try {
-        const storedParentData = localStorage.getItem('parent_data');
-        if (storedParentData) {
-          const parsedParentData = JSON.parse(storedParentData);
-          setUserData(parsedParentData);
-        }
-      } catch (error) {}
-    };
-    loadUserData();
-  }, []);
+    useEffect(() => {
+        const loadUserData = () => {
+            try {
+                const storedParentData = localStorage.getItem('parent_data');
+                if (storedParentData) {
+                    const parsedParentData = JSON.parse(storedParentData);
+                    setUserData(parsedParentData);
+                }
+            } catch (error) {}
+        };
+        loadUserData();
+    }, []);
 
-  useEffect(() => {
-    const loadTranslations = async () => {
-      await setupTranslations('form');
-      setTranslationsReady(true);
-    };
-    loadTranslations();
-  }, []);
+    useEffect(() => {
+        const loadTranslations = async () => {
+            await setupTranslations('form');
+            setTranslationsReady(true);
+        };
+        loadTranslations();
+    }, []);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -194,6 +199,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
     return Object.keys(newErrors).length === 0;
   };
 
+  // Get redirect URL
   const getRedirectUrl = (): string => {
     switch (display) {
       case 'surah': return selectedSurahValue ? `/surah/${selectedSurahValue}` : '/';
@@ -203,31 +209,38 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
     }
   };
 
+  // Handle quick select for surah
   const handleQuickSelect = (value: string): void => {
     setSelectedSurahValue(value);
     setErrors((prev) => ({ ...prev, surah: '' }));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
-    e.preventDefault();
-    if (!validateForm()) return;
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
+        e.preventDefault();
+        if (!validateForm()) {
+            return;
+        }
 
     let reciter: { user_name: string; full_name: string } | null = null;
     if (penyetor === 'grup') {
       const group = groups.find((g) => g.group_id.toString() === selectedGroup);
       if (group) {
         const member = group.users.find((u) => u.user_name === selectedMember);
-        if (member) reciter = { user_name: member.user_name, full_name: member.user_fullname };
+        if (member) {
+          reciter = { user_name: member.user_name, full_name: member.user_fullname };
+        }
       }
     } else if (penyetor === 'teman') {
       const friend = friends.find((f) => f.user_name === selectedFriend);
-      if (friend) reciter = { user_name: friend.user_name, full_name: friend.user_fullname };
+      if (friend) {
+        reciter = { user_name: friend.user_name, full_name: friend.user_fullname };
+      }
     }
 
     const formData: SavedSetoranData = {
       penyetor,
       setoran,
-      display,
+      display: tampilkan,
       reciter: reciter || { user_name: '', full_name: '' },
       recipient: '',
     };
@@ -250,6 +263,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
       console.error('Error saving setoran-data:', error);
     }
 
+    // Use Inertia to navigate instead of window.location.href
     const redirectUrl = getRedirectUrl();
     if (redirectUrl !== '/') window.location.href = redirectUrl;
     else alert(t('errors.invalid_selection'));

@@ -84,6 +84,8 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ children }) => {
 
       const messageData = event.data?.data || event.data;
 
+      localStorage.setItem('language_code', messageData?.s_lang);
+
       // Handle recipient change
       if (typeof messageData?.c_user === 'string') {
         setRecipient(messageData.c_user);
