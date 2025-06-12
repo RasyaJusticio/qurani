@@ -31,7 +31,7 @@ jobs:
           export NVM_DIR="/www/server/nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
           nvm use 22
-          npm install
+          npm install --legacy-peer-deps
 
           echo "[github-actions] >> Installing PHP dependencies..."
           composer install --no-dev --optimize-autoloader
