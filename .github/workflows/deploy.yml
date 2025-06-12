@@ -17,23 +17,6 @@ jobs:
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20
-
-    - name: Install Node.js dependencies
-      run: npm install --legacy-peer-deps
-
-    - name: Build project
-      run: npm run build
-
-    - name: Sync built files to server
-      run: |
-        rsync -avz --delete \
-          -e "ssh -o StrictHostKeyChecking=no" \
-          public/build/ ${{ secrets.DEPLOY_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/qurani.link.id/public/build/
-
     - name: Deploy to Server
       run: |
         ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
@@ -44,11 +27,15 @@ jobs:
           echo "[github-actions] >> Pulling latest changes from main branch..."
           git pull origin main
 
-          echo "[github-actions] >> Checking for dependency changes..."
+          echo "[github-actions] >> Installing Node.js dependencies..."
+          nvm use 22
+          npm install
 
           echo "[github-actions] >> Installing PHP dependencies..."
           composer install --no-dev --optimize-autoloader
 
+          echo "[github-actions] >> Building for production..."
+          npm run build
+
           echo "[github-actions] >> Deployment completed successfully."
         EOF
-
