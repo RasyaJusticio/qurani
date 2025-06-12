@@ -144,8 +144,6 @@ const ResultFormLayout: React.FC = () => {
                 const awalAyat = firstSurah.first_verse || '';
                 const akhirAyat = firstSurah.last_verse || '';
 
-                console.log('Parsed Data:', parsedData);
-
                 form.setData({
                     reciter: {
                         user_name: parsedData.reciter.user_name,
@@ -261,8 +259,6 @@ const ResultFormLayout: React.FC = () => {
     ket: form.data.catatan,       // Ganti nama field
     perhalaman: perhalamanData,   // Ubah struktur
   };
-
-  console.log(form.data, postData);
 
   axios.post('/api/result', postData, {
     headers: {
