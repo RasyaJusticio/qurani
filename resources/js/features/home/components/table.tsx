@@ -217,28 +217,17 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                                                     case 'recipient':
                                                         return item.recipient;
                                                     case 'recite':
-                                                        return item.recite;
+                                                        return <span className="whitespace-nowrap">{item.recite}</span>;
                                                     case 'results':
                                                         return t(`history.table.ratings.${item.results}`, item.results)?.toString();
-                                                    case 'signature':
-                                                        return (
-                                                            <Check
-                                                                size={20}
-                                                                className={
-                                                                    item.signature === 0
-                                                                        ? `cursor-pointer ${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`
-                                                                        : 'text-blue-500'
-                                                                }
-                                                            />
-                                                        );
                                                     default:
                                                         return '';
                                                 }
                                             })();
 
-                                            const className = `px-4 py-2 text-sm ${isDarkMode ? 'text-gray-200' : 'text-gray-700'} ${
-                                                col === 'reciter' || col === 'recipient' ? 'hover:underline' : ''
-                                            } ${col === 'signature' ? 'flex items-center justify-center' : ''}`;
+                                            const className = `px-3 py-2 text-sm ${
+                                                isDarkMode ? 'text-gray-200' : 'text-gray-700'
+                                            } ${col === 'reciter' || col === 'recipient' ? 'hover:underline' : ''}`;
 
                                             return (
                                                 <div
@@ -253,8 +242,28 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                                                         }
                                                     }}
                                                 >
-                                                    <span className="font-medium">{t(`history.table.${col}`)}: </span>
-                                                    {value}
+                                                    <span className="inline-block w-[100px] font-medium">
+                                                        {t(`history.table.${col}`)}
+                                                    </span>
+                                                    <span>
+                                                        :{' '}
+                                                        {col === 'signature' ? (
+                                                            <Check
+                                                                size={20}
+                                                                className={
+                                                                    item.signature === 0
+                                                                        ? `inline-block cursor-pointer ${
+                                                                            isDarkMode
+                                                                                ? 'text-gray-400 hover:text-gray-200'
+                                                                                : 'text-gray-400 hover:text-gray-600'
+                                                                        }`
+                                                                        : 'text-blue-500 inline-block'
+                                                                }
+                                                            />
+                                                        ) : (
+                                                            value
+                                                        )}
+                                                    </span>
                                                 </div>
                                             );
                                         })}
