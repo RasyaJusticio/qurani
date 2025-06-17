@@ -44,7 +44,7 @@ interface SavedSetoranData {
   selectedSurahValue?: string;
   selectedJuz?: string;
   selectedHalaman?: string;
-  reciter?: { user_name: string; full_name: string };
+  reciter?: { user_name: string; full_name: string }; // Pastikan reciter ada
   recipient?: string;
   surah?: Chapter;
 }
@@ -109,29 +109,43 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
   const halamanDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const savedData = localStorage.getItem('setoran-data');
-    if (savedData) {
-      try {
-        const parsedData: SavedSetoranData = JSON.parse(savedData);
-        setPenyetor(parsedData.penyetor || 'grup');
-        setSetoran(parsedData.setoran || 'tahsin');
-        setTampilkan(parsedData.tampilkan || 'surah');
-        setDisplay(parsedData.display || 'surah');
-        setSelectedGroup(parsedData.selectedGroup || '');
-        setSelectedSurahValue(parsedData.selectedSurahValue || '');
-        setSelectedJuz(parsedData.selectedJuz || '');
-        setSelectedHalaman(parsedData.selectedHalaman || '');
-        if (parsedData.penyetor === 'grup' && parsedData.selectedMember) {
-          setSelectedMember(parsedData.selectedMember);
+  const savedData = localStorage.getItem('setoran-data');
+  console.log('Saved data from localStorage:', savedData); // Tambahkan ini untuk debugging
+  if (savedData) {
+    try {
+      const parsedData: SavedSetoranData = JSON.parse(savedData);
+      setPenyetor(parsedData.penyetor || 'grup');
+      setSetoran(parsedData.setoran || 'tahsin');
+      setTampilkan(parsedData.tampilkan || 'surah');
+      setDisplay(parsedData.display || 'surah');
+      setSelectedGroup(parsedData.selectedGroup || '');
+      setSelectedMember(parsedData.selectedMember || '');
+      setSelectedFriend(parsedData.selectedFriend || '');
+      setSelectedSurahValue(parsedData.selectedSurahValue || '');
+      setSelectedJuz(parsedData.selectedJuz || '');
+      setSelectedHalaman(parsedData.selectedHalaman || '');
+      // Pastikan logika grup dan teman diperbarui
+      if (parsedData.penyetor === 'grup' && parsedData.selectedGroup) {
+        const group = groups.find((g) => g.group_id.toString() === parsedData.selectedGroup);
+        if (group) {
+          setCurrentMembers(group.users || []);
+          const member = group.users.find((u) => u.user_name === parsedData.selectedMember);
+          if (member) setSelectedMember(member.user_name);
         }
-        if (parsedData.penyetor === 'teman' && parsedData.selectedFriend) {
-          setSelectedFriend(parsedData.selectedFriend);
-        }
-      } catch (error) {
-        console.error('Error parsing saved data:', error);
       }
+      if (parsedData.penyetor === 'teman' && parsedData.selectedFriend) {
+        setSelectedFriend(parsedData.selectedFriend);
+      }
+    } catch (error) {
+      console.error('Error parsing saved data:', error);
+      // Set default values jika parsing gagal
+      setPenyetor('grup');
+      setSetoran('tahsin');
+      setTampilkan('surah');
+      setDisplay('surah');
     }
-  }, []);
+  }
+}, [groups]);
 
   useEffect(() => {
     const group = groups.find((g) => g.group_id.toString() === selectedGroup);
@@ -214,55 +228,61 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     if (!validateForm()) {
-      return;
+        return;
     }
 
     let reciter: { user_name: string; full_name: string } | null = null;
     if (penyetor === 'grup') {
-      const group = groups.find((g) => g.group_id.toString() === selectedGroup);
-      if (group) {
-        const member = group.users.find((u) => u.user_name === selectedMember);
-        if (member) {
-          reciter = { user_name: member.user_name, full_name: member.user_fullname };
+        const group = groups.find((g) => g.group_id.toString() === selectedGroup);
+        if (group) {
+            const member = group.users.find((u) => u.user_name === selectedMember);
+            if (member) {
+                reciter = { user_name: member.user_name, full_name: member.user_fullname };
+            }
         }
-      }
     } else if (penyetor === 'teman') {
-      const friend = friends.find((f) => f.user_name === selectedFriend);
-      if (friend) {
-        reciter = { user_name: friend.user_name, full_name: friend.user_fullname };
-      }
+        const friend = friends.find((f) => f.user_name === selectedFriend);
+        if (friend) {
+            reciter = { user_name: friend.user_name, full_name: friend.user_fullname };
+        }
     }
 
     const formData: SavedSetoranData = {
-      penyetor,
-      setoran,
-      display: tampilkan,
-      reciter: reciter || { user_name: '', full_name: '' },
-      recipient: '',
+        penyetor,
+        setoran,
+        display: tampilkan,
+        tampilkan,
+        selectedGroup: penyetor === 'grup' ? selectedGroup : '',
+        selectedMember: penyetor === 'grup' ? selectedMember : '',
+        selectedFriend: penyetor === 'teman' ? selectedFriend : '',
+        selectedSurahValue,
+        selectedJuz,
+        selectedHalaman,
+        reciter: reciter || { user_name: '', full_name: '' }, // Pastikan reciter selalu ada
     };
 
     if (tampilkan === 'surah' && selectedSurahValue) {
-      const selectedChapter = chapters.find((chapter) => chapter.id.toString() === selectedSurahValue);
-      if (selectedChapter) {
-        formData.surah = {
-          id: selectedChapter.id,
-          name: selectedChapter.name,
-          first_verse: selectedChapter.first_verse,
-          last_verse: selectedChapter.last_verse,
-        };
-      }
+        const selectedChapter = chapters.find((chapter) => chapter.id.toString() === selectedSurahValue);
+        if (selectedChapter) {
+            formData.surah = {
+                id: selectedChapter.id,
+                name: selectedChapter.name,
+                first_verse: selectedChapter.first_verse,
+                last_verse: selectedChapter.last_verse,
+            };
+        }
     }
 
     try {
-      localStorage.setItem('setoran-data', JSON.stringify(formData));
+        localStorage.setItem('setoran-data', JSON.stringify(formData));
     } catch (error) {
-      console.error('Error saving setoran-data:', error);
+        console.error('Error saving setoran-data:', error);
     }
 
     const redirectUrl = getRedirectUrl();
     if (redirectUrl !== '/') window.location.href = redirectUrl;
     else alert(t('errors.invalid_selection'));
-  };
+};
 
   const handleReset = (): void => {
     setPenyetor('grup');
@@ -503,7 +523,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                         setTampilkan(e.target.value);
                         setDisplay(e.target.value);
                         setSelectedSurahValue('');
-                        setSelectedJuz(''); // Reset juz when switching to Juz
+                        setSelectedJuz('');
                         setSelectedHalaman('');
                         setErrors(prev => ({ ...prev, tampilkan: '', surah: '', juz: '', halaman: '' }));
                       }}
@@ -522,7 +542,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                         setDisplay(e.target.value);
                         setSelectedSurahValue('');
                         setSelectedJuz('');
-                        setSelectedHalaman(''); // Reset page when switching to Page
+                        setSelectedHalaman('');
                         setErrors(prev => ({ ...prev, tampilkan: '', surah: '', juz: '', halaman: '' }));
                       }}
                       className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
@@ -555,7 +575,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                       {errors.surah && <p className="mt-1 text-sm text-red-500">{errors.surah}</p>}
                     </div>
                   </div>
-                  <div className="ml-0 sm:ml-24 flex flex-wrap gap-2">
+                  <div className="ml-0 sm:ml-26 flex flex-wrap gap-2">
                     {[
                       { value: '1', name: t('buttons.quick_select.1') },
                       { value: '36', name: t('buttons.quick_select.36') },
@@ -565,7 +585,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                       <button
                         key={button.value}
                         type="button"
-                        className={`w-full sm:w-auto rounded-md px-4 py-2 text-sm font-medium hover:cursor-pointer ${isDarkMode ? 'bg-gray-600 text-gray-200 hover:bg-gray-500' : 'bg-gray-300 text-black hover:bg-gray-400'}`}
+                        className={`w-full sm:w-auto rounded-md px-3 py-1.5 text-sm font-medium hover:cursor-pointer ${isDarkMode ? 'bg-gray-600 text-gray-200 hover:bg-gray-500' : 'bg-gray-300 text-black hover:bg-gray-400'}`}
                         onClick={() => handleQuickSelect(button.value)}
                       >
                         {button.name}

@@ -296,7 +296,7 @@ export default function PageIndex() {
                                         {surah.translated_name.name} ({surah.name_simple})
                                     </p>
                                     {surah.bismillah_pre && (
-                                        <p className="font-arabic mt-4 text-5xl text-gray-800" style={{ direction: 'rtl' }}>
+                                        <p className="font-arabic mt-4 text-4xl text-gray-800" style={{ direction: 'rtl' }}>
                                             بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
                                         </p>
                                     )}

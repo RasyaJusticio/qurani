@@ -169,7 +169,7 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                                                 return (
                                                     <td
                                                         key={col}
-                                                        className={`${tdClass} ${col === 'signature' ? 'flex items-center justify-center' : ''}`}
+                                                        className={tdClass}
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             if (col === 'reciter') openUserProfile(item.reciter_username);

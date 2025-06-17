@@ -74,6 +74,7 @@ interface FormData {
     awalAyat: string;
     akhirAyat: string;
     perhalaman: PerhalamanItem[];
+    submit?: string; // Add this line to allow 'submit' as an error key
 }
 
 const t = (key: string): string => {
@@ -226,64 +227,69 @@ const ResultFormLayout: React.FC = () => {
     };
 
     const handleSubmit = (e: React.FormEvent): void => {
-  e.preventDefault();
-  form.clearErrors();
+    e.preventDefault();
+    form.clearErrors();
 
-  // Validasi wajib
-  if (!form.data.kesimpulan) form.setError('kesimpulan', 'Pilih kesimpulan');
-  if (!form.data.awalAyat) form.setError('awalAyat', 'Pilih awal ayat');
-  if (!form.data.akhirAyat) form.setError('akhirAyat', 'Pilih akhir ayat');
-  if (Object.keys(form.errors).length > 0) return;
+    // Validasi wajib
+    if (!form.data.kesimpulan) form.setError('kesimpulan', 'Pilih kesimpulan');
+    if (!form.data.awalAyat) form.setError('awalAyat', 'Pilih awal ayat');
+    if (!form.data.akhirAyat) form.setError('akhirAyat', 'Pilih akhir ayat');
+    if (!form.data.recipient) form.setError('recipient', 'Penerima wajib diisi');
+    if (!form.data.setoran) form.setError('setoran', 'Jenis setoran wajib diisi');
+    if (!form.data.display) form.setError('display', 'Tampilan wajib diisi');
+    if (!form.data.surah || !form.data.surah.length) form.setError('surah', 'Surah wajib diisi');
 
-  // Transformasi data perhalaman
-  const perhalamanData = Object.entries(form.data.mistake).map(([page, data]) => ({
-    halaman: page,
-    kesimpulan: data.kesimpulan,
-    catatan: data.catatan,
-    salah_ayat: data.salahAyat,   // Perhatikan underscore
-    salah_kata: data.salahKata,   // Perhatikan underscore
-  }));
+    if (Object.keys(form.errors).length > 0) return;
 
-  // Gabung ayat menjadi format "1-4"
-  const info = `${form.data.awalAyat}-${form.data.akhirAyat}`;
+    // Pastikan parseInt hanya dilakukan jika nilai ada
+    const penerima = form.data.recipient ? parseInt(form.data.recipient) : 0;
+    const nomor = form.data.surah && form.data.surah.length > 0 ? parseInt(form.data.surah[0].id) : 0;
 
-  // Struktur data sesuai controller
-  const postData = {
-    penyetor: form.data.reciter?.user_name || '',
-    penerima: parseInt(form.data.recipient),
-    setoran: form.data.setoran,
-    tampilan: form.data.display,
-    nomor: parseInt((form.data.surah as Surah[])[0].id),
-    info: info,                   // Field baru
-    hasil: form.data.kesimpulan,  // Ganti nama field
-    ket: form.data.catatan,       // Ganti nama field
-    perhalaman: perhalamanData,   // Ubah struktur
-  };
+    // Transformasi data perhalaman
+    const perhalamanData = Object.entries(form.data.mistake).map(([page, data]) => ({
+        halaman: page,
+        kesimpulan: data.kesimpulan || '',
+        catatan: data.catatan || '',
+        salah_ayat: data.salahAyat || [],
+        salah_kata: data.salahKata || [],
+    }));
 
-  axios.post('/api/result', postData, {
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
-      Accept: 'application/json',
-    },
-  })
-  .then((response) => {
-    alert('Data berhasil dikirim!');
-    localStorage.removeItem('setoran-data');
-    router.visit('/');
-  })
-            .catch((error) => {
-                if (error.response && error.response.status === 422) {
-                    const errors = error.response.data.errors;
-                    Object.keys(errors).forEach((key) => {
-                        form.setError(key, errors[key][0]);
-                    });
-                } else {
-                    console.error('Error:', error);
-                    form.setError('submit', 'Gagal mengirim data. Silakan coba lagi.');
-                }
-            });
+    const postData = {
+        penyetor: form.data.reciter?.user_name || '',
+        penerima,
+        setoran: form.data.setoran,
+        tampilan: form.data.display,
+        nomor,
+        info: `${form.data.awalAyat}-${form.data.akhirAyat}`,
+        hasil: form.data.kesimpulan,
+        ket: form.data.catatan,
+        perhalaman: perhalamanData,
     };
+
+    axios.post('/api/result', postData, {
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            Accept: 'application/json',
+        },
+    })
+    .then((response) => {
+        alert('Data berhasil dikirim!');
+        // localStorage.removeItem('setoran-data');
+        router.visit('/');
+    })
+    .catch((error) => {
+        if (error.response && error.response.status === 422) {
+            const errors = error.response.data.errors;
+            Object.keys(errors).forEach((key) => {
+    form.setError(key as keyof FormData, errors[key][0]);
+});
+        } else {
+            console.error('Error:', error);
+            form.setError('submit', 'Gagal mengirim data. Silakan coba lagi.');
+        }
+    });
+};
 
     if (!setoranData) {
         return (
@@ -304,7 +310,7 @@ const ResultFormLayout: React.FC = () => {
             <div className="min-h-screen bg-gray-50 py-6">
                 <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8">
                     <div className="mb-6 text-center">
-                        <h1 className="mb-1 text-2xl font-bold text-gray-900">{t('general.hasilrekap')}</h1>
+                        <h1 className="mb-1 text-1xl font-bold text-gray-900">{t('general.hasilrekap')}</h1>
                     </div>
 
                     <div className="mb-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">

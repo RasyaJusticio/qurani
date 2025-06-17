@@ -71,6 +71,7 @@ interface FormData {
     selected_first_ayat: string;
     selected_last_surah: string;
     selected_last_ayat: string;
+    [key: string]: any;
 }
 
 // Translation function
@@ -320,7 +321,7 @@ const PageRecapFormLayout: React.FC = () => {
         <div className="min-h-screen bg-gray-50 py-6">
             <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8">
                 <div className="mb-6 text-center">
-                    <h1 className="mb-1 text-2xl font-bold text-gray-900">{t('general.hasilrekap')}</h1>
+                    {/* <h1 className="mb-1 text-2xl font-bold text-gray-900">{t('general.hasilrekap')}</h1> */}
                 </div>
                 <div className="mb-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
                     <div className="mb-4 grid grid-cols-1 gap-4">

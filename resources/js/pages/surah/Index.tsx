@@ -259,7 +259,7 @@ export default function SurahIndex() {
                         {surah.name_simple} ({surah.id})
                     </p>
                     {surah.bismillah_pre && (
-                        <p className="font-arabic mt-6 text-5xl text-gray-800" style={{ direction: 'rtl' }}>
+                        <p className="font-arabic mt-6 text-4xl text-gray-800" style={{ direction: 'rtl' }}>
                             بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
                         </p>
                     )}
