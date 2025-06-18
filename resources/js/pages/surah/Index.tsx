@@ -36,6 +36,7 @@ interface Surah {
 interface PageProps {
     surah: Surah;
     verses: Verse[];
+    [key: string]: unknown;
 }
 
 type ErrorsByPage = {
@@ -232,10 +233,34 @@ export default function SurahIndex() {
         {} as { [key: number]: { verse: Verse; index: number }[] },
     );
 
+    // Detect dark mode using window.matchMedia or default to false
+    const [isDarkMode, setIsDarkMode] = useState(false);
+
+    useEffect(() => {
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            setIsDarkMode(true);
+        }
+        const listener = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        mq.addEventListener('change', listener);
+        return () => mq.removeEventListener('change', listener);
+    }, []);
+
     return (
         <AppWrapper>
             <Head title={`${surah.name_simple} - Recap`} />
             <QuranHeader page={1} translateMode="read" target="/result" />
+            <style>
+                {`
+                    }
+                    .text-white {
+                        color: #ffffff;
+                    }
+                    .text-black {
+                        color: #000000;
+                    }
+                `}
+            </style>
             <div className="mx-auto max-w-4xl overflow-auto p-4">
                 <MistakeModal
                     isOpen={modalOpen}
@@ -255,17 +280,17 @@ export default function SurahIndex() {
                     verseErrors={verseErrors}
                 />
                 <div className="mt-20 mb-12 text-center">
-                    <p className="text-lg text-gray-600">
+                    <p className={`text-lg ${isDarkMode ? 'text-white' : 'text-black'}`}>
                         {surah.name_simple} ({surah.id})
                     </p>
                     {surah.bismillah_pre && (
-                        <p className="font-arabic mt-6 text-4xl text-gray-800" style={{ direction: 'rtl' }}>
+                        <p className={`font-arabic mt-6 text-4xl ${isDarkMode ? 'text-white' : 'text-black'}`} style={{ direction: 'rtl' }}>
                             بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
                         </p>
                     )}
                 </div>
                 <div
-                    className="font-arabic text-3xl text-gray-800"
+                    className={`font-arabic text-3xl ${isDarkMode ? 'text-white' : 'text-black'}`}
                     style={{
                         direction: 'rtl',
                         textAlign: 'justify',
