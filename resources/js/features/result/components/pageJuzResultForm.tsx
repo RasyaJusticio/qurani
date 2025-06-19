@@ -3,272 +3,315 @@ import axios from 'axios';
 import { AlertCircle, CheckCircle2, ChevronDown, ChevronUp, FileText } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
-// Interfaces for TypeScript types
 interface Reciter {
-    user_id: string;
-    user_name: string;
-    full_name: string;
+  user_id: string;
+  user_name: string;
+  full_name: string;
 }
 
 interface Surah {
-    id: string;
-    name: string;
-    first_verse: string;
-    last_verse: string;
+  id: string;
+  name: string;
+  first_verse: string;
+  last_verse: string;
 }
 
 interface SalahAyat {
-    salahKey: string;
-    NamaSurat: string;
-    noAyat: number;
-    salah: string;
+  salahKey: string;
+  NamaSurat: string;
+  noAyat: number;
+  salah: string;
 }
 
 interface SalahKata {
-    salahKey: string;
-    kata: { text: string };
-    salah: string;
+  salahKey: string;
+  kata: { text: string };
+  salah: string;
 }
 
 interface Mistake {
-    [page: string]: {
-        salahAyat: SalahAyat[];
-        salahKata: SalahKata[];
-        kesimpulan: string;
-        catatan: string;
-    };
+  [page: string]: {
+    salahAyat: SalahAyat[];
+    salahKata: SalahKata[];
+    kesimpulan: string;
+    catatan: string;
+  };
 }
 
 interface SetoranData {
-    reciter: Reciter;
-    recipient: string;
-    setoran_type: string;
-    display: string;
-    page_number: string;
-    surah: {
-        id: string;
-        name: string;
-        first_surah: string;
-        last_surah: string;
-        first_verse: string;
-        last_verse: string;
-        surah: Surah[];
-    };
-    mistake: { [page: string]: { salahAyat: SalahAyat[]; salahKata: SalahKata[] } };
+  reciter: Reciter;
+  recipient: string;
+  setoran_type: string;
+  display: string;
+  page_number: string;
+  surah: {
+    id: string;
+    name: string;
+    first_surah: string;
+    last_surah: string;
+    first_verse: string;
+    last_verse: string;
+    surah: Surah[];
+  };
+  mistake: { [page: string]: { salahAyat: SalahAyat[]; salahKata: SalahKata[] } };
 }
 
 interface FormData {
-    reciter: Reciter | null;
-    recipient: string;
-    setoran_type: string;
-    display: string;
-    page_number: string;
-    surah: { id: string; name: string; first_surah: string; last_surah: string; first_verse: string; last_verse: string; surah: Surah[] } | null;
-    mistake: Mistake;
-    kesimpulan: string;
-    catatan: string;
-    selected_first_surah: string;
-    selected_first_ayat: string;
-    selected_last_surah: string;
-    selected_last_ayat: string;
-    [key: string]: any;
+  reciter: Reciter | null;
+  recipient: string;
+  setoran_type: string;
+  display: string;
+  page_number: string;
+  surah: {
+    id: string;
+    name: string;
+    first_surah: string;
+    last_surah: string;
+    first_verse: string;
+    last_verse: string;
+    surah: Surah[];
+  } | null;
+  mistake: Mistake;
+  kesimpulan: string;
+  catatan: string;
+  selected_first_surah: string;
+  selected_first_ayat: string;
+  selected_last_surah: string;
+  selected_last_ayat: string;
+  [key: string]: any;
 }
 
-// Translation function
 const t = (key: string): string => {
-    const translations: { [key: string]: string } = {
-        'general.hasilrekap': 'Hasil Setoran',
-        'rekapan.form.peserta': 'Peserta',
-        'rekapan.form.awal_surah': 'Awal Surah',
-        'rekapan.form.awal_ayat': 'Awal Ayat',
-        'rekapan.form.akhir_surah': 'Akhir Surah',
-        'rekapan.form.akhir_ayat': 'Akhir Ayat',
-        'rekapan.form.kesimpulan': 'Kesimpulan',
-        'rekapan.form.pilih_kesimpulan': 'Pilih Kesimpulan',
-        'rekapan.form.catatan': 'Catatan',
-        'rekapan.form.catatan_khusus': 'Catatan Khusus',
-        'rekapan.form.kesalahan_ayat': 'Kesalahan Ayat',
-        'rekapan.form.tidak_ada_kesalahan_ayat': 'Tidak Ada Kesalahan Ayat',
-        'rekapan.form.kesalahan_kata': 'Kesalahan Kata',
-        'rekapan.form.tidak_ada_kesalahan_kata': 'Tidak Ada Kesalahan Kata',
-        'rekapan.kesimpulan_options.Excellent': 'Excellent',
-        'rekapan.kesimpulan_options.Very Good': 'Very Good',
-        'rekapan.kesimpulan_options.Good': 'Good',
-        'rekapan.kesimpulan_options.Pass': 'Pass',
-        'rekapan.kesimpulan_options.Weak': 'Weak',
-        'rekapan.kesimpulan_options.Not Pass': 'Not Pass',
-        'rekapan.form.mengirim': 'Mengirim...',
-        'rekapan.form.kirim': 'Kirim',
-        'rekapan.form.halaman': 'Halaman',
-        'rekapan.form.setoran_type': 'Jenis Setoran',
-    };
-    return translations[key] || key;
+  const translations: { [key: string]: string } = {
+    'rekapan.form.peserta': 'Peserta',
+    'rekapan.form.awal_surah': 'Awal Surah',
+    'rekapan.form.awal_ayat': 'Awal Ayat',
+    'rekapan.form.akhir_surah': 'Akhir Surah',
+    'rekapan.form.akhir_ayat': 'Akhir Ayat',
+    'rekapan.form.kesimpulan': 'Kesimpulan',
+    'rekapan.form.pilih_kesimpulan': 'Pilih Kesimpulan',
+    'rekapan.form.catatan': 'Catatan',
+    'rekapan.form.catatan_khusus': 'Catatan Khusus',
+    'rekapan.form.kesalahan_ayat': 'Kesalahan Ayat',
+    'rekapan.form.tidak_ada_kesalahan_ayat': 'Tidak Ada Kesalahan Ayat',
+    'rekapan.form.kesalahan_kata': 'Kesalahan Kata',
+    'rekapan.form.tidak_ada_kesalahan_kata': 'Tidak Ada Kesalahan Kata',
+    'rekapan.form.halaman': 'Halaman',
+    'rekapan.kesimpulan_options.Excellent': 'Excellent',
+    'rekapan.kesimpulan_options.Very Good': 'Very Good',
+    'rekapan.kesimpulan_options.Good': 'Good',
+    'rekapan.kesimpulan_options.Pass': 'Pass',
+    'rekapan.kesimpulan_options.Weak': 'Weak',
+    'rekapan.kesimpulan_options.Not Pass': 'Not Pass',
+    'rekapan.form.kirim': 'Kirim',
+    'rekapan.form.mengirim': 'Mengirim...'
+  };
+  return translations[key] || key;
 };
 
 const PageRecapFormLayout: React.FC = () => {
-    const [panels, setPanels] = useState<{ [key: string]: boolean }>({});
-    const [setoranData, setSetoranData] = useState<SetoranData | null>(null);
+  const [panels, setPanels] = useState<{ [key: string]: boolean }>({});
+  const [setoranData, setSetoranData] = useState<SetoranData | null>(null);
 
-    const form = useForm<FormData>({
-        reciter: null,
-        recipient: '',
-        setoran_type: '',
-        display: '',
-        page_number: '',
-        surah: null,
-        mistake: {},
-        kesimpulan: '',
-        catatan: '',
-        selected_first_surah: '',
-        selected_first_ayat: '',
-        selected_last_surah: '',
-        selected_last_ayat: '',
-    });
+  const form = useForm<FormData>({
+    reciter: null,
+    recipient: '',
+    setoran_type: '',
+    display: '',
+    page_number: '',
+    surah: null,
+    mistake: {},
+    kesimpulan: '',
+    catatan: '',
+    selected_first_surah: '',
+    selected_first_ayat: '',
+    selected_last_surah: '',
+    selected_last_ayat: '',
+  });
 
-    useEffect(() => {
-        try {
-            const data = localStorage.getItem('setoran-data');
-            if (data) {
-                const parsedData: SetoranData = JSON.parse(data);
-                if (parsedData && parsedData.display === 'page' && parsedData.surah && Array.isArray(parsedData.surah.surah)) {
-                    setSetoranData(parsedData);
-                    const transformedMistake: Mistake = {};
-                    Object.entries(parsedData.mistake).forEach(([page, data]) => {
-                        transformedMistake[page] = {
-                            ...data,
-                            kesimpulan: '',
-                            catatan: '',
-                        };
-                    });
-                    form.setData({
-                        reciter: parsedData.reciter,
-                        recipient: parsedData.recipient,
-                        setoran_type: parsedData.setoran_type,
-                        display: 'page',
-                        page_number: parsedData.page_number,
-                        surah: parsedData.surah,
-                        mistake: transformedMistake,
-                        selected_first_surah: parsedData.surah.first_surah,
-                        selected_first_ayat: parsedData.surah.first_verse,
-                        selected_last_surah: parsedData.surah.last_surah,
-                        selected_last_ayat: parsedData.surah.last_verse,
-                        kesimpulan: '',
-                        catatan: '',
-                    });
-                    if (parsedData.mistake) {
-                        const initialPanels: { [key: string]: boolean } = {};
-                        Object.keys(parsedData.mistake).forEach((key) => {
-                            initialPanels[key] = true;
-                        });
-                        setPanels(initialPanels);
-                    }
-                } else {
-                    setSetoranData(null);
-                }
-            } else {
-                setSetoranData(null);
-            }
-        } catch (error) {
-            console.error('Error loading data from localStorage:', error);
-            setSetoranData(null);
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const initialTheme = savedTheme === 'dark' || (!savedTheme && prefersDark);
+
+    if (initialTheme) {
+        document.documentElement.classList.add('dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+    }
+
+    const listener = (e: MediaQueryListEvent) => {
+        const newTheme = e.matches;
+        if (newTheme) {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
         }
-    }, []);
+    };
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    mq.addEventListener('change', listener);
 
-    useEffect(() => {
-        if (form.data.selected_first_surah) {
-            const surah = setoranData?.surah.surah.find(s => s.id === form.data.selected_first_surah);
-            if (surah) {
-                form.setData('selected_first_ayat', surah.first_verse);
-            }
+    return () => mq.removeEventListener('change', listener);
+}, []);
+
+  useEffect(() => {
+    try {
+      const data = localStorage.getItem('setoran-data');
+      if (data) {
+        const parsedData: SetoranData = JSON.parse(data);
+        if (parsedData && parsedData.display === 'page' && parsedData.surah && Array.isArray(parsedData.surah.surah)) {
+          setSetoranData(parsedData);
+          const transformedMistake: Mistake = {};
+          Object.entries(parsedData.mistake || {}).forEach(([page, data]) => {
+            transformedMistake[page] = {
+              ...data,
+              kesimpulan: '',
+              catatan: '',
+              salahAyat: data.salahAyat || [],
+              salahKata: data.salahKata || []
+            };
+          });
+          form.setData({
+            reciter: parsedData.reciter || { user_id: '', user_name: '', full_name: '' },
+            recipient: parsedData.recipient || '',
+            setoran_type: parsedData.setoran_type || '',
+            display: 'page',
+            page_number: parsedData.page_number || '',
+            surah: parsedData.surah,
+            mistake: transformedMistake,
+            selected_first_surah: parsedData.surah.first_surah || '',
+            selected_first_ayat: parsedData.surah.first_verse || '',
+            selected_last_surah: parsedData.surah.last_surah || '',
+            selected_last_ayat: parsedData.surah.last_verse || '',
+            kesimpulan: '',
+            catatan: ''
+          });
+          const initialPanels: { [key: string]: boolean } = {};
+          Object.keys(parsedData.mistake || {}).forEach((key) => {
+            initialPanels[key] = true;
+          });
+          setPanels(initialPanels);
+        } else {
+          setSetoranData(null);
         }
-    }, [form.data.selected_first_surah]);
+      } else {
+        setSetoranData(null);
+      }
+    } catch (error) {
+      console.error('Error loading data from localStorage:', error);
+      setSetoranData(null);
+    }
+  }, []);
 
-    useEffect(() => {
-        if (form.data.selected_last_surah) {
-            const surah = setoranData?.surah.surah.find(s => s.id === form.data.selected_last_surah);
-            if (surah) {
-                form.setData('selected_last_ayat', surah.last_verse);
-            }
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    form.setData(name, value);
+  };
+
+  const handlePageChange = (page: string, field: 'kesimpulan' | 'catatan') =>
+    (e: React.ChangeEvent<HTMLSelectElement | HTMLTextAreaElement>) => {
+      const value = e.target.value;
+      form.setData('mistake', {
+        ...form.data.mistake,
+        [page]: {
+          ...form.data.mistake[page],
+          [field]: value
         }
-    }, [form.data.selected_last_surah]);
-
-    const handleChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLTextAreaElement>) => {
-        const key = e.target.name as keyof FormData;
-        const value = e.target.value;
-        form.setData(key, value);
+      });
     };
 
-    const handlePageChange = (page: string, field: 'kesimpulan' | 'catatan') => (
-        e: React.ChangeEvent<HTMLSelectElement | HTMLTextAreaElement>
-    ) => {
-        const value = e.target.value;
-        form.setData('mistake', {
-            ...form.data.mistake,
-            [page]: {
-                ...form.data.mistake[page],
-                [field]: value,
-            },
-        });
-    };
+  const getAyatOptions = (surahId: string) => {
+    const surah = setoranData?.surah.surah.find(s => s.id === surahId);
+    if (!surah) return [];
+    const from = parseInt(surah.first_verse);
+    const to = parseInt(surah.last_verse);
+    return Array.from({ length: to - from + 1 }, (_, i) => ({
+      value: (from + i).toString(),
+      label: `Ayat ${from + i}`
+    }));
+  };
 
-    const getAyatOptions = (surahId: string) => {
-        const surah = setoranData?.surah.surah.find(s => s.id === surahId);
-        if (surah) {
-            const from = parseInt(surah.first_verse, 10);
-            const to = parseInt(surah.last_verse, 10);
-            return Array.from({ length: to - from + 1 }, (_, i) => ({
-                value: (from + i).toString(),
-                label: `Ayat ${from + i}`,
-            }));
-        }
-        return [];
-    };
+  const getErrorColor = (salahKey: string): string => {
+    return salahKey.includes('tajweed') ? 'bg-red-50 border-red-200' : 'bg-orange-50 border-orange-200';
+  };
 
-    const surahOptions = setoranData?.surah.surah.map(s => ({
-        value: s.id,
-        label: s.name,
-    })) || [];
+  const getErrorTextColor = (salahKey: string): string => {
+    return salahKey.includes('tajweed') ? 'text-red-700' : 'text-orange-700';
+  };
 
-    const togglePanel = (page: string): void => {
-        setPanels((prev) => ({ ...prev, [page]: !prev[page] }));
-    };
+  const togglePanel = (page: string): void => {
+    setPanels((prev) => ({ ...prev, [page]: !prev[page] }));
+  };
 
-    const getErrorColor = (salahKey: string): string => {
-        return salahKey.includes('tajweed') ? 'bg-red-50 border-red-200' : 'bg-orange-50 border-orange-200';
-    };
+  const getPageName = (parsedData: SetoranData | null): string => {
+    return parsedData?.surah?.name || 'Unknown Page';
+  };
 
-    const getErrorTextColor = (salahKey: string): string => {
-        return salahKey.includes('tajweed') ? 'text-red-700' : 'text-orange-700';
-    };
+  const surahOptions = setoranData?.surah.surah.map(s => ({
+    value: s.id,
+    label: s.name
+  })) || [];
 
-    const getPageName = (parsedData: SetoranData | null): string => {
-        return parsedData?.surah?.name || 'Unknown Page';
-    };
-
-    const handleSubmit = (e: React.FormEvent): void => {
-        e.preventDefault();
+  const handleSubmit = (e: React.FormEvent): void => {
+    e.preventDefault();
         form.clearErrors();
-        if (!form.data.kesimpulan) form.setError('kesimpulan', 'Pilih kesimpulan');
-        if (!form.data.selected_first_surah) form.setError('selected_first_surah', 'Pilih awal surah');
-        if (!form.data.selected_first_ayat) form.setError('selected_first_ayat', 'Pilih awal ayat');
-        if (!form.data.selected_last_surah) form.setError('selected_last_surah', 'Pilih akhir surah');
-        if (!form.data.selected_last_ayat) form.setError('selected_last_ayat', 'Pilih akhir ayat');
-        if (Object.keys(form.errors).length > 0) return;
+
+        let hasError = false;
+
+        if (!form.data.reciter?.user_name) {
+            form.setError('reciter', 'Peserta harus dipilih');
+            hasError = true;
+        }
+
+        const parsedRecipient = parseInt(form.data.recipient);
+        if (!form.data.recipient || isNaN(parsedRecipient)) {
+            form.setError('recipient', 'Penerima tidak valid');
+            hasError = true;
+        }
+
+        if (!form.data.setoran_type) {
+            form.setError('setoran_type', 'Jenis setoran harus dipilih');
+            hasError = true;
+        }
+
+        if (!form.data.page_number || isNaN(parseInt(form.data.page_number))) {
+            form.setError('page_number', 'Nomor halaman tidak valid');
+            hasError = true;
+        }
+
+        if (!form.data.kesimpulan) {
+            form.setError('kesimpulan', 'Kesimpulan harus dipilih');
+            hasError = true;
+        }
+
+        if (!form.data.selected_first_surah || !form.data.selected_first_ayat) {
+            form.setError('selected_first_surah', 'Awal surah dan ayat harus dipilih');
+            hasError = true;
+        }
+
+        if (!form.data.selected_last_surah || !form.data.selected_last_ayat) {
+            form.setError('selected_last_surah', 'Akhir surah dan ayat harus dipilih');
+            hasError = true;
+        }
+
+        if (hasError) return;
 
         const firstVerse = `${form.data.selected_first_surah}-${form.data.selected_first_ayat}`;
         const lastVerse = `${form.data.selected_last_surah}-${form.data.selected_last_ayat}`;
         const info = `${firstVerse}-${lastVerse}`;
         const perhalamanData = Object.entries(form.data.mistake).map(([page, data]) => ({
             halaman: page,
-            kesimpulan: data.kesimpulan,
-            catatan: data.catatan,
-            salah_ayat: data.salahAyat,
-            salah_kata: data.salahKata,
+            kesimpulan: data.kesimpulan || '',
+            catatan: data.catatan || '',
+            salah_ayat: data.salahAyat || [],
+            salah_kata: data.salahKata || [],
         }));
 
         const postData = {
             penyetor: form.data.reciter?.user_name || '',
-            penerima: parseInt(form.data.recipient),
+            penerima: parsedRecipient,
             setoran: form.data.setoran_type,
             tampilan: 'page',
             nomor: parseInt(form.data.page_number),
@@ -277,6 +320,8 @@ const PageRecapFormLayout: React.FC = () => {
             ket: form.data.catatan || null,
             perhalaman: perhalamanData,
         };
+
+        console.log('Data dikirim:', postData);
 
         axios
             .post('/api/result', postData, {
@@ -304,22 +349,30 @@ const PageRecapFormLayout: React.FC = () => {
             });
     };
 
-    if (!setoranData || !setoranData.surah || !Array.isArray(setoranData.surah.surah)) {
-        return (
-            <div className="flex min-h-screen items-center justify-center bg-gray-50">
-                <div className="text-center">
-                    <div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
-                    <p className="text-sm text-gray-600">Loading data...</p>
-                </div>
-            </div>
-        );
-    }
-
-    const pageName: string = getPageName(setoranData);
-
     return (
         <div className="min-h-screen bg-gray-50 py-6">
             <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8">
+                <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8">
+            {/* Tambahkan tombol kembali di sini */}
+            <button
+                onClick={() => window.history.back()}
+                className="mb-4 flex items-center text-sm text-gray-600 hover:text-gray-900"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 mr-1"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                >
+                    <path
+                        fillRule="evenodd"
+                        d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+                        clipRule="evenodd"
+                    />
+                </svg>
+                Kembali
+            </button>
+            </div>
                 <div className="mb-6 text-center">
                     {/* <h1 className="mb-1 text-2xl font-bold text-gray-900">{t('general.hasilrekap')}</h1> */}
                 </div>

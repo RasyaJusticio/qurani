@@ -188,7 +188,7 @@ export default function PageRecap() {
   return (
     <AppWrapper>
       <Head title={`Page ${page.page_number} - Recap`} />
-      <RecapHeader page={1} translateMode="read" classNav="ms-3" target="/result/page" />
+      <RecapHeader page={1} translateMode="read" target="/result/page" />
       <div className="mx-auto max-w-4xl overflow-auto p-4">
         <div className="mt-20 mb-12">
           {Object.keys(versesBySurah).map((surahId) => {

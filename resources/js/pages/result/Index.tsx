@@ -12,7 +12,6 @@ const index = () => {
         <QuranHeader
                 page={1}
                 translateMode="read"
-                classNav="ms-3"
                 target="/result"
         />
         <div>

@@ -14,6 +14,7 @@ const QuranHeader: React.FC<QuranHeaderProps> = ({ page, translateMode = 'read',
     const { t } = useTranslation();
     const [screenSize, setScreenSize] = useState<'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl'>('md');
     const [setoranType, setSetoranType] = useState('');
+    const [isDarkMode, setIsDarkMode] = useState(false);
 
     useEffect(() => {
         const setoranData = localStorage.getItem('setoran-data');
@@ -24,6 +25,15 @@ const QuranHeader: React.FC<QuranHeaderProps> = ({ page, translateMode = 'read',
             } catch (e) {
                 console.error('Error parsing setoran data', e);
             }
+        }
+
+        // Check cookie for dark mode
+        const nightModeCookie = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('s_night_mode='));
+        if (nightModeCookie) {
+            const nightModeValue = nightModeCookie.split('=')[1];
+            setIsDarkMode(nightModeValue === '1');
         }
     }, []);
 
@@ -74,11 +84,9 @@ const QuranHeader: React.FC<QuranHeaderProps> = ({ page, translateMode = 'read',
         if (target) {
              window.location.href = target;
              console.log(target);
-
         } else {
             window.location.href = '/result';
              console.log(target);
-
         }
     };
 
@@ -86,7 +94,6 @@ const QuranHeader: React.FC<QuranHeaderProps> = ({ page, translateMode = 'read',
     const segments = urlNow.split('/').filter(Boolean);
     let displaySegment = segments[segments.length - 1];
 
-    // Get current page/surah info from localStorage
     const getCurrentReadingInfo = () => {
         const setoranData = localStorage.getItem('setoran-data');
         if (setoranData) {
@@ -130,18 +137,18 @@ const QuranHeader: React.FC<QuranHeaderProps> = ({ page, translateMode = 'read',
     };
 
     return (
-        <div className={`px-6 ${classNav} fixed z-50 w-full bg-neutral-100`}>
-            <div className="mt-3 mb-3 flex items-center justify-between">
+        <div className={`px-0 ${classNav} fixed z-50 w-full bg-neutral-100 dark:bg-gray-800 shadow-md`}>
+            <div className="ml-3 mt-3 mb-3 flex items-center justify-between">
                 <div className="flex items-center">
                     <div className="cursor-pointer" onClick={() => (window.location.href = `/`)}>
-                        <FontAwesomeIcon icon={faHome} className={`${iconSize} text-[#2CA4AB]`} />
+                        <FontAwesomeIcon icon={faHome} className={`${iconSize} ${isDarkMode ? 'text-gray-300' : 'text-[#2CA4AB]'}`} />
                     </div>
-                    <span className={`ml-1 ${textSize}`}>/ {displaySegment}</span>
+                    <span className={`ml-1 ${textSize} ${isDarkMode ? 'text-white' : 'text-white'}`}>/ {displaySegment}</span>
                 </div>
                 {translateMode === 'read' && (
-                    <div className="flex w-auto cursor-pointer items-center justify-center p-1  text-center" onClick={handleClick}>
+                    <div className="flex w-auto cursor-pointer items-center justify-center p-1 text-center" onClick={handleClick}>
                         {!noFinishButton() && (
-                            <span className={`${buttonSize.padding} ${buttonSize.fontSize} me-5 rounded bg-[#ff6500] font-bold text-white`}>
+                            <span className={`${buttonSize.padding} ${buttonSize.fontSize} me-5 rounded ${isDarkMode ? 'bg-gray-700 text-white' : 'bg-[#ff6500] text-white'} font-bold`}>
                                 Selesai
                             </span>
                         )}

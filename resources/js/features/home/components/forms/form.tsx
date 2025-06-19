@@ -11,6 +11,18 @@ import { Juz } from '../../types/juz';
 import { pages } from '../../constanst/pages';
 import { usePage } from '@inertiajs/react';
 
+// Fungsi untuk mengelola cookie
+const getCookie = (name: string): string | null => {
+  const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+  return match ? match[2] : null;
+};
+
+const setCookie = (name: string, value: string, days: number) => {
+  const date = new Date();
+  date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+  document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/`;
+};
+
 interface Option {
   label: string;
   value: string;
@@ -44,7 +56,7 @@ interface SavedSetoranData {
   selectedSurahValue?: string;
   selectedJuz?: string;
   selectedHalaman?: string;
-  reciter?: { user_name: string; full_name: string }; // Pastikan reciter ada
+  reciter?: { user_name: string; full_name: string };
   recipient?: string;
   surah?: Chapter;
 }
@@ -109,43 +121,58 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
   const halamanDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-  const savedData = localStorage.getItem('setoran-data');
-  console.log('Saved data from localStorage:', savedData); // Tambahkan ini untuk debugging
-  if (savedData) {
-    try {
-      const parsedData: SavedSetoranData = JSON.parse(savedData);
-      setPenyetor(parsedData.penyetor || 'grup');
-      setSetoran(parsedData.setoran || 'tahsin');
-      setTampilkan(parsedData.tampilkan || 'surah');
-      setDisplay(parsedData.display || 'surah');
-      setSelectedGroup(parsedData.selectedGroup || '');
-      setSelectedMember(parsedData.selectedMember || '');
-      setSelectedFriend(parsedData.selectedFriend || '');
-      setSelectedSurahValue(parsedData.selectedSurahValue || '');
-      setSelectedJuz(parsedData.selectedJuz || '');
-      setSelectedHalaman(parsedData.selectedHalaman || '');
-      // Pastikan logika grup dan teman diperbarui
-      if (parsedData.penyetor === 'grup' && parsedData.selectedGroup) {
-        const group = groups.find((g) => g.group_id.toString() === parsedData.selectedGroup);
-        if (group) {
-          setCurrentMembers(group.users || []);
-          const member = group.users.find((u) => u.user_name === parsedData.selectedMember);
-          if (member) setSelectedMember(member.user_name);
+    const savedData = localStorage.getItem('setoran-data');
+    console.log('Saved data from localStorage:', savedData); // Tambahkan ini untuk debugging
+    if (savedData) {
+      try {
+        const parsedData: SavedSetoranData = JSON.parse(savedData);
+        setPenyetor(parsedData.penyetor || 'grup');
+        setSetoran(parsedData.setoran || 'tahsin');
+        setTampilkan(parsedData.tampilkan || 'surah');
+        setDisplay(parsedData.display || 'surah');
+        setSelectedGroup(parsedData.selectedGroup || '');
+        setSelectedMember(parsedData.selectedMember || '');
+        setSelectedFriend(parsedData.selectedFriend || '');
+        setSelectedSurahValue(parsedData.selectedSurahValue || '');
+        setSelectedJuz(parsedData.selectedJuz || '');
+        setSelectedHalaman(parsedData.selectedHalaman || '');
+        if (parsedData.penyetor === 'grup' && parsedData.selectedGroup) {
+          const group = groups.find((g) => g.group_id.toString() === parsedData.selectedGroup);
+          if (group) {
+            setCurrentMembers(group.users || []);
+            const member = group.users.find((u) => u.user_name === parsedData.selectedMember);
+            if (member) setSelectedMember(member.user_name);
+          }
         }
+        if (parsedData.penyetor === 'teman' && parsedData.selectedFriend) {
+          setSelectedFriend(parsedData.selectedFriend);
+        }
+      } catch (error) {
+        console.error('Error parsing saved data:', error);
+        setPenyetor('grup');
+        setSetoran('tahsin');
+        setTampilkan('surah');
+        setDisplay('surah');
       }
-      if (parsedData.penyetor === 'teman' && parsedData.selectedFriend) {
-        setSelectedFriend(parsedData.selectedFriend);
-      }
-    } catch (error) {
-      console.error('Error parsing saved data:', error);
-      // Set default values jika parsing gagal
-      setPenyetor('grup');
-      setSetoran('tahsin');
-      setTampilkan('surah');
-      setDisplay('surah');
     }
-  }
-}, [groups]);
+
+    // Memuat tema dari cookie dan localStorage
+    const savedThemeCookie = getCookie('s_night_mode');
+    const savedThemeLocal = localStorage.getItem('s_night_mode');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const initialTheme = savedThemeLocal || savedThemeCookie || (prefersDark ? 'true' : 'false');
+
+    // Sinkronkan tema ke localStorage dan cookie jika belum ada
+    if (!savedThemeLocal) {
+      localStorage.setItem('s_night_mode', initialTheme);
+    }
+    if (!savedThemeCookie) {
+      setCookie('s_night_mode', initialTheme, 30); // 30 hari kadaluarsa
+    }
+
+    // Perbarui tema
+    // setIsDarkMode(initialTheme === 'true'); // Removed because setIsDarkMode does not exist
+  }, [groups, useTheme]);
 
   useEffect(() => {
     const group = groups.find((g) => g.group_id.toString() === selectedGroup);
@@ -169,7 +196,11 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
       localStorage.setItem('setoran-data', JSON.stringify(formData));
     };
     saveFormData();
-  }, [penyetor, setoran, tampilkan, selectedGroup, selectedMember, selectedFriend, selectedSurahValue, selectedJuz, selectedHalaman]);
+
+    // Simpan tema ke localStorage dan cookie
+    localStorage.setItem('s_night_mode', isDarkMode.toString());
+    setCookie('s_night_mode', isDarkMode.toString(), 30); // 30 hari kadaluarsa
+  }, [penyetor, setoran, tampilkan, selectedGroup, selectedMember, selectedFriend, selectedSurahValue, selectedJuz, selectedHalaman, isDarkMode]);
 
   useEffect(() => {
     const loadUserData = () => {
@@ -228,61 +259,61 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     if (!validateForm()) {
-        return;
+      return;
     }
 
     let reciter: { user_name: string; full_name: string } | null = null;
     if (penyetor === 'grup') {
-        const group = groups.find((g) => g.group_id.toString() === selectedGroup);
-        if (group) {
-            const member = group.users.find((u) => u.user_name === selectedMember);
-            if (member) {
-                reciter = { user_name: member.user_name, full_name: member.user_fullname };
-            }
+      const group = groups.find((g) => g.group_id.toString() === selectedGroup);
+      if (group) {
+        const member = group.users.find((u) => u.user_name === selectedMember);
+        if (member) {
+          reciter = { user_name: member.user_name, full_name: member.user_fullname };
         }
+      }
     } else if (penyetor === 'teman') {
-        const friend = friends.find((f) => f.user_name === selectedFriend);
-        if (friend) {
-            reciter = { user_name: friend.user_name, full_name: friend.user_fullname };
-        }
+      const friend = friends.find((f) => f.user_name === selectedFriend);
+      if (friend) {
+        reciter = { user_name: friend.user_name, full_name: friend.user_fullname };
+      }
     }
 
     const formData: SavedSetoranData = {
-        penyetor,
-        setoran,
-        display: tampilkan,
-        tampilkan,
-        selectedGroup: penyetor === 'grup' ? selectedGroup : '',
-        selectedMember: penyetor === 'grup' ? selectedMember : '',
-        selectedFriend: penyetor === 'teman' ? selectedFriend : '',
-        selectedSurahValue,
-        selectedJuz,
-        selectedHalaman,
-        reciter: reciter || { user_name: '', full_name: '' }, // Pastikan reciter selalu ada
+      penyetor,
+      setoran,
+      display: tampilkan,
+      tampilkan,
+      selectedGroup: penyetor === 'grup' ? selectedGroup : '',
+      selectedMember: penyetor === 'grup' ? selectedMember : '',
+      selectedFriend: penyetor === 'teman' ? selectedFriend : '',
+      selectedSurahValue,
+      selectedJuz,
+      selectedHalaman,
+      reciter: reciter || { user_name: '', full_name: '' },
     };
 
     if (tampilkan === 'surah' && selectedSurahValue) {
-        const selectedChapter = chapters.find((chapter) => chapter.id.toString() === selectedSurahValue);
-        if (selectedChapter) {
-            formData.surah = {
-                id: selectedChapter.id,
-                name: selectedChapter.name,
-                first_verse: selectedChapter.first_verse,
-                last_verse: selectedChapter.last_verse,
-            };
-        }
+      const selectedChapter = chapters.find((chapter) => chapter.id.toString() === selectedSurahValue);
+      if (selectedChapter) {
+        formData.surah = {
+          id: selectedChapter.id,
+          name: selectedChapter.name,
+          first_verse: selectedChapter.first_verse,
+          last_verse: selectedChapter.last_verse,
+        };
+      }
     }
 
     try {
-        localStorage.setItem('setoran-data', JSON.stringify(formData));
+      localStorage.setItem('setoran-data', JSON.stringify(formData));
     } catch (error) {
-        console.error('Error saving setoran-data:', error);
+      console.error('Error saving setoran-data:', error);
     }
 
     const redirectUrl = getRedirectUrl();
     if (redirectUrl !== '/') window.location.href = redirectUrl;
     else alert(t('errors.invalid_selection'));
-};
+  };
 
   const handleReset = (): void => {
     setPenyetor('grup');
@@ -317,7 +348,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
       ];
       dropdowns.forEach(({ ref, inputId, key }) => {
         if (ref.current && !ref.current.contains(target) && !document.getElementById(inputId)?.contains(target)) {
-          setDropdownVisibility(prev => ({ ...prev, [key]: false }));
+          setDropdownVisibility((prev) => ({ ...prev, [key]: false }));
         }
       });
     };
@@ -353,9 +384,9 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                       name="penyetor"
                       value="grup"
                       checked={penyetor === 'grup'}
-                      onChange={e => {
+                      onChange={(e) => {
                         setPenyetor(e.target.value);
-                        setErrors(prev => ({ ...prev, group: '', member: '', friend: '' }));
+                        setErrors((prev) => ({ ...prev, group: '', member: '', friend: '' }));
                       }}
                       className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
                     />
@@ -367,9 +398,9 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                       name="penyetor"
                       value="teman"
                       checked={penyetor === 'teman'}
-                      onChange={e => {
+                      onChange={(e) => {
                         setPenyetor(e.target.value);
-                        setErrors(prev => ({ ...prev, group: '', member: '', friend: '' }));
+                        setErrors((prev) => ({ ...prev, group: '', member: '', friend: '' }));
                       }}
                       className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
                     />
@@ -384,9 +415,9 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                     <label className={`w-full sm:w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.group')}</label>
                     <div className="w-full sm:w-96">
                       <Combobox
-                        options={groups.map(group => ({
+                        options={groups.map((group) => ({
                           label: group.group_title,
-                          value: group.group_id.toString()
+                          value: group.group_id.toString(),
                         }))}
                         placeholder={t('placeholders.select_group')}
                         searchPlaceholder={t('placeholders.search_group')}
@@ -395,7 +426,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                         onValueChange={(value) => {
                           setSelectedGroup(value);
                           setSelectedMember('');
-                          setErrors(prev => ({ ...prev, group: '' }));
+                          setErrors((prev) => ({ ...prev, group: '' }));
                         }}
                         className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
                       />
@@ -410,7 +441,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                         title={!selectedGroup ? 'Please select a group first' : ''}
                       >
                         <Combobox
-                          options={currentMembers.map(member => ({
+                          options={currentMembers.map((member) => ({
                             label: member.user_fullname,
                             value: member.user_name,
                           }))}
@@ -419,16 +450,12 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                               ? t('placeholders.select_group_first')
                               : t('placeholders.select_member')
                           }
-                          searchPlaceholder={
-                            !selectedGroup
-                              ? ''
-                              : t('placeholders.search_member')
-                          }
+                          searchPlaceholder={!selectedGroup ? '' : t('placeholders.search_member')}
                           notFoundText={t('notFoundText.member_not_found')}
                           value={selectedMember}
                           onValueChange={(value) => {
                             setSelectedMember(value);
-                            setErrors(prev => ({ ...prev, member: '' }));
+                            setErrors((prev) => ({ ...prev, member: '' }));
                           }}
                           className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
                         />
@@ -443,14 +470,14 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                   <label className={`w-full sm:w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.friend')}</label>
                   <div className="w-full sm:w-96">
                     <Combobox
-                      options={friends.map(friend => ({ label: friend.user_fullname, value: friend.user_name }))}
+                      options={friends.map((friend) => ({ label: friend.user_fullname, value: friend.user_name }))}
                       placeholder={t('placeholders.select_friend')}
                       searchPlaceholder={t('placeholders.search_friend')}
                       notFoundText={t('notFoundText.friend_not_found')}
                       value={selectedFriend}
                       onValueChange={(value) => {
                         setSelectedFriend(value);
-                        setErrors(prev => ({ ...prev, friend: '' }));
+                        setErrors((prev) => ({ ...prev, friend: '' }));
                       }}
                       className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
                     />
@@ -467,9 +494,9 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                       name="setoran"
                       value="tahsin"
                       checked={setoran === 'tahsin'}
-                      onChange={e => {
+                      onChange={(e) => {
                         setSetoran(e.target.value);
-                        setErrors(prev => ({ ...prev, setoran: '' }));
+                        setErrors((prev) => ({ ...prev, setoran: '' }));
                       }}
                       className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
                     />
@@ -481,9 +508,9 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                       name="setoran"
                       value="tahfidz"
                       checked={setoran === 'tahfidz'}
-                      onChange={e => {
+                      onChange={(e) => {
                         setSetoran(e.target.value);
-                        setErrors(prev => ({ ...prev, setoran: '' }));
+                        setErrors((prev) => ({ ...prev, setoran: '' }));
                       }}
                       className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
                     />
@@ -501,13 +528,13 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                       name="tampilkan"
                       value="surah"
                       checked={tampilkan === 'surah'}
-                      onChange={e => {
+                      onChange={(e) => {
                         setTampilkan(e.target.value);
                         setDisplay(e.target.value);
-                        setSelectedSurahValue(''); // Reset surah when switching to Surah
+                        setSelectedSurahValue('');
                         setSelectedJuz('');
                         setSelectedHalaman('');
-                        setErrors(prev => ({ ...prev, tampilkan: '', surah: '', juz: '', halaman: '' }));
+                        setErrors((prev) => ({ ...prev, tampilkan: '', surah: '', juz: '', halaman: '' }));
                       }}
                       className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
                     />
@@ -519,13 +546,13 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                       name="tampilkan"
                       value="juz"
                       checked={tampilkan === 'juz'}
-                      onChange={e => {
+                      onChange={(e) => {
                         setTampilkan(e.target.value);
                         setDisplay(e.target.value);
                         setSelectedSurahValue('');
                         setSelectedJuz('');
                         setSelectedHalaman('');
-                        setErrors(prev => ({ ...prev, tampilkan: '', surah: '', juz: '', halaman: '' }));
+                        setErrors((prev) => ({ ...prev, tampilkan: '', surah: '', juz: '', halaman: '' }));
                       }}
                       className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
                     />
@@ -537,13 +564,13 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                       name="tampilkan"
                       value="halaman"
                       checked={tampilkan === 'halaman'}
-                      onChange={e => {
+                      onChange={(e) => {
                         setTampilkan(e.target.value);
                         setDisplay(e.target.value);
                         setSelectedSurahValue('');
                         setSelectedJuz('');
                         setSelectedHalaman('');
-                        setErrors(prev => ({ ...prev, tampilkan: '', surah: '', juz: '', halaman: '' }));
+                        setErrors((prev) => ({ ...prev, tampilkan: '', surah: '', juz: '', halaman: '' }));
                       }}
                       className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
                     />
@@ -558,7 +585,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                     <label className={`w-full sm:w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.surah')}</label>
                     <div className="w-full sm:w-96">
                       <Combobox
-                        options={chapters.map(chapter => ({
+                        options={chapters.map((chapter) => ({
                           label: chapter.name + ' (' + chapter.id + ')',
                           value: chapter.id.toString(),
                         }))}
@@ -568,7 +595,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                         value={selectedSurahValue}
                         onValueChange={(value) => {
                           setSelectedSurahValue(value);
-                          setErrors(prev => ({ ...prev, surah: '' }));
+                          setErrors((prev) => ({ ...prev, surah: '' }));
                         }}
                         className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
                       />
@@ -581,7 +608,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                       { value: '36', name: t('buttons.quick_select.36') },
                       { value: '112', name: t('buttons.quick_select.112') },
                       { value: '114', name: t('buttons.quick_select.114') },
-                    ].map(button => (
+                    ].map((button) => (
                       <button
                         key={button.value}
                         type="button"
@@ -615,14 +642,14 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                     <label className={`w-full sm:w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.juz')}</label>
                     <div className="w-full sm:w-96">
                       <Combobox
-                        options={juzs.map(juz => ({ label: juz.id.toString(), value: juz.id.toString() }))}
+                        options={juzs.map((juz) => ({ label: juz.id.toString(), value: juz.id.toString() }))}
                         placeholder={t('placeholders.select_juz')}
                         searchPlaceholder={t('placeholders.search_juz')}
                         notFoundText={t('notFoundText.juz_not_found')}
                         value={selectedJuz}
                         onValueChange={(value) => {
                           setSelectedJuz(value);
-                          setErrors(prev => ({ ...prev, juz: '' }));
+                          setErrors((prev) => ({ ...prev, juz: '' }));
                         }}
                         className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
                       />
@@ -652,14 +679,14 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                     <label className={`w-full sm:w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.page')}</label>
                     <div className="w-full sm:w-96">
                       <Combobox
-                        options={pages.map(page => ({ label: page.toString(), value: page.toString() }))}
+                        options={pages.map((page) => ({ label: page.toString(), value: page.toString() }))}
                         placeholder={t('placeholders.select_page')}
                         searchPlaceholder={t('placeholders.search_page')}
                         notFoundText={t('notFoundText.page_not_found')}
                         value={selectedHalaman}
                         onValueChange={(value) => {
                           setSelectedHalaman(value);
-                          setErrors(prev => ({ ...prev, halaman: '' }));
+                          setErrors((prev) => ({ ...prev, halaman: '' }));
                         }}
                         className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
                       />

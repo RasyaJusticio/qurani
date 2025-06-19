@@ -86,6 +86,57 @@ export default function SurahIndex() {
     const [selectedWordText, setSelectedWordText] = useState<string | null>(null);
     const [wordErrors, setWordErrors] = useState<{ [key: number]: string }>({});
     const [verseErrors, setVerseErrors] = useState<{ [key: number]: string }>({});
+    const [isDarkMode, setIsDarkMode] = useState(false);
+
+    useEffect(() => {
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const initialTheme = savedTheme === 'dark' || (!savedTheme && prefersDark);
+
+        setIsDarkMode(initialTheme);
+
+        if (initialTheme) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
+        // Memulihkan wordErrors dan verseErrors dari localStorage
+        const savedWordErrors = localStorage.getItem('wordErrors');
+        const savedVerseErrors = localStorage.getItem('verseErrors');
+        if (savedWordErrors) setWordErrors(JSON.parse(savedWordErrors));
+        if (savedVerseErrors) setVerseErrors(JSON.parse(savedVerseErrors));
+
+        const listener = (e: MediaQueryListEvent) => {
+            const newTheme = e.matches;
+            setIsDarkMode(newTheme);
+            if (newTheme) {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            }
+        };
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        mq.addEventListener('change', listener);
+
+        return () => mq.removeEventListener('change', listener);
+    }, []);
+
+    const toggleTheme = () => {
+        setIsDarkMode((prev) => {
+            const newTheme = !prev;
+            if (newTheme) {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            }
+            return newTheme;
+        });
+    };
 
     useEffect(() => {
         if (verses.length === 0) {
@@ -123,6 +174,11 @@ export default function SurahIndex() {
 
         localStorage.setItem('setoran-data', JSON.stringify(dataToSave));
     }, [wordErrors, verseErrors, surah, verses]);
+
+    useEffect(() => {
+        localStorage.setItem('wordErrors', JSON.stringify(wordErrors));
+        localStorage.setItem('verseErrors', JSON.stringify(verseErrors));
+    }, [wordErrors, verseErrors]);
 
     const handleClick = (type: 'word' | 'verse', id: number) => {
         if (type === 'word') {
@@ -233,31 +289,27 @@ export default function SurahIndex() {
         {} as { [key: number]: { verse: Verse; index: number }[] },
     );
 
-    // Detect dark mode using window.matchMedia or default to false
-    const [isDarkMode, setIsDarkMode] = useState(false);
-
-    useEffect(() => {
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            setIsDarkMode(true);
-        }
-        const listener = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
-        const mq = window.matchMedia('(prefers-color-scheme: dark)');
-        mq.addEventListener('change', listener);
-        return () => mq.removeEventListener('change', listener);
-    }, []);
-
     return (
         <AppWrapper>
             <Head title={`${surah.name_simple} - Recap`} />
             <QuranHeader page={1} translateMode="read" target="/result" />
             <style>
                 {`
+                    :root {
+                        ${isDarkMode ? '--background-color: #1a202c; --text-color: #ffffff;' : '--background-color: #ffffff; --text-color: #000000;'}
+                    }
+                    body {
+                        background-color: var(--background-color);
+                        color: var(--text-color);
                     }
                     .text-white {
                         color: #ffffff;
                     }
                     .text-black {
                         color: #000000;
+                    }
+                    .border-gray-300 {
+                        ${isDarkMode ? 'border-gray-700;' : 'border-gray-300;'}
                     }
                 `}
             </style>
@@ -304,41 +356,46 @@ export default function SurahIndex() {
                         const verseLabel = verseErrors[verse.id]
                             ? errorLabels.find((l) => l.key === verseErrors[verse.id])
                             : null;
+
                         return (
-                            <>
+                            <span key={verse.id} style={{ backgroundColor: verseLabel?.color || 'transparent' }}>
+                                {verse.words.map((word) => {
+                                    const wordLabel = wordErrors[word.id]
+                                        ? errorLabels.find((l) => l.key === wordErrors[word.id])
+                                        : null;
+                                    return (
+                                        <span
+                                            key={word.id}
+                                            className="cursor-pointer transition-colors duration-200 hover:text-blue-300"
+                                            style={{
+                                                backgroundColor: wordLabel?.color || 'transparent',
+                                                display: 'inline',
+                                                lineHeight: wordLabel ? '1.3' : '2',
+                                                padding: wordLabel ? '6px 0px' : '0',
+                                                borderRadius: wordLabel ? '6px' : '0',
+                                                margin: wordLabel ? '4px 0' : '0',
+                                            }}
+                                            onClick={() => handleClick('word', word.id)}
+                                        >
+                                            {word.text_uthmani}{' '}
+                                        </span>
+                                    );
+                                })}
                                 <span
-                                    key={verse.id}
-                                    style={{ backgroundColor: verseLabel?.color || 'transparent' }}
+                                    className="cursor-pointer transition-colors duration-200 hover:text-blue-300"
+                                    style={{
+                                        backgroundColor: verseLabel?.color || 'transparent',
+                                        display: 'inline',
+                                        padding: verseLabel ? '6px 0px' : '0',
+                                        lineHeight: verseLabel ? '1.3' : '2',
+                                        borderRadius: verseLabel ? '6px' : '0',
+                                        margin: verseLabel ? '4px 0' : '0',
+                                    }}
+                                    onClick={() => handleClick('verse', verse.id)}
                                 >
-                                    {verse.words.map((word) => {
-                                        const errorLabel = wordErrors[word.id]
-                                            ? errorLabels.find((l) => l.key === wordErrors[word.id])
-                                            : null;
-                                        return (
-                                            <span
-                                                key={word.id}
-                                                className="cursor-pointer transition-colors duration-200 hover:text-blue-300"
-                                                style={{
-                                                    backgroundColor: errorLabel?.color || 'transparent',
-                                                    display: 'inline',
-                                                }}
-                                                onClick={() => handleClick('word', word.id)}
-                                            >
-                                                {word.text_uthmani}{' '}
-                                            </span>
-                                        );
-                                    })}
-                                    <span
-                                        className="cursor-pointer transition-colors duration-200 hover:text-blue-300"
-                                        style={{
-                                            backgroundColor: verseLabel?.color || 'transparent',
-                                            display: 'inline',
-                                        }}
-                                        onClick={() => handleClick('verse', verse.id)}
-                                    >
-                                        ۝{verse.end_marker || verse.verse_number}
-                                    </span>
+                                    ۝{verse.end_marker || verse.verse_number}
                                 </span>
+
                                 {groupedVerses[verse.page_number][groupedVerses[verse.page_number].length - 1].verse.id === verse.id && (
                                     <div className="my-4 flex items-center">
                                         <hr className="flex-1 border-t border-gray-300" />
@@ -347,11 +404,11 @@ export default function SurahIndex() {
                                     </div>
                                 )}
                                 {index < verses.length - 1 && ' '}
-                            </>
+                            </span>
                         );
                     })}
                 </div>
             </div>
-        </AppWrapper>
+        </AppWrapper> 
     );
 }
