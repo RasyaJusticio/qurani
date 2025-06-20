@@ -35,6 +35,7 @@ interface Surah {
 interface PageProps {
     surah: Surah;
     verses: Verse[];
+    [key: string]: unknown;
 }
 
 const errorLabels = [

@@ -134,8 +134,8 @@ const PageHeader: React.FC<QuranHeaderProps> = ({ page, translateMode = 'read', 
     );
 };
     return (
-        <div className={`px-6 ${classNav} fixed z-50 w-full bg-neutral-100`}>
-            <div className="mt-3 mb-3 flex items-center justify-between">
+        <div className={`px-6 ${classNav} fixed z-50 w-full bg-white`}>
+            <div className="ml-3 mt-3 mb-3 flex items-center justify-between">
                 <div className="flex items-center">
                     <div className="cursor-pointer" onClick={() => (window.location.href = `/`)}>
                         <FontAwesomeIcon icon={faHome} className={`${iconSize} text-[#2CA4AB]`} />

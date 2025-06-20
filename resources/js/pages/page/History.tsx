@@ -38,6 +38,7 @@ interface PageProps {
   page: Page;
   verses: Verse[];
   chapters: { [key: number]: Chapter };
+  [key: string]: unknown; // Add index signature to satisfy Inertia's PageProps constraint
 }
 
 const errorLabels = [
@@ -187,7 +188,7 @@ export default function PageRecap() {
   return (
     <AppWrapper>
       <Head title={`Page ${page.page_number} - Recap`} />
-      <RecapHeader page={1} translateMode="read" classNav="ms-3" target="/result/page" />
+      <RecapHeader page={1} translateMode="read" target="/result/page" />
       <div className="mx-auto max-w-4xl overflow-auto p-4">
         <div className="mt-20 mb-12">
           {Object.keys(versesBySurah).map((surahId) => {
@@ -200,7 +201,7 @@ export default function PageRecap() {
                     {surah.translated_name.name} ({surah.name_simple})
                   </p>
                   {surah.bismillah_pre && (
-                    <p className="font-arabic mt-4 text-5xl text-gray-800" style={{ direction: 'rtl' }}>
+                    <p className="font-arabic mt-4 text-4xl text-gray-800" style={{ direction: 'rtl' }}>
                       بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
                     </p>
                   )}
