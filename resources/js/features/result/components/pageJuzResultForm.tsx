@@ -506,7 +506,7 @@ const PageRecapFormLayout: React.FC = () => {
                     {form.errors.submit && <p className="mt-2 text-xs text-red-500">{form.errors.submit}</p>}
                 </div>
                 <div className="space-y-3">
-                    {Object.entries(setoranData.mistake || {})
+                    {setoranData && Object.entries(setoranData.mistake || {})
                         .sort(([pageA], [pageB]) => parseInt(pageA) - parseInt(pageB))
                         .map(([page, errors]) => (
                             <div key={page} className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
@@ -517,7 +517,7 @@ const PageRecapFormLayout: React.FC = () => {
                                     <div className="flex items-center">
                                         <FileText className="mr-2 h-4 w-4 text-blue-600" />
                                         <h3 className="text-base font-medium text-gray-900">
-                                            {`${pageName} - ${t('rekapan.form.halaman')} ${page}`}
+                                            {`${getPageName(setoranData)} - ${t('rekapan.form.halaman')} ${page}`}
                                         </h3>
                                         <div className="ml-3 flex items-center space-x-2">
                                             {form.data.mistake[page]?.salahAyat.length > 0 && (

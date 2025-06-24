@@ -301,19 +301,19 @@ export default function PageIndex() {
                             <div key={surahId} className="mb-8">
                                 {/* Surah Header */}
                                 <div className="text-center">
-                                    <h2 className="font-arabic text-3xl font-bold text-white">{surah.name_arabic}</h2>
+                                    <h2 className="font-arabic text-3xl font-bold text-black">{surah.name_arabic}</h2>
                                     <p className="mt-2 text-lg text-gray-600">
                                         {surah.translated_name.name} ({surah.name_simple})
                                     </p>
                                     {surah.bismillah_pre && (
-                                        <p className="font-arabic mt-4 text-4xl text-white" style={{ direction: 'rtl' }}>
+                                        <p className="font-arabic mt-4 text-4xl text-black" style={{ direction: 'rtl' }}>
                                             بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
                                         </p>
                                     )}
                                 </div>
                                 {/* Verses */}
                                 <div
-                                    className="font-arabic text-3xl text-white"
+                                    className="font-arabic text-3xl text-black"
                                     style={{
                                         direction: 'rtl',
                                         textAlign: 'justify',

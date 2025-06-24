@@ -91,7 +91,7 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                     <div className={`relative rounded-lg p-6 shadow-lg ${isDarkMode ? 'bg-[rgb(38,45,52)]' : 'bg-white'}`}>
                         <div className="mb-4 flex items-center justify-between">
                             <h2 className={`text-2xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
-                              {t('history.title')}
+                                {t('history.title')}
                             </h2>
                             <div className="flex gap-2">
                                 <button
@@ -148,23 +148,24 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                                                             return t(`history.table.ratings.${item.results}`, item.results)?.toString();
                                                         case 'signature':
                                                             return (
-                                                                <Check
-                                                                    size={20}
-                                                                    className={
-                                                                        item.signature === 0
-                                                                            ? `cursor-pointer ${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`
-                                                                            : 'text-blue-500'
-                                                                    }
-                                                                />
+                                                                <div className='grid place-items-center'>
+                                                                    <Check
+                                                                        size={20}
+                                                                        className={
+                                                                            item.signature === 0
+                                                                                ? `cursor-pointer ${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`
+                                                                                : 'text-blue-500'
+                                                                        }
+                                                                    />
+                                                                </div>
                                                             );
                                                         default:
                                                             return '';
                                                     }
                                                 })();
 
-                                                const tdClass = `border px-4 py-2 text-sm ${isDarkMode ? 'border-gray-600 text-gray-200' : 'border-gray-200 text-gray-700'} ${
-                                                    col === 'reciter' || col === 'recipient' ? 'hover:underline' : ''
-                                                }`;
+                                                const tdClass = `border px-4 py-2 text-sm ${isDarkMode ? 'border-gray-600 text-gray-200' : 'border-gray-200 text-gray-700'} ${col === 'reciter' || col === 'recipient' ? 'hover:underline' : ''
+                                                    }`;
 
                                                 return (
                                                     <td
@@ -225,9 +226,8 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                                                 }
                                             })();
 
-                                            const className = `px-3 py-2 text-sm ${
-                                                isDarkMode ? 'text-gray-200' : 'text-gray-700'
-                                            } ${col === 'reciter' || col === 'recipient' ? 'hover:underline' : ''}`;
+                                            const className = `px-3 py-2 text-sm ${isDarkMode ? 'text-gray-200' : 'text-gray-700'
+                                                } ${col === 'reciter' || col === 'recipient' ? 'hover:underline' : ''}`;
 
                                             return (
                                                 <div
@@ -252,10 +252,9 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                                                                 size={20}
                                                                 className={
                                                                     item.signature === 0
-                                                                        ? `inline-block cursor-pointer ${
-                                                                            isDarkMode
-                                                                                ? 'text-gray-400 hover:text-gray-200'
-                                                                                : 'text-gray-400 hover:text-gray-600'
+                                                                        ? `inline-block cursor-pointer ${isDarkMode
+                                                                            ? 'text-gray-400 hover:text-gray-200'
+                                                                            : 'text-gray-400 hover:text-gray-600'
                                                                         }`
                                                                         : 'text-blue-500 inline-block'
                                                                 }

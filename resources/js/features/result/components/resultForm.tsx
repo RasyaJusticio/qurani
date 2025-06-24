@@ -3,6 +3,10 @@ import { useForm, router } from '@inertiajs/react';
 import axios from 'axios';
 import { AlertCircle, CheckCircle2, ChevronDown, ChevronUp, FileText } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import Combobox from '@/components/ui/combobox';
+import { setupTranslations } from '@/features/i18n/i18n';
+import { useTheme } from '../../../components/layouts/theme-context';
 
 // Updated Surah interface to match localStorage structure
 interface Surah {
@@ -104,13 +108,30 @@ const t = (key: string): string => {
         'rekapan.form.kirim': 'Kirim',
         'rekapan.form.halaman': 'Halaman',
         'rekapan.form.setoran': 'Jenis Setoran',
+        'placeholders.select_verse': 'Pilih Ayat',
+        'placeholders.search_verse': 'Cari Ayat',
+        'notFoundText.verse_not_found': 'Ayat tidak ditemukan',
+        'placeholders.select_conclusion': 'Pilih Kesimpulan',
+        'placeholders.search_conclusion': 'Cari Kesimpulan',
+        'notFoundText.conclusion_not_found': 'Kesimpulan tidak ditemukan',
     };
     return translations[key] || key;
 };
 
 const ResultFormLayout: React.FC = () => {
+    const { isDarkMode } = useTheme();
     const [panels, setPanels] = useState<{ [key: string]: boolean }>({});
     const [setoranData, setSetoranData] = useState<SetoranData | null>(null);
+    const { t } = useTranslation('resultForm');
+    const [translationsReady, setTranslationsReady] = useState(false);
+
+    useEffect(() => {
+            const loadTranslations = async () => {
+                await setupTranslations('resultForm');
+                setTranslationsReady(true);
+            };
+            loadTranslations();
+        }, []);
 
     const form = useForm<FormData>({
         reciter: null,
@@ -206,16 +227,12 @@ const ResultFormLayout: React.FC = () => {
         }
     }, []);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const key = e.target.name || e.target.id;
-        const value = e.target.value;
-        form.setData(key as keyof FormData, value);
+    const handleChange = (key: keyof FormData, value: string) => {
+        form.setData(key, value);
+        form.clearErrors(key);
     };
 
-    const handlePageChange = (page: string, field: 'kesimpulan' | 'catatan') => (
-        e: React.ChangeEvent<HTMLSelectElement | HTMLTextAreaElement>
-    ) => {
-        const value = e.target.value;
+    const handlePageChange = (page: string, field: 'kesimpulan' | 'catatan') => (value: string) => {
         form.setData('mistake', {
             ...form.data.mistake,
             [page]: {
@@ -237,6 +254,13 @@ const ResultFormLayout: React.FC = () => {
             options.push({ value: i.toString(), label: `Ayat ${i}` });
         }
         return options;
+    };
+
+    const generateConclusionOptions = (): { value: string; label: string }[] => {
+        return ['Excellent', 'Very Good', 'Good', 'Pass', 'Weak', 'Not Pass'].map((option) => ({
+            value: option,
+            label: t(`rekapan.kesimpulan_options.${option}`), // Gunakan t dari useTranslation
+        }));
     };
 
     const togglePanel = (page: string): void => {
@@ -372,6 +396,7 @@ const ResultFormLayout: React.FC = () => {
 
     const verseOptions: VerseOption[] = generateVerseOptions(setoranData);
     const surahName: string = getSurahName(setoranData);
+    const conclusionOptions = generateConclusionOptions();
 
     return (
         <AppWrapper>
@@ -412,7 +437,7 @@ const ResultFormLayout: React.FC = () => {
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div>
                                         <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">{t('rekapan.form.awal_surah')}</label>
                                         <input
@@ -424,22 +449,18 @@ const ResultFormLayout: React.FC = () => {
                                     </div>
                                     <div>
                                         <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">{t('rekapan.form.awal_ayat')}</label>
-                                        <select
-                                            name="awalAyat"
-                                            className="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-transparent focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-400"
-                                            value={form.data.awalAyat}
-                                            onChange={handleChange}
-                                        >
-                                            <option value="" className="text-sm text-gray-400 dark:text-gray-500">
-                                                {t('rekapan.form.awal_ayat')}
-                                            </option>
-                                            {verseOptions.map((option) => (
-                                                <option key={option.value} value={option.value}>
-                                                    {option.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        {form.errors.awalAyat && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{form.errors.awalAyat}</p>}
+                                        <div className="w-full">
+  <Combobox
+    options={verseOptions}
+    placeholder={t('placeholders.select_verse')}
+    searchPlaceholder={t('placeholders.search_verse')}
+    notFoundText={t('notFoundText.verse_not_found')}
+    value={form.data.awalAyat}
+    onValueChange={(value) => handleChange('awalAyat', value)}
+    className="w-full" // Tambahkan ini untuk menyamakan lebar dengan "Awal Surah"
+  />
+  {form.errors.awalAyat && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{form.errors.awalAyat}</p>}
+</div>
                                     </div>
                                     <div>
                                         <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">{t('rekapan.form.akhir_surah')}</label>
@@ -452,43 +473,35 @@ const ResultFormLayout: React.FC = () => {
                                     </div>
                                     <div>
                                         <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">{t('rekapan.form.akhir_ayat')}</label>
-                                        <select
-                                            name="akhirAyat"
-                                            className="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-transparent focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-400"
-                                            value={form.data.akhirAyat}
-                                            onChange={handleChange}
-                                        >
-                                            <option value="" className="text-sm text-gray-400 dark:text-gray-500">
-                                                {t('rekapan.form.akhir_ayat')}
-                                            </option>
-                                            {verseOptions.map((option) => (
-                                                <option key={option.value} value={option.value}>
-                                                    {option.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        {form.errors.akhirAyat && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{form.errors.akhirAyat}</p>}
+                                        <div className="w-full">
+  <Combobox
+    options={verseOptions}
+    placeholder={t('placeholders.select_verse')}
+    searchPlaceholder={t('placeholders.search_verse')}
+    notFoundText={t('notFoundText.verse_not_found')}
+    value={form.data.akhirAyat}
+    onValueChange={(value) => handleChange('akhirAyat', value)}
+    className="w-full" // Tambahkan ini untuk menyamakan lebar dengan "Awal Surah"
+  />
+  {form.errors.akhirAyat && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{form.errors.akhirAyat}</p>}
+</div>
                                     </div>
                                 </div>
 
                                 <div>
                                     <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">{t('rekapan.form.kesimpulan')}</label>
-                                    <select
-                                        name="kesimpulan"
-                                        className="w-50 rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-transparent focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-400"
-                                        value={form.data.kesimpulan}
-                                        onChange={handleChange}
-                                    >
-                                        <option value="" className="text-sm text-gray-400 dark:text-gray-500">
-                                            {t('rekapan.form.pilih_kesimpulan')}
-                                        </option>
-                                        {['Excellent', 'Very Good', 'Good', 'Pass', 'Weak', 'Not Pass'].map((option) => (
-                                            <option key={option} value={option}>
-                                                {t(`rekapan.kesimpulan_options.${option}`)}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    {form.errors.kesimpulan && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{form.errors.kesimpulan}</p>}
+                                    <div className="w-full">
+  <Combobox
+    options={conclusionOptions}
+    placeholder={t('placeholders.select_conclusion')}
+    searchPlaceholder={t('placeholders.search_conclusion')}
+    notFoundText={t('notFoundText.conclusion_not_found')}
+    value={form.data.kesimpulan}
+    onValueChange={(value) => handleChange('kesimpulan', value)}
+    className="w-full" // Tambahkan ini untuk menyamakan lebar dengan "Awal Surah"
+  />
+  {form.errors.kesimpulan && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{form.errors.kesimpulan}</p>}
+</div>
                                 </div>
                             </div>
 
@@ -500,7 +513,7 @@ const ResultFormLayout: React.FC = () => {
                                     rows={3}
                                     placeholder={t('rekapan.form.catatan')}
                                     value={form.data.catatan}
-                                    onChange={handleChange}
+                                    onChange={(e) => handleChange('catatan', e.target.value)}
                                 />
                                 {form.errors.catatan && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{form.errors.catatan}</p>}
                             </div>
@@ -655,22 +668,17 @@ const ResultFormLayout: React.FC = () => {
                                                             <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
                                                                 {t('rekapan.form.kesimpulan')}
                                                             </label>
-                                                            <select
-                                                                className="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-transparent focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-400"
-                                                                value={form.data.mistake[page]?.kesimpulan || ''}
-                                                                onChange={handlePageChange(page, 'kesimpulan')}
-                                                            >
-                                                                <option value="" className="text-sm text-gray-400 dark:text-gray-500">
-                                                                    {t('rekapan.form.pilih_kesimpulan')}
-                                                                </option>
-                                                                {['Excellent', 'Very Good', 'Good', 'Pass', 'Weak', 'Not Pass'].map(
-                                                                    (option) => (
-                                                                        <option key={option} value={option}>
-                                                                            {t(`rekapan.kesimpulan_options.${option}`)}
-                                                                        </option>
-                                                                    )
-                                                                )}
-                                                            </select>
+                                                            <div className="w-full">
+                                                                <Combobox
+                                                                    options={conclusionOptions}
+                                                                    placeholder={t('placeholders.select_conclusion')}
+                                                                    searchPlaceholder={t('placeholders.search_conclusion')}
+                                                                    notFoundText={t('notFoundText.conclusion_not_found')}
+                                                                    value={form.data.mistake[page]?.kesimpulan || ''}
+                                                                    onValueChange={handlePageChange(page, 'kesimpulan')}
+                                                                    className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
+                                                                />
+                                                            </div>
                                                         </div>
                                                         <div>
                                                             <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
@@ -681,7 +689,7 @@ const ResultFormLayout: React.FC = () => {
                                                                 rows={2}
                                                                 placeholder={t('rekapan.form.catatan_khusus')}
                                                                 value={form.data.mistake[page]?.catatan || ''}
-                                                                onChange={handlePageChange(page, 'catatan')}
+                                                                onChange={(e) => handlePageChange(page, 'catatan')(e.target.value)}
                                                             />
                                                         </div>
                                                     </div>
