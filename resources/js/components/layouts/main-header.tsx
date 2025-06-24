@@ -143,12 +143,12 @@ const QuranHeader: React.FC<QuranHeaderProps> = ({ page, translateMode = 'read',
                     <div className="cursor-pointer" onClick={() => (window.location.href = `/`)}>
                         <FontAwesomeIcon icon={faHome} className={`${iconSize} ${isDarkMode ? 'text-gray-300' : 'text-[#2CA4AB]'}`} />
                     </div>
-                    <span className={`ml-1 ${textSize} ${isDarkMode ? 'text-white' : 'text-white'}`}>/ {displaySegment}</span>
+                    <span className={`ml-1 ${textSize} dark:text-gray-300`}>/ {displaySegment}</span>
                 </div>
                 {translateMode === 'read' && (
                     <div className="flex w-auto cursor-pointer items-center justify-center p-1 text-center" onClick={handleClick}>
                         {!noFinishButton() && (
-                            <span className={`${buttonSize.padding} ${buttonSize.fontSize} me-5 rounded ${isDarkMode ? 'bg-gray-700 text-white' : 'bg-[#ff6500] text-white'} font-bold`}>
+                            <span className={`${buttonSize.padding} ${buttonSize.fontSize} me-5 rounded ${isDarkMode ? 'bg-gray-700 text-white' : 'bg-[#ff6500]'} font-bold text-white`}>
                                 Selesai
                             </span>
                         )}

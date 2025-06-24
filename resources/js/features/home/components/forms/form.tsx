@@ -160,7 +160,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
     const savedThemeCookie = getCookie('s_night_mode');
     const savedThemeLocal = localStorage.getItem('s_night_mode');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initialTheme = savedThemeLocal || savedThemeCookie || (prefersDark ? 'true' : 'false');
+    const initialTheme = savedThemeLocal || savedThemeCookie || (prefersDark ? '1' : '0');
 
     // Sinkronkan tema ke localStorage dan cookie jika belum ada
     if (!savedThemeLocal) {
@@ -198,8 +198,8 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
     saveFormData();
 
     // Simpan tema ke localStorage dan cookie
-    localStorage.setItem('s_night_mode', isDarkMode.toString());
-    setCookie('s_night_mode', isDarkMode.toString(), 30); // 30 hari kadaluarsa
+    localStorage.setItem('s_night_mode', isDarkMode ? '1' : '0');
+    setCookie('s_night_mode', isDarkMode ? '1' : '0', 30); // 30 hari kadaluarsa
   }, [penyetor, setoran, tampilkan, selectedGroup, selectedMember, selectedFriend, selectedSurahValue, selectedJuz, selectedHalaman, isDarkMode]);
 
   useEffect(() => {
@@ -322,7 +322,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
     setDisplay('surah');
     setGroupInput('');
     setMemberInput('');
-    setTemanInput('');
+    setTamanInput('');
     setSurahInput('');
     setSelectedSurahValue('');
     setSelectedGroup('');

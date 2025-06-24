@@ -7,8 +7,8 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandInput,
-  CommandItem,
   CommandList,
+  CommandItem,
 } from "@/components/ui/command"
 import {
   Popover,
@@ -28,7 +28,7 @@ interface ComboboxProps {
     notFoundText?: string;
     value?: string;
     onValueChange?: (value: string) => void;
-    className?: string;
+    className?: string; // Pastikan className bisa di-custom
 }
 
 const Combobox: React.FC<ComboboxProps> = ({
@@ -55,7 +55,11 @@ const Combobox: React.FC<ComboboxProps> = ({
           variant="custom"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between"
+          className={cn(
+            "w-[200px] justify-between", // Default width, bisa di-override
+            "rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white",
+            className // Tambahkan className dari props untuk custom styling
+          )}
         >
           {value
             ? options.find((option) => option.value === value)?.label
@@ -72,10 +76,8 @@ const Combobox: React.FC<ComboboxProps> = ({
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  // PERUBAHAN UTAMA: Gabungkan value dan label untuk filtering
                   value={`${option.value} ${option.label}`}
                   onSelect={(currentValue) => {
-                    // Ambil value asli dari option yang dipilih
                     const selectedOption = options.find(opt =>
                       `${opt.value} ${opt.label}`.toLowerCase() === currentValue.toLowerCase()
                     );

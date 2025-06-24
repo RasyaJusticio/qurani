@@ -1,0 +1,44 @@
+{
+  "general": {
+    "hasilrekap": "نتائج التسليم"
+  },
+  "rekapan": {
+    "form": {
+      "peserta": "المشارك",
+      "awal_surah": "سورة البداية",
+      "awal_ayat": "آية البداية",
+      "akhir_surah": "سورة النهاية",
+      "akhir_ayat": "آية النهاية",
+      "kesimpulan": "الاستنتاج",
+      "pilih_kesimpulan": "اختر الاستنتاج",
+      "catatan": "ملاحظات",
+      "catatan_khusus": "ملاحظات خاصة",
+      "kesalahan_ayat": "أخطاء الآية",
+      "tidak_ada_kesalahan_ayat": "لا توجد أخطاء في الآية",
+      "kesalahan_kata": "أخطاء الكلمة",
+      "tidak_ada_kesalahan_kata": "لا توجد أخطاء في الكلمات",
+      "mengirim": "جارٍ الإرسال...",
+      "kirim": "إرسال",
+      "halaman": "الصفحة",
+      "setoran": "نوع التسليم"
+    },
+    "kesimpulan_options": {
+      "Excellent": "ممتاز",
+      "Very Good": "جيد جدًا",
+      "Good": "جيد",
+      "Pass": "ناجح",
+      "Weak": "ضعيف",
+      "Not Pass": "غير ناجح"
+    }
+  },
+  "placeholders": {
+    "select_verse": "اختر آية",
+    "search_verse": "ابحث عن آية",
+    "select_conclusion": "اختر استنتاجًا",
+    "search_conclusion": "ابحث عن استنتاج"
+  },
+  "notFoundText": {
+    "verse_not_found": "الآية غير موجودة",
+    "conclusion_not_found": "الاستنتاج غير موجود"
+  }
+}

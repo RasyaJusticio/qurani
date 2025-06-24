@@ -1,4 +1,6 @@
+// File: mistakeModal.tsx
 import { FC } from 'react';
+import { X } from 'lucide-react';
 
 interface ErrorLabel {
   id: number;
@@ -64,33 +66,33 @@ const MistakeModal: FC<MistakeModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className={`bg-white rounded-2xl p-6 ${modalSize} w-full overflow-y-auto shadow-2xl border border-gray-200`}>
+      <div className={`relative bg-white rounded-2xl p-6 ${modalSize} w-full overflow-y-auto shadow-2xl border border-gray-200`}>
+        {/* Tombol X */}
+
         {versesEmpty ? (
-          <>
-            <p className="text-gray-600 mb-4 text-center">
-              Tidak ada ayat yang ditemukan untuk Surah ini.
-            </p>
-            <div className="flex justify-center mt-4">
-              <button
-                onClick={onClose}
-                className="px-3 py-1 bg-blue-300 text-white rounded hover:bg-blue-400 transition-colors duration-200"
-              >
-                Tutup
-              </button>
-            </div>
-          </>
+          <p className="text-gray-600 mb-4 text-center">
+            Tidak ada ayat yang ditemukan untuk Surah ini.
+          </p>
         ) : (
           <>
-            <div className="flex items-center justify-center mb-4">
-              <h2 className="text-xl font-bold text-gray-800 text-center font-arabic">
-                {selectedVerseId ? 'Kesalahan Ayat' : 'Kesalahan Kata'}
-              </h2>
-              {selectedWordText && (
-                <span className="font-arabic text-xl text-gray-800 mr-2" style={{ direction: 'rtl' }}>
-                  {selectedWordText}
-                </span>
-              )}
-            </div>
+            <div className="relative bg-transparent rounded-md mb-4 p-2 flex items-center justify-center">
+  <h2 className="text-xl font-bold text-gray-800 text-center font-arabic">
+    {selectedVerseId ? 'Kesalahan Ayat' : 'Kesalahan Kata'}
+  </h2>
+  {selectedWordText && (
+    <span className="font-arabic text-xl text-gray-800 mr-2 ml-2" style={{ direction: 'rtl' }}>
+      {selectedWordText}
+    </span>
+  )}
+  <button
+    onClick={onClose}
+    className="absolute right-0 top-0 text-gray-600 hover:text-gray-900"
+    title="Tutup"
+  >
+    <X size={20} />
+  </button>
+</div>
+
             <div className={`flex flex-col gap-2 ${labelListHeight} overflow-y-auto`}>
               {displayedLabels.map((label) => (
                 <div
@@ -119,12 +121,6 @@ const MistakeModal: FC<MistakeModalProps> = ({
                   Hapus Tanda
                 </button>
               )}
-              <button
-                onClick={onClose}
-                className="px-4 py-2 bg-blue-300 text-white rounded hover:bg-blue-400 transition-colors duration-200"
-              >
-                Tutup
-              </button>
             </div>
           </>
         )}

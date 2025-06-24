@@ -154,7 +154,8 @@
     }
 
     body {
-        background-color: rgb(238,240,243);
+        /* background-color: rgb(238,240,243); */
+        background-color: rgb(0, 0, 0);
     }
 }
 @import url('https://fonts.googleapis.com/css2?family=Scheherazade+New:wght@400;700&display=swap');

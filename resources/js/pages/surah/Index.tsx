@@ -3,6 +3,7 @@ import QuranHeader from '@/components/layouts/main-header';
 import { Head, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import MistakeModal from '../../components/layouts/mistakeModal';
+import { cn } from '@/lib/utils';
 
 interface Word {
     id: number;
@@ -79,7 +80,8 @@ const errorLabels = [
 ];
 
 export default function SurahIndex() {
-    const { surah, verses } = usePage<PageProps>().props;
+    const { props } = usePage<PageProps>();
+    const { surah, verses } = props || { surah: null, verses: [] };
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedWordId, setSelectedWordId] = useState<number | null>(null);
     const [selectedVerseId, setSelectedVerseId] = useState<number | null>(null);
@@ -88,20 +90,16 @@ export default function SurahIndex() {
     const [verseErrors, setVerseErrors] = useState<{ [key: number]: string }>({});
     const [isDarkMode, setIsDarkMode] = useState(false);
 
+
     useEffect(() => {
-        const savedTheme = localStorage.getItem('theme');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const initialTheme = savedTheme === 'dark' || (!savedTheme && prefersDark);
-
-        setIsDarkMode(initialTheme);
-
-        if (initialTheme) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
+        if (!surah || !verses) {
+            console.error("Data surah atau verses tidak tersedia dari server.");
+            return;
         }
 
-        // Memulihkan wordErrors dan verseErrors dari localStorage
+        const savedThemeLocal = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
         const savedWordErrors = localStorage.getItem('wordErrors');
         const savedVerseErrors = localStorage.getItem('verseErrors');
         if (savedWordErrors) setWordErrors(JSON.parse(savedWordErrors));
@@ -113,9 +111,11 @@ export default function SurahIndex() {
             if (newTheme) {
                 document.documentElement.classList.add('dark');
                 localStorage.setItem('theme', 'dark');
+                setCookie('s_night_mode', '1', 30);
             } else {
                 document.documentElement.classList.remove('dark');
                 localStorage.setItem('theme', 'light');
+                setCookie('s_night_mode', '0', 30);
             }
         };
         const mq = window.matchMedia('(prefers-color-scheme: dark)');
@@ -124,27 +124,39 @@ export default function SurahIndex() {
         return () => mq.removeEventListener('change', listener);
     }, []);
 
+    const setCookie = (name: string, value: string, days: number) => {
+        const date = new Date();
+        date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+        document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/`;
+    };
+
     const toggleTheme = () => {
         setIsDarkMode((prev) => {
             const newTheme = !prev;
             if (newTheme) {
                 document.documentElement.classList.add('dark');
                 localStorage.setItem('theme', 'dark');
+                setCookie('s_night_mode', '1', 30);
             } else {
                 document.documentElement.classList.remove('dark');
                 localStorage.setItem('theme', 'light');
+                setCookie('s_night_mode', '0', 30);
             }
             return newTheme;
         });
     };
 
     useEffect(() => {
+        if (!surah || !verses) return;
+
         if (verses.length === 0) {
             setModalOpen(true);
         }
     }, [verses]);
 
     useEffect(() => {
+        if (!surah || !verses) return;
+
         const errorsByPage = generateErrorsByPage();
         const existingData = localStorage.getItem('setoran-data');
 
@@ -289,6 +301,10 @@ export default function SurahIndex() {
         {} as { [key: number]: { verse: Verse; index: number }[] },
     );
 
+    if (!surah || !verses) {
+        return <div>Data tidak tersedia.</div>;
+    }
+
     return (
         <AppWrapper>
             <Head title={`${surah.name_simple} - Recap`} />
@@ -296,20 +312,21 @@ export default function SurahIndex() {
             <style>
                 {`
                     :root {
-                        ${isDarkMode ? '--background-color: #1a202c; --text-color: #ffffff;' : '--background-color: #ffffff; --text-color: #000000;'}
+                        --background-color: ${isDarkMode ? '#1a202c' : '#ffffff'};
+                        --text-color: ${isDarkMode ? '#ffffff' : '#000000'};
                     }
                     body {
                         background-color: var(--background-color);
                         color: var(--text-color);
                     }
                     .text-white {
-                        color: #ffffff;
+                        color: var(--text-color);
                     }
                     .text-black {
-                        color: #000000;
+                        color: var(--text-color);
                     }
                     .border-gray-300 {
-                        ${isDarkMode ? 'border-gray-700;' : 'border-gray-300;'}
+                        border-color: ${isDarkMode ? '#4a5568' : '#e2e8f0'};
                     }
                 `}
             </style>
@@ -332,17 +349,17 @@ export default function SurahIndex() {
                     verseErrors={verseErrors}
                 />
                 <div className="mt-20 mb-12 text-center">
-                    <p className={`text-lg ${isDarkMode ? 'text-white' : 'text-black'}`}>
+                    <p className={`text-lg dark:text-gray-300`}>
                         {surah.name_simple} ({surah.id})
                     </p>
                     {surah.bismillah_pre && (
-                        <p className={`font-arabic mt-6 text-4xl ${isDarkMode ? 'text-white' : 'text-black'}`} style={{ direction: 'rtl' }}>
+                        <p className={`font-arabic mt-6 text-4xl dark:text-gray-300`} style={{ direction: 'rtl' }}>
                             بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
                         </p>
                     )}
                 </div>
                 <div
-                    className={`font-arabic text-3xl ${isDarkMode ? 'text-white' : 'text-black'}`}
+                    className={`font-arabic text-3xl dark:text-gray-300`}
                     style={{
                         direction: 'rtl',
                         textAlign: 'justify',
@@ -352,63 +369,79 @@ export default function SurahIndex() {
                         letterSpacing: '0.03em',
                     }}
                 >
-                    {verses.map((verse, index) => {
-                        const verseLabel = verseErrors[verse.id]
-                            ? errorLabels.find((l) => l.key === verseErrors[verse.id])
-                            : null;
+                    {verses.length > 0 ? (
+                        verses.map((verse, index) => {
+                            const verseLabel = verseErrors[verse.id]
+                                ? errorLabels.find((l) => l.key === verseErrors[verse.id])
+                                : null;
 
-                        return (
-                            <span key={verse.id} style={{ backgroundColor: verseLabel?.color || 'transparent' }}>
-                                {verse.words.map((word) => {
-                                    const wordLabel = wordErrors[word.id]
-                                        ? errorLabels.find((l) => l.key === wordErrors[word.id])
-                                        : null;
-                                    return (
+                            return (
+                                <span key={verse.id}>
+                                    <span
+                                        key={verse.id}
+                                        className={cn("transition-colors duration-200", verseLabel && "dark:text-gray-900")}
+                                        style={{
+                                            backgroundColor: verseLabel?.color || 'transparent',
+                                            display: verseLabel ? 'inline-block' : '',
+                                            padding: verseLabel ? '3.5px 6px' : '0',
+                                            lineHeight: verseLabel ? '1.5' : '2',
+                                            borderRadius: verseLabel ? '6px' : '0',
+                                            marginRight: '8px',
+                                            verticalAlign: 'middle',
+                                        }}
+                                        onClick={() => handleClick('verse', verse.id)}
+                                    >
+                                        {verse.words.map((word) => {
+                                            const wordLabel = wordErrors[word.id]
+                                                ? errorLabels.find((l) => l.key === wordErrors[word.id])
+                                                : null;
+
+                                            return (
+                                                <span
+                                                    key={word.id}
+                                                    className={cn("cursor-pointer transition-colors duration-200 hover:text-blue-300", wordLabel && "dark:text-gray-900")}
+                                                    style={{
+                                                        backgroundColor: wordLabel?.color || 'transparent',
+                                                        display: 'inline',
+                                                        lineHeight: wordLabel ? '0' : '1',
+                                                        padding: wordLabel ? '9px 6px' : '0',
+                                                        borderRadius: wordLabel ? '6px' : '0',
+                                                        margin: wordLabel ? '4px 0' : '0',
+                                                    }}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleClick('word', word.id);
+                                                    }}
+                                                >
+                                                    {word.text_uthmani}{' '}
+                                                </span>
+                                            );
+                                        })}
+
                                         <span
-                                            key={word.id}
                                             className="cursor-pointer transition-colors duration-200 hover:text-blue-300"
-                                            style={{
-                                                backgroundColor: wordLabel?.color || 'transparent',
-                                                display: 'inline',
-                                                lineHeight: wordLabel ? '1.3' : '2',
-                                                padding: wordLabel ? '6px 0px' : '0',
-                                                borderRadius: wordLabel ? '6px' : '0',
-                                                margin: wordLabel ? '4px 0' : '0',
-                                            }}
-                                            onClick={() => handleClick('word', word.id)}
+                                            onClick={() => handleClick('verse', verse.id)}
                                         >
-                                            {word.text_uthmani}{' '}
+                                            ۝{verse.end_marker || verse.verse_number}
                                         </span>
-                                    );
-                                })}
-                                <span
-                                    className="cursor-pointer transition-colors duration-200 hover:text-blue-300"
-                                    style={{
-                                        backgroundColor: verseLabel?.color || 'transparent',
-                                        display: 'inline',
-                                        padding: verseLabel ? '6px 0px' : '0',
-                                        lineHeight: verseLabel ? '1.3' : '2',
-                                        borderRadius: verseLabel ? '6px' : '0',
-                                        margin: verseLabel ? '4px 0' : '0',
-                                    }}
-                                    onClick={() => handleClick('verse', verse.id)}
-                                >
-                                    ۝{verse.end_marker || verse.verse_number}
-                                </span>
+                                    </span>
 
-                                {groupedVerses[verse.page_number][groupedVerses[verse.page_number].length - 1].verse.id === verse.id && (
-                                    <div className="my-4 flex items-center">
-                                        <hr className="flex-1 border-t border-gray-300" />
-                                        <span className="mx-4 text-sm font-medium text-gray-600">Page {verse.page_number}</span>
-                                        <hr className="flex-1 border-t border-gray-300" />
-                                    </div>
-                                )}
-                                {index < verses.length - 1 && ' '}
-                            </span>
-                        );
-                    })}
+                                    {groupedVerses[verse.page_number][groupedVerses[verse.page_number].length - 1].verse.id === verse.id && (
+                                        <div className="my-4 flex items-center">
+                                            <hr className="flex-1 border-t border-gray-300" />
+                                            <span className="mx-4 text-sm font-medium text-gray-600">Page {verse.page_number}</span>
+                                            <hr className="flex-1 border-t border-gray-300" />
+                                        </div>
+                                    )}
+                                    {index < verses.length - 1 && ' '}
+                                </span>
+                            );
+                        })
+                    ) : (
+                        <div>Tidak ada data ayat untuk ditampilkan.</div>
+                    )}
                 </div>
             </div>
-        </AppWrapper> 
+        </AppWrapper>
     );
 }
