@@ -368,7 +368,8 @@ const ResultFormLayout: React.FC = () => {
             });
             localStorage.setItem('wordErrors', JSON.stringify(wordErrorsFromMistake));
             localStorage.setItem('verseErrors', JSON.stringify(verseErrorsFromMistake));
-            router.visit('/');
+            // router.visit('/');
+            window.location.href = '/'; // Redirect to home page after successful submission
         })
         .catch((error) => {
             if (error.response && error.response.status === 422) {

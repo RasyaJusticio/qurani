@@ -11,6 +11,7 @@ use App\Models\LinkID\User;
 use App\Models\LinkID\QuSetoran;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cookie;
 use Inertia\Inertia;
@@ -21,7 +22,7 @@ class HomeController extends Controller
     public function index(Request $request)
     {
         try {
-            $uId = $request->cookie('u_id');
+            $uId = Auth::user()->user_id;
             $friends = $this->getFriends();
             $groups = $this->getGroups();
             $chapters = $this->getChapters();
@@ -68,7 +69,7 @@ class HomeController extends Controller
     public function recap(Request $request)
     {
         try {
-            $uId = $request->cookie('u_id');
+            $uId = Auth::user()->user_id;
             return Inertia::render('recap/Index', [
                 'u_id' => $uId
             ]);
@@ -88,7 +89,7 @@ class HomeController extends Controller
     private function getFriends()
     {
         try {
-            $uId = request()->cookie('u_id');
+            $uId = Auth::user()->user_id;
             if (!$uId) {
                 return [];
             }
@@ -128,7 +129,7 @@ class HomeController extends Controller
     private function getGroups()
     {
         try {
-            $uId = request()->cookie('u_id');
+            $uId = Auth::user()->user_id;
             if (!$uId) {
                 return [];
             }
@@ -216,7 +217,7 @@ class HomeController extends Controller
     private function getSetoran()
     {
         try {
-            $uId = request()->cookie('u_id');
+            $uId = Auth::user()->user_id;
             if (!$uId) {
                 return [];
             }
@@ -454,7 +455,7 @@ class HomeController extends Controller
     public function updateSignature(Request $request, $id)
     {
         try {
-            $userId = $request->cookie('u_id');
+            $userId = Auth::user()->user_id;
             if (!$userId) {
                 return response()->json(['error' => 'Unauthorized'], 401);
             }
