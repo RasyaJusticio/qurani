@@ -312,7 +312,7 @@ export default function SurahIndex() {
             <style>
                 {`
                     :root {
-                        --background-color: ${isDarkMode ? '#1a202c' : '#ffffff'};
+                        --background-color:dar #1a202c #ffffff'};
                         --text-color: ${isDarkMode ? '#ffffff' : '#000000'};
                     }
                     body {

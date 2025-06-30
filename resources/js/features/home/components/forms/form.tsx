@@ -10,6 +10,7 @@ import { Group } from '../../types/group';
 import { Juz } from '../../types/juz';
 import { pages } from '../../constanst/pages';
 import { usePage } from '@inertiajs/react';
+import { Inertia } from '@inertiajs/inertia';
 
 // Fungsi untuk mengelola cookie
 const getCookie = (name: string): string | null => {
@@ -311,7 +312,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
     }
 
     const redirectUrl = getRedirectUrl();
-    if (redirectUrl !== '/') window.location.href = redirectUrl;
+    if (redirectUrl !== '/') Inertia.visit(redirectUrl);
     else alert(t('errors.invalid_selection'));
   };
 
@@ -322,7 +323,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
     setDisplay('surah');
     setGroupInput('');
     setMemberInput('');
-    setTamanInput('');
+    setTemanInput('');
     setSurahInput('');
     setSelectedSurahValue('');
     setSelectedGroup('');
@@ -361,12 +362,12 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
   return (
     <div className="flex w-full justify-center px-0">
       <div className="w-full max-w-sm sm:max-w-md md:max-w-xl lg:max-w-2xl">
-        <div className={`min-h-[520px] overflow-hidden rounded-lg shadow-lg ${isDarkMode ? 'bg-[rgb(38,45,52)]' : 'bg-white'}`}>
-          <div className={`px-4 py-3 md:px-6 ${isDarkMode ? 'bg-[rgb(38,45,52)]' : 'bg-white'}`}>
+        <div className={`min-h-[520px] overflow-hidden rounded-lg shadow-lg bg-white dark:bg-[rgb(38,45,52)]`}>
+          <div className={`px-4 py-3 md:px-6 bg-white dark:bg-[rgb(38,45,52)]`}>
             <div className="flex items-center justify-between">
-              <h2 className={`text-xl sm:text-2xl font-semibold ${isDarkMode ? 'text-white' : 'text-black'}`}>{t('header')}</h2>
+              <h2 className={`text-xl sm:text-2xl font-semibold text-black dark:text-white`}>{t('header')}</h2>
               <button
-                className={`rounded-full p-2 hover:cursor-pointer ${isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
+                className={`rounded-full p-2 hover:cursor-pointer text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white`}
                 onClick={() => (window.top.location.href = `${config.PARENT_WEB}/settings/qurani`)}
               >
                 <Settings size={20} />
@@ -376,7 +377,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
           <div className="p-4 sm:p-6">
             <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
               <div className="grid grid-cols-[6rem_auto] sm:flex sm:flex-row sm:items-center sm:space-x-4">
-                <label className={`w-full sm:w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.reciter')}</label>
+                <label className={`w-full sm:w-24 text-sm font-medium dark:text-gray-300 text-gray-700'}`}>{t('labels.reciter')}</label>
                 <div className="flex flex-row flex-wrap space-x-4 w-fit">
                   <label className="flex items-center">
                     <input
@@ -388,9 +389,9 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                         setPenyetor(e.target.value);
                         setErrors((prev) => ({ ...prev, group: '', member: '', friend: '' }));
                       }}
-                      className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
+                      className={`mr-2 dark:text-emerald-600 dark:focus:ring-emerald-500 dark:text-emerald-400 dark:focus:ring-emerald-600`}
                     />
-                    <span className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-neutral-950'}`}>{t('radio_options.group')}</span>
+                    <span className={`text-sm dark:text-gray-200 text-neutral-950`}>{t('radio_options.group')}</span>
                   </label>
                   <label className="flex items-center">
                     <input
@@ -402,17 +403,17 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                         setPenyetor(e.target.value);
                         setErrors((prev) => ({ ...prev, group: '', member: '', friend: '' }));
                       }}
-                      className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
+                      className={`mr-2 dark:text-emerald-400 dark:focus:ring-emerald-600 text-emerald-600 focus:ring-emerald-500'}`}
                     />
-                    <span className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-neutral-950'}`}>{t('radio_options.friend')}</span>
+                    <span className={`text-sm dark:text-gray-200 text-neutral-950'}`}>{t('radio_options.friend')}</span>
                   </label>
-                </div>
+                </div>  
                 {errors.penyetor && <p className="text-sm text-red-500">{errors.penyetor}</p>}
               </div>
               {penyetor === 'grup' && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-[6rem_auto] sm:flex sm:flex-row sm:items-center sm:space-x-2">
-                    <label className={`w-full sm:w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.group')}</label>
+                    <label className={`w-full sm:w-24 text-sm font-medium dark:text-gray-300 text-gray-700'}`}>{t('labels.group')}</label>
                     <div className="w-full sm:w-96">
                       <Combobox
                         options={groups.map((group) => ({
@@ -428,13 +429,13 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                           setSelectedMember('');
                           setErrors((prev) => ({ ...prev, group: '' }));
                         }}
-                        className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
+                        className={'dark:bg-gray-700 text-gray-200 bg-white text-black'}
                       />
                       {errors.group && <p className="mt-1 text-sm text-red-500">{errors.group}</p>}
                     </div>
                   </div>
                   <div className="grid grid-cols-[6rem_auto] sm:flex sm:flex-row sm:items-center sm:space-x-2">
-                    <label className={`w-full sm:w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.member')}</label>
+                    <label className={`w-full sm:w-24 text-sm font-medium dark:text-gray-300 text-gray-700'}`}>{t('labels.member')}</label>
                     <div className="w-full sm:w-96">
                       <div
                         className={`${!selectedGroup ? 'pointer-events-none opacity-50' : ''}`}
@@ -457,7 +458,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                             setSelectedMember(value);
                             setErrors((prev) => ({ ...prev, member: '' }));
                           }}
-                          className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
+                          className={'dark:bg-gray-700 text-gray-200 bg-white text-black'}
                         />
                         {errors.member && <p className="mt-1 text-sm text-red-500">{errors.member}</p>}
                       </div>
@@ -467,7 +468,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
               )}
               {penyetor === 'teman' && (
                 <div className="grid grid-cols-[6rem_auto] sm:flex sm:flex-row sm:items-center sm:space-x-2">
-                  <label className={`w-full sm:w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.friend')}</label>
+                  <label className={`w-full sm:w-24 text-sm font-medium dark:text-gray-300 text-gray-700'}`}>{t('labels.friend')}</label>
                   <div className="w-full sm:w-96">
                     <Combobox
                       options={friends.map((friend) => ({ label: friend.user_fullname, value: friend.user_name }))}
@@ -479,14 +480,14 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                         setSelectedFriend(value);
                         setErrors((prev) => ({ ...prev, friend: '' }));
                       }}
-                      className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
+                      className={'dark:bg-gray-700 text-gray-200 bg-white text-black'}
                     />
                     {errors.friend && <p className="mt-1 text-sm text-red-500">{errors.friend}</p>}
                   </div>
                 </div>
               )}
               <div className="grid grid-cols-[6rem_auto] sm:flex sm:flex-row sm:items-center sm:space-x-4">
-                <label className={`w-full sm:w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.recite')}</label>
+                <label className={`w-full sm:w-24 text-sm font-medium dark:text-gray-300 text-gray-700'}`}>{t('labels.recite')}</label>
                 <div className="flex flex-row flex-wrap space-x-4 w-fit">
                   <label className="flex items-center">
                     <input
@@ -498,9 +499,9 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                         setSetoran(e.target.value);
                         setErrors((prev) => ({ ...prev, setoran: '' }));
                       }}
-                      className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
+                      className={`mr-2 dark:text-emerald-400 dark:focus:ring-emerald-600 text-emerald-600 focus:ring-emerald-500'}`}
                     />
-                    <span className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-neutral-950'}`}>{t('radio_options.tahsin')}</span>
+                    <span className={`text-sm dark:text-gray-200 text-neutral-950'}`}>{t('radio_options.tahsin')}</span>
                   </label>
                   <label className="flex items-center">
                     <input
@@ -512,15 +513,15 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                         setSetoran(e.target.value);
                         setErrors((prev) => ({ ...prev, setoran: '' }));
                       }}
-                      className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
+                      className={`mr-2 dark:text-emerald-400 dark:focus:ring-emerald-600 text-emerald-600 focus:ring-emerald-500'}`}
                     />
-                    <span className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-neutral-950'}`}>{t('radio_options.tahfidz')}</span>
+                    <span className={`text-sm dark:text-gray-200 text-neutral-950'}`}>{t('radio_options.tahfidz')}</span>
                   </label>
                 </div>
                 {errors.setoran && <p className="text-sm text-red-500">{errors.setoran}</p>}
               </div>
               <div className="grid grid-cols-[6rem_auto] sm:flex sm:flex-row sm:items-center sm:space-x-4">
-                <label className={`w-full sm:w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.display')}</label>
+                <label className={`w-full sm:w-24 text-sm font-medium dark:text-gray-300 text-gray-700'}`}>{t('labels.display')}</label>
                 <div className="flex flex-row flex-wrap space-x-4 w-fit">
                   <label className="flex items-center">
                     <input
@@ -536,9 +537,9 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                         setSelectedHalaman('');
                         setErrors((prev) => ({ ...prev, tampilkan: '', surah: '', juz: '', halaman: '' }));
                       }}
-                      className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
+                      className={`mr-2 dark:text-emerald-400 dark:focus:ring-emerald-600 text-emerald-600 focus:ring-emerald-500'}`}
                     />
-                    <span className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-neutral-950'}`}>{t('radio_options.surah')}</span>
+                    <span className={`text-sm dark:text-gray-200 text-neutral-950`}>{t('radio_options.surah')}</span>
                   </label>
                   <label className="flex items-center">
                     <input
@@ -554,9 +555,9 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                         setSelectedHalaman('');
                         setErrors((prev) => ({ ...prev, tampilkan: '', surah: '', juz: '', halaman: '' }));
                       }}
-                      className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
+                      className={`mr-2 dark:text-emerald-400 dark:focus:ring-emerald-600 text-emerald-600 focus:ring-emerald-500'}`}
                     />
-                    <span className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-neutral-950'}`}>{t('radio_options.juz')}</span>
+                    <span className={`text-sm dark:text-gray-200 text-neutral-950'}`}>{t('radio_options.juz')}</span>
                   </label>
                   <label className="flex items-center">
                     <input
@@ -572,9 +573,9 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                         setSelectedHalaman('');
                         setErrors((prev) => ({ ...prev, tampilkan: '', surah: '', juz: '', halaman: '' }));
                       }}
-                      className={`mr-2 ${isDarkMode ? 'text-emerald-400 focus:ring-emerald-600' : 'text-emerald-600 focus:ring-emerald-500'}`}
+                      className={`mr-2 dark:text-emerald-400 dark:focus:ring-emerald-600 text-emerald-600 focus:ring-emerald-500'}`}
                     />
-                    <span className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-neutral-950'}`}>{t('radio_options.page')}</span>
+                    <span className={`text-sm dark:text-gray-200 text-neutral-950'}`}>{t('radio_options.page')}</span>
                   </label>
                 </div>
                 {errors.display && <p className="text-sm text-red-500">{errors.display}</p>}
@@ -582,7 +583,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
               {tampilkan === 'surah' && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-[6rem_auto] sm:flex sm:flex-row sm:items-center sm:space-x-2">
-                    <label className={`w-full sm:w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.surah')}</label>
+                    <label className={`w-full sm:w-24 text-sm font-medium dark:text-gray-300 text-gray-700'}`}>{t('labels.surah')}</label>
                     <div className="w-full sm:w-96">
                       <Combobox
                         options={chapters.map((chapter) => ({
@@ -597,7 +598,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                           setSelectedSurahValue(value);
                           setErrors((prev) => ({ ...prev, surah: '' }));
                         }}
-                        className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
+                        className={'dark:bg-gray-700 dark:text-gray-200 bg-white text-black'}
                       />
                       {errors.surah && <p className="mt-1 text-sm text-red-500">{errors.surah}</p>}
                     </div>
@@ -612,7 +613,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                       <button
                         key={button.value}
                         type="button"
-                        className={`w-full sm:w-auto rounded-md px-3 py-1.5 text-sm font-medium hover:cursor-pointer ${isDarkMode ? 'bg-gray-600 text-gray-200 hover:bg-gray-500' : 'bg-gray-300 text-black hover:bg-gray-400'}`}
+                        className={`w-full sm:w-auto rounded-md px-3 py-1.5 text-sm font-medium hover:cursor-pointer dark:bg-gray-600 text-gray-200 hover:bg-gray-500 bg-gray-300 text-black hover:bg-gray-400'}`}
                         onClick={() => handleQuickSelect(button.value)}
                       >
                         {button.name}
@@ -623,13 +624,13 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                     <button
                       type="button"
                       onClick={handleReset}
-                      className={`w-full sm:w-auto rounded-md px-4 py-2 text-sm font-medium text-white hover:cursor-pointer ${isDarkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-300 hover:bg-gray-400'} mb-2.5 sm:mb-0 sm:mr-2`}
+                      className={`w-full sm:w-auto rounded-md px-4 py-2 text-sm font-medium text-white hover:cursor-pointer dark:bg-gray-600 hover:bg-gray-500 bg-gray-300 hover:bg-gray-400'} mb-2.5 sm:mb-0 sm:mr-2`}
                     >
                       {t('buttons.reset')}
                     </button>
                     <button
                       type="submit"
-                      className={`w-full sm:w-auto rounded-md px-4 py-2 text-sm font-medium text-white hover:cursor-pointer ${isDarkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-[rgb(94,114,228)] hover:bg-[rgb(57,69,138)]'}`}
+                      className={`w-full sm:w-auto rounded-md px-4 py-2 text-sm font-medium text-white hover:cursor-pointer dark:bg-blue-600 hover:bg-blue-700 bg-[rgb(94,114,228)] hover:bg-[rgb(57,69,138)]'}`}
                     >
                       {t('buttons.submit')}
                     </button>
@@ -639,7 +640,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
               {tampilkan === 'juz' && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-[6rem_auto] sm:flex sm:flex-row sm:items-center sm:space-x-2">
-                    <label className={`w-full sm:w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.juz')}</label>
+                    <label className={`w-full sm:w-24 text-sm font-medium dark:text-gray-300 text-gray-700'}`}>{t('labels.juz')}</label>
                     <div className="w-full sm:w-96">
                       <Combobox
                         options={juzs.map((juz) => ({ label: juz.id.toString(), value: juz.id.toString() }))}
@@ -651,7 +652,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                           setSelectedJuz(value);
                           setErrors((prev) => ({ ...prev, juz: '' }));
                         }}
-                        className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
+                        className={'dark:bg-gray-700 text-gray-200 bg-white text-black'}
                       />
                       {errors.juz && <p className="mt-1 text-sm text-red-500">{errors.juz}</p>}
                     </div>
@@ -660,13 +661,13 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                     <button
                       type="button"
                       onClick={handleReset}
-                      className={`w-full sm:w-auto rounded-md px-4 py-2 text-sm font-medium text-white hover:cursor-pointer ${isDarkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-300 hover:bg-gray-400'} mb-2.5 sm:mb-0 sm:mr-2`}
+                      className={`w-full sm:w-auto rounded-md px-4 py-2 text-sm font-medium text-white hover:cursor-pointer dark:bg-gray-600 hover:bg-gray-500 bg-gray-300 hover:bg-gray-400'} mb-2.5 sm:mb-0 sm:mr-2`}
                     >
                       {t('buttons.reset')}
                     </button>
                     <button
                       type="submit"
-                      className={`w-full sm:w-auto rounded-md px-4 py-2 text-sm font-medium text-white hover:cursor-pointer ${isDarkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-[rgb(94,114,228)] hover:bg-[rgb(57,69,138)]'}`}
+                      className={`w-full sm:w-auto rounded-md px-4 py-2 text-sm font-medium text-white hover:cursor-pointer dark:bg-blue-600 hover:bg-blue-700 bg-[rgb(94,114,228)] hover:bg-[rgb(57,69,138)]'}`}
                     >
                       {t('buttons.submit')}
                     </button>
@@ -676,7 +677,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
               {tampilkan === 'halaman' && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-[6rem_auto] sm:flex sm:flex-row sm:items-center sm:space-x-2">
-                    <label className={`w-full sm:w-24 text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{t('labels.page')}</label>
+                    <label className={`w-full sm:w-24 text-sm font-medium dark:text-gray-300 text-gray-700'}`}>{t('labels.page')}</label>
                     <div className="w-full sm:w-96">
                       <Combobox
                         options={pages.map((page) => ({ label: page.toString(), value: page.toString() }))}
@@ -688,7 +689,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                           setSelectedHalaman(value);
                           setErrors((prev) => ({ ...prev, halaman: '' }));
                         }}
-                        className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
+                        className={'dark:bg-gray-700 text-gray-200 bg-white text-black'}
                       />
                       {errors.halaman && <p className="mt-1 text-sm text-red-500">{errors.halaman}</p>}
                     </div>
@@ -697,13 +698,13 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                     <button
                       type="button"
                       onClick={handleReset}
-                      className={`w-full sm:w-auto rounded-md px-4 py-2 text-sm font-medium text-white hover:cursor-pointer ${isDarkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-300 hover:bg-gray-400'} mb-2.5 sm:mb-0 sm:mr-2`}
+                      className={`w-full sm:w-auto rounded-md px-4 py-2 text-sm font-medium text-white hover:cursor-pointer dark:bg-gray-600 hover:bg-gray-500 bg-gray-300 hover:bg-gray-400'} mb-2.5 sm:mb-0 sm:mr-2`}
                     >
                       {t('buttons.reset')}
                     </button>
                     <button
                       type="submit"
-                      className={`w-full sm:w-auto rounded-md px-4 py-2 text-sm font-medium text-white hover:cursor-pointer ${isDarkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-[rgb(94,114,228)] hover:bg-[rgb(57,69,138)]'}`}
+                      className={`w-full sm:w-auto rounded-md px-4 py-2 text-sm font-medium text-white hover:cursor-pointer dark:bg-blue-600 hover:bg-blue-700 bg-[rgb(94,114,228)] hover:bg-[rgb(57,69,138)]'}`}
                     >
                       {t('buttons.submit')}
                     </button>

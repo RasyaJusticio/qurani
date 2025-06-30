@@ -7,7 +7,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
-class User extends Model
+class User extends Authenticatable
 {
     protected $connection = "linkid";
     protected $primaryKey = 'user_id';

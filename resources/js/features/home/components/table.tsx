@@ -88,9 +88,9 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
         <div className={fluidDesign ? 'mt-3 w-full' : 'mx-auto mt-3 w-full max-w-4xl'}>
             <div className="flex w-full justify-center">
                 <div className="w-full overflow-x-auto">
-                    <div className={`relative rounded-lg p-6 shadow-lg ${isDarkMode ? 'bg-[rgb(38,45,52)]' : 'bg-white'}`}>
+                    <div className={`relative rounded-lg p-6 shadow-lg dark:bg-[rgb(38,45,52)] bg-white`}>
                         <div className="mb-4 flex items-center justify-between">
-                            <h2 className={`text-2xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+                            <h2 className={`text-2xl font-semibold dark:text-white text-gray-800`}>
                                 {t('history.title')}
                             </h2>
                             <div className="flex gap-2">
@@ -114,11 +114,11 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
 
                         <table className="w-full border-collapse border hidden md:table">
                             <thead>
-                                <tr className={`${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                                <tr className={`dark:bg-gray-800 bg-gray-100`}>
                                     {['time', 'reciter', 'recipient', 'recite', 'results', 'signature'].map((header) => (
                                         <th
                                             key={header}
-                                            className={`border px-4 py-2 text-left text-sm font-medium ${isDarkMode ? 'border-gray-600 text-gray-200' : 'border-gray-200 text-gray-700'}`}
+                                            className={`border px-4 py-2 text-left text-sm font-medium dark:border-gray-200 dark:text-gray-200 border-gray-600 text-gray-700'}`}
                                         >
                                             {t(`history.table.${header}`)}
                                         </th>
@@ -130,7 +130,7 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                                     setoran.map((item) => (
                                         <tr
                                             key={item.id}
-                                            className={`cursor-pointer ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}
+                                            className={`cursor-pointer dark:hover:bg-gray-700 hover:bg-gray-50'}`}
                                             onClick={() => fetchSetoranDetails(item.id)}
                                         >
                                             {['time', 'reciter', 'recipient', 'recite', 'results', 'signature'].map((col, idx) => {
@@ -153,7 +153,7 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                                                                         size={20}
                                                                         className={
                                                                             item.signature === 0
-                                                                                ? `cursor-pointer ${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`
+                                                                                ? `cursor-pointer dark:text-gray-400 hover:text-gray-200 text-gray-400 hover:text-gray-600'}`
                                                                                 : 'text-blue-500'
                                                                         }
                                                                     />
@@ -164,7 +164,7 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                                                     }
                                                 })();
 
-                                                const tdClass = `border px-4 py-2 text-sm ${isDarkMode ? 'border-gray-600 text-gray-200' : 'border-gray-200 text-gray-700'} ${col === 'reciter' || col === 'recipient' ? 'hover:underline' : ''
+                                                const tdClass = `border px-4 py-2 text-sm dark:border-gray-200 dark:text-gray-200 border-gray-600 text-gray-700'} ${col === 'reciter' || col === 'recipient' ? 'hover:underline' : ''
                                                     }`;
 
                                                 return (
@@ -190,7 +190,7 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                                     <tr>
                                         <td
                                             colSpan={6}
-                                            className={`border px-4 py-2 text-center text-sm ${isDarkMode ? 'border-gray-600 text-gray-300' : 'border-gray-200 text-gray-600'}`}
+                                            className={`border px-4 py-2 text-center text-sm dark:border-gray-600 text-gray-300 border-gray-200 text-gray-600'}`}
                                         >
                                             {t('history.table.noData')}
                                         </td>
@@ -205,7 +205,7 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                                 setoran.map((item) => (
                                     <div
                                         key={item.id}
-                                        className={`flex flex-col cursor-pointer ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} p-2 border-b ${isDarkMode ? 'border-gray-600' : 'border-gray-200'}`}
+                                        className={`flex flex-col cursor-pointer dark:hover:bg-gray-700 hover:bg-gray-50'} p-2 border-b dark:border-gray-600 border-gray-200'}`}
                                         onClick={() => fetchSetoranDetails(item.id)}
                                     >
                                         {['time', 'reciter', 'recipient', 'recite', 'results', 'signature'].map((col) => {
@@ -226,7 +226,7 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                                                 }
                                             })();
 
-                                            const className = `px-3 py-2 text-sm ${isDarkMode ? 'text-gray-200' : 'text-gray-700'
+                                            const className = `px-3 py-2 text-sm dark:text-gray-200 text-gray-700'
                                                 } ${col === 'reciter' || col === 'recipient' ? 'hover:underline' : ''}`;
 
                                             return (
@@ -252,10 +252,7 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                                                                 size={20}
                                                                 className={
                                                                     item.signature === 0
-                                                                        ? `inline-block cursor-pointer ${isDarkMode
-                                                                            ? 'text-gray-400 hover:text-gray-200'
-                                                                            : 'text-gray-400 hover:text-gray-600'
-                                                                        }`
+                                                                        ? `inline-block cursor-pointer dark:text-gray-400 hover:text-gray-200 text-gray-400 hover:text-gray-600`
                                                                         : 'text-blue-500 inline-block'
                                                                 }
                                                             />
@@ -269,7 +266,7 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                                     </div>
                                 ))
                             ) : (
-                                <div className={`border px-4 py-2 text-center text-sm ${isDarkMode ? 'border-gray-600 text-gray-300' : 'border-gray-200 text-gray-600'}`}>
+                                <div className={`border px-4 py-2 text-center text-sm dark:border-gray-600 text-gray-300 border-gray-200 text-gray-600'}`}>
                                     {t('history.table.noData')}
                                 </div>
                             )}

@@ -8,13 +8,15 @@ use App\Http\Controllers\Qurani\DashboardController;
 use App\Http\Controllers\Qurani\HomeController;
 use App\Http\Controllers\Qurani\JuzController;
 use App\Http\Controllers\Qurani\PageController;
+use App\Http\Controllers\Qurani\AppLoadController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
-Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/', AppLoadController::class);
+Route::get('/home', [HomeController::class, 'index'])->name('home');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 

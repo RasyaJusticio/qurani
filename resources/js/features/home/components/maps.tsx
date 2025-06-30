@@ -8,7 +8,6 @@ import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
 import { useTheme } from '../../../components/layouts/theme-context';
 
 // Fix default icon issues
-delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
     iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -26,13 +25,22 @@ const INDONESIA_BOUNDS = L.latLngBounds(L.latLng(-11, 94), L.latLng(6, 141));
 const MapBounds = () => {
     const map = useMap();
     useEffect(() => {
+        if (!map) return undefined;
         map.setMaxBounds(INDONESIA_BOUNDS);
-        map.on('drag', () => {
+        const handleDrag = () => {
             if (!INDONESIA_BOUNDS.contains(map.getCenter())) {
                 map.panInsideBounds(INDONESIA_BOUNDS, { animate: true });
             }
-        });
-        map.on('moveend', () => map.invalidateSize());
+        };
+        const handleMoveEnd = () => map.invalidateSize();
+    
+        map.on('drag', handleDrag);
+        map.on('moveend', handleMoveEnd);
+    
+        return () => {
+            map.off('drag', handleDrag);
+            map.off('moveend', handleMoveEnd);
+        };
     }, [map]);
     return null;
 };
@@ -45,7 +53,7 @@ const MinimizeControl = ({ isExpanded, toggleExpand, isDarkMode }: { isExpanded:
             options: { position: 'topright' },
             onAdd: () => {
                 const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-                container.style.backgroundColor = isDarkMode ? 'rgb(38,45,52)' : 'white';
+                container.style.backgroundColor = 'dark:rgb(38,45,52) white';
                 container.style.width = '34px';
                 container.style.height = '34px';
                 container.style.display = 'flex';
@@ -102,7 +110,8 @@ const Maps: React.FC<MapsProps> = ({ setoranRekap, setoranRekapTotal, periodes, 
 
     useEffect(() => {
         const locale = localStorage.getItem('language_code');
-        const validLang = { id_id: 'id', ra_ra: 'ar', en_us: 'en' }[locale] || 'id';
+        const langMap: Record<string, 'id' | 'ar' | 'en'> = { id_id: 'id', ra_ra: 'ar', en_us: 'en' };
+        const validLang = locale && langMap[locale] ? langMap[locale] : 'id';
         setLang(validLang);
     }, []);
 
@@ -125,14 +134,14 @@ const Maps: React.FC<MapsProps> = ({ setoranRekap, setoranRekapTotal, periodes, 
 
     return (
         <div className={`mx-auto h-full w-full ${isExpanded ? 'fixed inset-0 z-50' : ''}`}>
-            <div className={`h-full w-full overflow-hidden rounded-lg shadow-lg ${isDarkMode ? 'bg-[rgb(38,45,52)]' : 'bg-white'}`}>
+            <div className={`h-full w-full overflow-hidden rounded-lg shadow-lg dark:bg-[rgb(38,45,52)] bg-white`}>
                 {/* Header Card */}
-                <div className={`flex items-center justify-between p-4 rounded-t-lg ${isDarkMode ? 'bg-[rgb(38,45,52)]' : 'bg-white'}`}>
-                    <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{translations[lang].title}</h2>
+                <div className={`flex items-center justify-between p-4 rounded-t-lg dark:bg-[rgb(38,45,52)] bg-white`}>
+                    <h2 className={`text-xl font-semibold dark:text-white text-gray-800`}>{translations[lang].title}</h2>
                     <div className="flex items-center space-x-2">
                         <button
                             onClick={() => (window.location.href = '/dashboard')}
-                            className={`rounded-full p-2 transition-colors hover:cursor-pointer ${isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
+                            className={`rounded-full p-2 transition-colors hover:cursor-pointer dark:text-gray-300 hover:bg-gray-700 hover:text-white text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
                             aria-label="Go to dashboard"
                         >
                             <Grid2X2 className="h-5 w-5" />
@@ -141,7 +150,7 @@ const Maps: React.FC<MapsProps> = ({ setoranRekap, setoranRekapTotal, periodes, 
                             <select
                                 value={data.periode}
                                 onChange={handlePeriodeChange}
-                                className={`appearance-none rounded-full p-2 pr-8 transition-colors hover:cursor-pointer ${isDarkMode ? 'bg-[rgb(38,45,52)] text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
+                                className={`appearance-none rounded-full p-2 pr-8 transition-colors hover:cursor-pointer dark:bg-[rgb(38,45,52)] text-gray-300 hover:bg-gray-700 text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
                                 aria-label="Filter by period"
                             >
                                 <option value="">{lang === 'en' ? 'All' : lang === 'ar' ? 'الكل' : 'Semua'}</option>
@@ -154,12 +163,12 @@ const Maps: React.FC<MapsProps> = ({ setoranRekap, setoranRekapTotal, periodes, 
                                     </option>
                                 ))}
                             </select>
-                            <Calendar className={`pointer-events-none absolute top-1/2 right-2 h-5 w-5 -translate-y-1/2 transform ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`} />
+                            <Calendar className={`pointer-events-none absolute top-1/2 right-2 h-5 w-5 -translate-y-1/2 transform dark:text-gray-300 text-gray-600'}`} />
                         </div>
                         {!isExpanded && (
                             <button
                                 onClick={toggleExpand}
-                                className={`rounded-full p-2 transition-colors hover:cursor-pointer ${isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
+                                className={`rounded-full p-2 transition-colors hover:cursor-pointer dark:text-gray-300 hover:bg-gray-700 hover:text-white text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
                                 aria-label="Expand map"
                             >
                                 <Expand className="h-5 w-5" />
@@ -183,8 +192,6 @@ const Maps: React.FC<MapsProps> = ({ setoranRekap, setoranRekapTotal, periodes, 
                         <TileLayer
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                             attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                            updateWhenIdle={true}
-                            updateWhenZooming={false}
                         />
                         <MapBounds />
                         <MinimizeControl isExpanded={isExpanded} toggleExpand={toggleExpand} isDarkMode={isDarkMode} />
@@ -199,7 +206,7 @@ const Maps: React.FC<MapsProps> = ({ setoranRekap, setoranRekapTotal, periodes, 
                 </div>
 
                 {/* Footer Card */}
-                <div className={`p-3 text-sm rounded-b-lg ${isDarkMode ? 'bg-[rgb(38,45,52)] text-gray-300' : 'bg-gray-50 text-gray-600'}`}>
+                <div className={`p-3 text-sm rounded-b-lg dark:bg-[rgb(38,45,52)] text-gray-300 bg-gray-50 text-gray-600'}`}>
                     {/* Footer content */}
                 </div>
             </div>
