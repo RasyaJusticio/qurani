@@ -427,12 +427,12 @@ export default function SurahIndex() {
                                     </span>
 
                                     {groupedVerses[verse.page_number][groupedVerses[verse.page_number].length - 1].verse.id === verse.id && (
-                                        <div className="my-4 flex items-center">
-                                            <hr className="flex-1 border-t border-gray-300" />
-                                            <span className="mx-4 text-sm font-medium text-gray-600">Page {verse.page_number}</span>
-                                            <hr className="flex-1 border-t border-gray-300" />
-                                        </div>
-                                    )}
+    <div className="my-4 flex items-center">
+        <hr className="flex-1 border-t border-2 dark:border-gray-300 border-gray-700" />
+        <span className="mx-4 text-sm font-bold dark:text-gray-300 text-gray-700">Page {verse.page_number}</span>
+        <hr className="flex-1 border-t border-2 dark:border-gray-300 border-gray-700" />
+    </div>
+)}
                                     {index < verses.length - 1 && ' '}
                                 </span>
                             );

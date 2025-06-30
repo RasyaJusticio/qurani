@@ -1,8 +1,9 @@
 import AppWrapper from '@/components/layouts/app-wrapper';
-import PageHeader from '@/components/layouts/page-juz-header';
+import PageHeader from '@/components/layouts/main-header';
 import { Head, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import MistakeModal from '../../components/layouts/mistakeModal';
+import { cn } from '@/lib/utils';
 
 interface Word {
     id: number;
@@ -41,6 +42,7 @@ interface PageProps {
     juz: Juz;
     verses: Verse[];
     chapters: { [key: number]: Chapter };
+    [key: string]: unknown; // Add index signature to satisfy Inertia PageProps constraint
 }
 
 interface ErrorsByPage {
@@ -88,6 +90,8 @@ export default function JuzIndex() {
     const [selectedVerseId, setSelectedVerseId] = useState<number | null>(null);
     const [wordErrors, setWordErrors] = useState<{ [key: number]: string }>({});
     const [verseErrors, setVerseErrors] = useState<{ [key: number]: string }>({});
+    const [selectedWordText, setSelectedWordText] = useState<string | null>(null);
+    const [isDarkMode, setIsDarkMode] = useState(false);
 
     useEffect(() => {
         if (verses.length === 0) {
@@ -121,9 +125,12 @@ export default function JuzIndex() {
         if (type === 'word') {
             setSelectedWordId(id);
             setSelectedVerseId(null);
+            const word = verses.flatMap((v) => v.words).find((w) => w.id === id);
+            setSelectedWordText(word ? word.text_uthmani : null);
         } else {
             setSelectedVerseId(id);
             setSelectedWordId(null);
+            setSelectedWordText(null);
         }
         setModalOpen(true);
     };
@@ -211,88 +218,141 @@ export default function JuzIndex() {
         <AppWrapper>
             <Head title="Juz" />
             <PageHeader page={1} translateMode="read" classNav="v" target="/result/page" />
-            <div className="container mx-auto max-w-3xl p-4 pt-20">
+            <style>
+                {`
+                    :root {
+                        --background-color: ${isDarkMode ? '#1a202c' : '#ffffff'};
+                        --text-color: ${isDarkMode ? '#ffffff' : '#000000'};
+                    }
+                    body {
+                        background-color: var(--background-color);
+                        color: var(--text-color);
+                    }
+                    .text-white {
+                        color: var(--text-color);
+                    }
+                    .text-black {
+                        color: var(--text-color);
+                    }
+                    .border-gray-300 {
+                        border-color: ${isDarkMode ? '#4a5568' : '#e2e8f0'};
+                    }
+                `}
+            </style>
+            <div className="mx-auto max-w-4xl overflow-auto p-4">
                 <MistakeModal
                     isOpen={modalOpen}
                     onClose={() => {
                         setModalOpen(false);
                         setSelectedWordId(null);
                         setSelectedVerseId(null);
+                        setSelectedWordText(null);
                     }}
                     onLabelSelect={handleLabelSelect}
                     onRemoveLabel={handleRemoveLabel}
                     versesEmpty={verses.length === 0}
                     selectedWordId={selectedWordId}
                     selectedVerseId={selectedVerseId}
+                    selectedWordText={selectedWordText}
                     wordErrors={wordErrors}
                     verseErrors={verseErrors}
                 />
-                <div className="font-arabic text-right text-3xl leading-loose text-gray-800">
+                <div className="mt-20 mb-12 text-center">
+                    <p className={`text-lg dark:text-gray-300`}>
+                        Juz {juz.juz_number}
+                    </p>
+                </div>
+                <div
+                    className={`font-arabic text-3xl dark:text-gray-300`}
+                    style={{
+                        direction: 'rtl',
+                        textAlign: 'justify',
+                        textJustify: 'inter-word',
+                        lineHeight: '2',
+                        wordSpacing: '0.05em',
+                        letterSpacing: '0.03em',
+                    }}
+                >
                     {verses.map((verse, index) => {
                         const surahId = parseInt(verse.verse_key.split(':')[0]);
                         const prevVerse = index > 0 ? verses[index - 1] : null;
                         const isNewSurah = !prevVerse || surahId !== parseInt(prevVerse.verse_key.split(':')[0]);
+                        const verseLabel = verseErrors[verse.id]
+                            ? errorLabels.find((l) => l.key === verseErrors[verse.id])
+                            : null;
+
                         return (
                             <>
                                 {isNewSurah && (
                                     <div key={`surah-${surahId}`} className="mb-6 text-center">
-                                        <h2 className="font-arabic text-3xl font-bold text-gray-800">{chapters[surahId].name_arabic}</h2>
-                                        <p className="mt-2 text-lg text-gray-600">
+                                        <h2 className="font-arabic text-3xl font-bold dark:text-gray-300">{chapters[surahId].name_arabic}</h2>
+                                        <p className="mt-2 text-lg text-gray-600 dark:text-gray-300">
                                             {chapters[surahId].translated_name.name} ({chapters[surahId].name_simple})
                                         </p>
                                         {chapters[surahId].bismillah_pre && (
-                                            <p className="font-arabic mt-4 text-3xl text-gray-800">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</p>
+                                            <p className="font-arabic mt-4 text-3xl dark:text-gray-300">
+                                                بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
+                                            </p>
                                         )}
                                     </div>
                                 )}
                                 <span key={verse.id}>
-                                    {verse.words.map((word) => (
-                                        <span
-                                            key={word.id}
-                                            className="cursor-pointer transition-colors duration-200 hover:text-blue-300"
-                                            style={{
-                                                backgroundColor: wordErrors[word.id]
-                                                    ? errorLabels.find((label) => label.key === wordErrors[word.id])?.color || 'transparent'
-                                                    : 'transparent',
-                                            }}
-                                            onClick={() => handleClick('word', word.id)}
-                                            role="button"
-                                            tabIndex={0}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter' || e.key === ' ') {
-                                                    handleClick('word', word.id);
-                                                }
-                                            }}
-                                        >
-                                            {word.text_uthmani}{' '}
-                                        </span>
-                                    ))}
                                     <span
-                                        className="font-arabic inline-flex cursor-pointer items-center justify-center text-xl text-gray-700"
+                                        className={cn("transition-colors duration-200", verseLabel && "dark:text-gray-900")}
                                         style={{
-                                            backgroundColor: verseErrors[verse.id]
-                                                ? errorLabels.find((label) => label.key === verseErrors[verse.id])?.color || 'transparent'
-                                                : 'transparent',
+                                            backgroundColor: verseLabel?.color || 'transparent',
+                                            display: verseLabel ? 'inline-block' : '',
+                                            padding: verseLabel ? '3.5px 6px' : '0',
+                                            lineHeight: verseLabel ? '1.5' : '2',
+                                            borderRadius: verseLabel ? '6px' : '0',
+                                            marginRight: '8px',
+                                            verticalAlign: 'middle',
                                         }}
                                         onClick={() => handleClick('verse', verse.id)}
-                                        role="button"
-                                        tabIndex={0}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' || e.key === ' ') {
-                                                handleClick('verse', verse.id);
-                                            }
-                                        }}
                                     >
-                                        ۝{verse.end_marker || verse.verse_number}
+                                        {verse.words.map((word) => {
+                                            const wordLabel = wordErrors[word.id]
+                                                ? errorLabels.find((l) => l.key === wordErrors[word.id])
+                                                : null;
+
+                                            return (
+                                                <span
+                                                    key={word.id}
+                                                    className={cn("cursor-pointer transition-colors duration-200 hover:text-blue-300", wordLabel && "dark:text-gray-900")}
+                                                    style={{
+                                                        backgroundColor: wordLabel?.color || 'transparent',
+                                                        display: 'inline',
+                                                        lineHeight: wordLabel ? '0' : '1',
+                                                        padding: wordLabel ? '9px 6px' : '0',
+                                                        borderRadius: wordLabel ? '6px' : '0',
+                                                        margin: wordLabel ? '4px 0' : '0',
+                                                    }}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleClick('word', word.id);
+                                                    }}
+                                                >
+                                                    {word.text_uthmani}{' '}
+                                                </span>
+                                            );
+                                        })}
+
+                                        <span
+                                            className="cursor-pointer transition-colors duration-200 hover:text-blue-300"
+                                            onClick={() => handleClick('verse', verse.id)}
+                                        >
+                                            ۝{verse.end_marker || verse.verse_number}
+                                        </span>
                                     </span>
+
+                                    {index < verses.length - 1 && verses[index + 1].page_number !== verse.page_number && (
+                                        <div className="my-4 flex items-center">
+                                            <hr className="flex-1 border-t border-2 dark:border-gray-300 border-gray-700" />
+                                            <span className="mx-4 text-sm font-bold dark:text-gray-300 text-gray-700">Page {verse.page_number}</span>
+                                            <hr className="flex-1 border-t border-2 dark:border-gray-300 border-gray-700" />
+                                        </div>
+                                    )}
                                 </span>
-                                {index < verses.length - 1 && verses[index + 1].page_number !== verse.page_number && (
-                                    <div className="my-4 flex items-center">
-                                        <hr className="flex-1 border-t border-gray-300" />
-                                        <span className="mx-4 text-sm font-medium text-gray-600">Page {verse.page_number}</span>
-                                        <hr className="flex-1 border-t border-gray-300" />
-                                    </div>
-                                )}
                             </>
                         );
                     })}
