@@ -1,4 +1,3 @@
-// table.tsx
 import { setupTranslations } from '@/features/i18n/i18n';
 import { router } from '@inertiajs/react';
 import axios from 'axios';
@@ -6,6 +5,7 @@ import { Check, Grid2X2, SquareActivity } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../components/layouts/theme-context';
+import PopUp from '../../../components/ui/PopUp';
 
 interface HistoryTableProps {
     fluidDesign: boolean;
@@ -35,6 +35,8 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
     const { isDarkMode } = useTheme();
     const { t } = useTranslation('table');
     const [translationsReady, setTranslationsReady] = useState(false);
+    const [showPopUp, setShowPopUp] = useState(false);
+    const [selectedId, setSelectedId] = useState<number | null>(null);
 
     useEffect(() => {
         const loadTranslations = async () => {
@@ -82,6 +84,7 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
     const handleSign = async (id: number) => {
         await axios.post(`/setoran/${id}/sign`);
         router.reload({ only: ['setoran'] });
+        setShowPopUp(false);
     };
 
     return (
@@ -153,9 +156,16 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                                                                         size={20}
                                                                         className={
                                                                             item.signature === 0
-                                                                                ? `cursor-pointer dark:text-gray-400 hover:text-gray-200 text-gray-400 hover:text-gray-600'}`
+                                                                                ? `cursor-pointer dark:text-gray-400 hover:text-gray-200 text-gray-400 hover:text-gray-600`
                                                                                 : 'text-blue-500'
                                                                         }
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            if (item.signature === 0) {
+                                                                                setSelectedId(item.id);
+                                                                                setShowPopUp(true);
+                                                                            }
+                                                                        }}
                                                                     />
                                                                 </div>
                                                             );
@@ -175,9 +185,6 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                                                             e.stopPropagation();
                                                             if (col === 'reciter') openUserProfile(item.reciter_username);
                                                             if (col === 'recipient') openUserProfile(item.recipient_username);
-                                                            if (col === 'signature' && item.signature === 0) {
-                                                                if (window.confirm(t('confirm.sign_record'))) handleSign(item.id);
-                                                            }
                                                         }}
                                                     >
                                                         {value}
@@ -238,7 +245,8 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                                                         if (col === 'reciter') openUserProfile(item.reciter_username);
                                                         if (col === 'recipient') openUserProfile(item.recipient_username);
                                                         if (col === 'signature' && item.signature === 0) {
-                                                            if (window.confirm(t('confirm.sign_record'))) handleSign(item.id);
+                                                            setSelectedId(item.id);
+                                                            setShowPopUp(true);
                                                         }
                                                     }}
                                                 >
@@ -255,6 +263,13 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                                                                         ? `inline-block cursor-pointer dark:text-gray-400 hover:text-gray-200 text-gray-400 hover:text-gray-600`
                                                                         : 'text-blue-500 inline-block'
                                                                 }
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    if (item.signature === 0) {
+                                                                        setSelectedId(item.id);
+                                                                        setShowPopUp(true);
+                                                                    }
+                                                                }}
                                                             />
                                                         ) : (
                                                             value
@@ -274,6 +289,14 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                     </div>
                 </div>
             </div>
+            {showPopUp && selectedId && (
+                <PopUp
+                    isOpen={showPopUp}
+                    onClose={() => setShowPopUp(false)}
+                    onConfirm={() => handleSign(selectedId)}
+                    message={t('history.confirmSignRecord')}
+                />
+            )}
         </div>
     );
 };

@@ -20,7 +20,7 @@
     },
     "settingsButtonTitle": "Pengaturan Qurani",
     "tableViewTitle": "Tampilan Tabel",
-    "confirmSignRecord": "Konfirmasi untuk menandai paraf ini?",
+    "confirmSignRecord": "Apakah anda ingin memberi paraf setoran ini?",
     "errorMessages": {
       "fetchFailed": "Gagal mengambil detail setoran",
       "signFailed": "Gagal menandatangani rekaman"
