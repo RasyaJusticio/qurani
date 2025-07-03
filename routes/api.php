@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\LinkID\ResultController;
+use App\Http\Controllers\Qurani\JuzController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -10,3 +11,4 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::post('/result',[ResultController::class,'store']);
+Route::get('/jus/{id}',[JuzController::class,'api']);

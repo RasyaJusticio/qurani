@@ -6,13 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\Qurani\Chapter;
 use App\Models\Qurani\Verses;
 use App\Models\Qurani\Word;
+use App\Traits\ErrorLabel;
 use App\Traits\FetchWords;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class ChapterController extends Controller
 {
-    use FetchWords;
+    use FetchWords, ErrorLabel;
 
     public function show($id, Request $request)
     {
@@ -45,6 +48,7 @@ class ChapterController extends Controller
         if ($verses->isNotEmpty()) {
             $verseKeys = $verses->pluck('verse_key')->toArray();
             $wordsGroup = $this->fetchWordsForVerses($verseKeys);
+            $errorLabel= $this->ErrorLabelGenerate(Auth::user());
             $endMarkers = Word::where(function ($query) use ($verseKeys) {
                 foreach ($verseKeys as $key) {
                     $query->orWhere('location', 'like', $key . ':%');
@@ -85,7 +89,8 @@ class ChapterController extends Controller
                 'verses_count' => $surah->verses_count,
                 'translated_name' => $surah->translated_name
             ],
-            'verses' => $verses
+            'verses' => $verses,
+            'errorLabels' => $errorLabel,
         ]);
     }
 }

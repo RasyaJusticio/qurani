@@ -10,6 +10,7 @@
       "signature": "Signature",
       "noData": "Doesn't recite history"
     },
+    "confirmSignRecord":"Would you like to initial this deposit?",
     "settingsButtonTitle": "Qurani Setting"
   }
 }

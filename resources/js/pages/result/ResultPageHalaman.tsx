@@ -1,6 +1,6 @@
 import AppWrapper from '@/components/layouts/app-wrapper';
 import RecapHeader from '@/components/layouts/recap-header';
-import PageRecapFormLayout from '@/features/result/components/pageJuzResultForm';
+import PageRecapFormLayout from '@/features/result/components/pageHalamanResultForm';
 import { Head } from '@inertiajs/react';
 
 const index = () => {

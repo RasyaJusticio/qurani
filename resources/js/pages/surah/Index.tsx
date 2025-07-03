@@ -1,9 +1,9 @@
 import AppWrapper from '@/components/layouts/app-wrapper';
 import QuranHeader from '@/components/layouts/main-header';
+import { cn } from '@/lib/utils';
 import { Head, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import MistakeModal from '../../components/layouts/mistakeModal';
-import { cn } from '@/lib/utils';
 
 interface Word {
     id: number;
@@ -24,6 +24,14 @@ interface Verse {
     words: Word[];
 }
 
+interface ErrorLabel {
+    id: number;
+    key: string;
+    value: string;
+    color: string;
+    status: number;
+}
+
 interface Surah {
     id: number;
     revelation_place: string;
@@ -37,6 +45,12 @@ interface Surah {
 interface PageProps {
     surah: Surah;
     verses: Verse[];
+    errorLabels: {
+        user: ErrorLabel[];
+        grup: {
+            [key: number]: ErrorLabel[];
+        };
+    };
     [key: string]: unknown;
 }
 
@@ -57,42 +71,24 @@ type ErrorsByPage = {
     };
 };
 
-const errorLabels = [
-    { id: 1, key: 'sa-1', value: 'Ayat Lupa', color: '#CCCCCC', status: 1 },
-    { id: 2, key: 'sa-2', value: 'Ayat Waqaf atau Washal', color: '#99CCFF', status: 1 },
-    { id: 3, key: 'sa-3', value: 'Ayat Waqaf dan Ibtida', color: '#DFF18F', status: 1 },
-    { id: 4, key: 'sa-4', value: 'Ayat Tertukar', color: '#F4ACB6', status: 1 },
-    { id: 5, key: 'sa-5', value: 'Lainnya(Global)', color: '#FA7656', status: 1 },
-    { id: 6, key: 'sk-1', value: 'Gharib', color: '#FFCC99', status: 1 },
-    { id: 7, key: 'sk-2', value: 'Ghunnah', color: '#F4A384', status: 1 },
-    { id: 8, key: 'sk-3', value: 'Harakat tertukar', color: '#F8DD74', status: 1 },
-    { id: 9, key: 'sk-4', value: 'Huruf Tambah Kurang', color: '#FA7656', status: 1 },
-    { id: 10, key: 'sk-5', value: 'Lupa', color: '#B5C9DF', status: 1 },
-    { id: 11, key: 'sk-6', value: 'Mad', color: '#FE7D8F', status: 1 },
-    { id: 12, key: 'sk-7', value: 'Makhroj', color: '#A1D4CF', status: 1 },
-    { id: 13, key: 'sk-8', value: 'Nun Mati Tanwin', color: '#90CBAA', status: 1 },
-    { id: 14, key: 'sk-9', value: 'Qalqalah', color: '#FA7656', status: 1 },
-    { id: 15, key: 'sk-10', value: 'Tasydid', color: '#FE7D8F', status: 1 },
-    { id: 16, key: 'sk-11', value: 'Urutan Huruf / Kata', color: '#90CBAA', status: 1 },
-    { id: 17, key: 'sk-12', value: 'Waqof Washal', color: '#F8DD74', status: 1 },
-    { id: 18, key: 'sk-13', value: 'Waqaf Ibtida', color: '#CC99CC', status: 1 },
-    { id: 19, key: 'sk-14', value: 'Lainnya', color: '#CCCCCC', status: 1 },
-];
-
 export default function SurahIndex() {
     const { props } = usePage<PageProps>();
-    const { surah, verses } = props || { surah: null, verses: [] };
+    // Pastikan errorLabels memiliki nilai default yang sesuai dengan tipe barunya
+    const { surah, verses, errorLabels } = props || { surah: null, verses: [], errorLabels: { user: [], grup: [] } };
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedWordId, setSelectedWordId] = useState<number | null>(null);
     const [selectedVerseId, setSelectedVerseId] = useState<number | null>(null);
     const [selectedWordText, setSelectedWordText] = useState<string | null>(null);
+    const [penyetor, setPenyetor] = useState<string>('');
+    const [selectedGrup, setSelectedGroup] = useState<number>(0);
     const [wordErrors, setWordErrors] = useState<{ [key: number]: string }>({});
     const [verseErrors, setVerseErrors] = useState<{ [key: number]: string }>({});
     const [isDarkMode, setIsDarkMode] = useState(false);
 
     useEffect(() => {
-        if (!surah || !verses) {
-            console.error("Data surah atau verses tidak tersedia dari server.");
+        // Periksa apakah errorLabels juga tersedia
+        if (!surah || !verses || !errorLabels) {
+            console.error('Data surah, verses, atau errorLabels tidak tersedia dari server.');
             return;
         }
 
@@ -104,52 +100,21 @@ export default function SurahIndex() {
         if (savedWordErrors) setWordErrors(JSON.parse(savedWordErrors));
         if (savedVerseErrors) setVerseErrors(JSON.parse(savedVerseErrors));
 
-        // Inisialisasi tema berdasarkan penyimpanan lokal atau preferensi sistem
-        const initialDarkMode = savedThemeLocal === 'dark' || (!savedThemeLocal && prefersDark);
-        setIsDarkMode(initialDarkMode);
-        if (initialDarkMode) {
-            document.documentElement.classList.add('dark');
-            setCookie('s_night_mode', '1', 30);
-        } else {
-            document.documentElement.classList.remove('dark');
-            setCookie('s_night_mode', '0', 30);
-        }
-
-        const listener = (e: MediaQueryListEvent) => {
-            const newTheme = e.matches;
-            setIsDarkMode(newTheme);
-            updateTheme(newTheme);
-        };
-        const mq = window.matchMedia('(prefers-color-scheme: dark)');
-        mq.addEventListener('change', listener);
-
-        return () => mq.removeEventListener('change', listener);
-    }, []);
+        // const initialDarkMode = savedThemeLocal === 'dark' || (!savedThemeLocal && prefersDark);
+        // setIsDarkMode(initialDarkMode);
+        // if (initialDarkMode) {
+        //     document.documentElement.classList.add('dark');
+        //     setCookie('s_night_mode', '1', 30);
+        // } else {
+        //     document.documentElement.classList.remove('dark');
+        //     setCookie('s_night_mode', '0', 30);
+        // }
+    }, [errorLabels]); // Tambahkan errorLabels sebagai dependency agar useEffect ini berjalan saat errorLabels tersedia
 
     const setCookie = (name: string, value: string, days: number) => {
         const date = new Date();
         date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
         document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/`;
-    };
-
-    const updateTheme = (dark: boolean) => {
-        if (dark) {
-            document.documentElement.classList.add('dark');
-            localStorage.setItem('theme', 'dark');
-            setCookie('s_night_mode', '1', 30);
-        } else {
-            document.documentElement.classList.remove('dark');
-            localStorage.setItem('theme', 'light');
-            setCookie('s_night_mode', '0', 30);
-        }
-    };
-
-    const toggleTheme = () => {
-        setIsDarkMode((prev) => {
-            const newTheme = !prev;
-            updateTheme(newTheme);
-            return newTheme;
-        });
     };
 
     useEffect(() => {
@@ -158,10 +123,10 @@ export default function SurahIndex() {
         if (verses.length === 0) {
             setModalOpen(true);
         }
-    }, [verses]);
+    }, [verses, surah]); // Tambahkan surah ke dependency
 
     useEffect(() => {
-        if (!surah || !verses) return;
+        if (!surah || !verses || !errorLabels) return; // Pastikan errorLabels juga tersedia
 
         const errorsByPage = generateErrorsByPage();
         const existingData = localStorage.getItem('setoran-data');
@@ -169,13 +134,15 @@ export default function SurahIndex() {
         const startVerse = verses.length > 0 ? verses[0].verse_number : 1;
         const endVerse = verses.length > 0 ? verses[verses.length - 1].verse_number : surah.verses_count;
 
-        const pageNumber = verses.length > 0 ? verses[0].page_number : 1;
-        const surahDetails = [{
-            id: surah.id.toString(),
-            name: surah.name_simple,
-            first_verse: startVerse.toString(),
-            last_verse: endVerse.toString(),
-        }];
+        // const pageNumber = verses.length > 0 ? verses[0].page_number : 1; // Variabel ini tidak digunakan
+        const surahDetails = [
+            {
+                id: surah.id.toString(),
+                name: surah.name_simple,
+                first_verse: startVerse.toString(),
+                last_verse: endVerse.toString(),
+            },
+        ];
 
         let dataToSave = {
             reciter: { id: '12345', full_name: 'Ahmad Ridwan bin Abdullah' },
@@ -187,11 +154,16 @@ export default function SurahIndex() {
 
         if (existingData) {
             const parsedData = JSON.parse(existingData);
+            // Pastikan parsedData.penyetor adalah string sebelum diset
+            if (typeof parsedData.penyetor === 'string') {
+                setPenyetor(parsedData.penyetor);
+                setSelectedGroup(parseInt(parsedData.selectedGroup, 10));
+            }
             dataToSave = { ...parsedData, surah: dataToSave.surah, mistake: errorsByPage };
         }
 
         localStorage.setItem('setoran-data', JSON.stringify(dataToSave));
-    }, [wordErrors, verseErrors, surah, verses]);
+    }, [wordErrors, verseErrors, surah, verses, errorLabels]); // Tambahkan errorLabels ke dependency
 
     useEffect(() => {
         localStorage.setItem('wordErrors', JSON.stringify(wordErrors));
@@ -256,7 +228,9 @@ export default function SurahIndex() {
                     errorsByPage[page] = { salahAyat: [], salahKata: [] };
                 }
                 const errorKey = verseErrors[verseId];
-                const errorLabel = errorLabels.find((label) => label.key === errorKey);
+                const allErrorLabels = [...(errorLabels.user || []), ...(errorLabels.grup[`${selectedGrup}`] || [])];
+                const errorLabel = allErrorLabels.find((label) => label.key === errorKey);
+
                 if (errorLabel) {
                     errorsByPage[page].salahAyat.push({
                         salahKey: errorKey,
@@ -279,7 +253,9 @@ export default function SurahIndex() {
                 const word = verse.words.find((w) => w.id === wordId);
                 if (word) {
                     const errorKey = wordErrors[wordId];
-                    const errorLabel = errorLabels.find((label) => label.key === errorKey);
+                    // Perbaikan di sini: errorLabels.find ini mencari di seluruh label yang tersedia
+                    const allErrorLabels = [...(errorLabels.user || []), ...(errorLabels.grup[`${selectedGrup}`] || [])];
+                    const errorLabel = allErrorLabels.find((label) => label.key === errorKey);
                     if (errorLabel) {
                         errorsByPage[page].salahKata.push({
                             salahKey: errorKey,
@@ -307,7 +283,15 @@ export default function SurahIndex() {
         {} as { [key: number]: { verse: Verse; index: number }[] },
     );
 
-    if (!surah || !verses) {
+    const valdateErrorLabels = (): ErrorLabel[] => {
+        if(penyetor == "grup") {
+            return errorLabels.grup[`${selectedGrup}`]
+        }else {
+            return errorLabels[`${penyetor}`];
+        }
+    }
+
+    if (!surah || !verses || !errorLabels) {
         return <div>Data tidak tersedia.</div>;
     }
 
@@ -315,11 +299,11 @@ export default function SurahIndex() {
         <AppWrapper>
             <Head title={`${surah.name_simple} - Recap`} />
             <QuranHeader page={1} translateMode="read" target="/result" />
-            <style>
+            {/* <style>
                 {`
                     :root {
-                        --background-color: dark:#1a202c #ffffff};
-                        --text-color: dark: #ffffff #000000};
+                        --background-color: ${isDarkMode ? '#1a202c' : '#ffffff'};
+                        --text-color: ${isDarkMode ? '#ffffff' : '#000000'};
                     }
                     body {
                         background-color: var(--background-color);
@@ -333,10 +317,10 @@ export default function SurahIndex() {
                         color: var(--text-color);
                     }
                     .dark .border-gray-300 {
-                        border-color: dark:#4a5568 #e2e8f0'};
+                        border-color: ${isDarkMode ? '#4a5568' : '#e2e8f0'};
                     }
                 `}
-            </style>
+            </style> */}
             <div className="mx-auto max-w-4xl overflow-auto p-4">
                 <MistakeModal
                     isOpen={modalOpen}
@@ -348,6 +332,7 @@ export default function SurahIndex() {
                     }}
                     onLabelSelect={handleLabelSelect}
                     onRemoveLabel={handleRemoveLabel}
+                    errorLabels={valdateErrorLabels()}
                     versesEmpty={verses.length === 0}
                     selectedWordId={selectedWordId}
                     selectedVerseId={selectedVerseId}
@@ -356,17 +341,17 @@ export default function SurahIndex() {
                     verseErrors={verseErrors}
                 />
                 <div className="mt-20 mb-12 text-center">
-                    <p className={`text-lg dark:text-gray-300 text-gray-700'}`}>
+                    <p className={`text-lg text-gray-700 dark:text-gray-300`}>
                         {surah.name_simple} ({surah.id})
                     </p>
                     {surah.bismillah_pre && (
-                        <p className={`font-arabic mt-6 text-4xl dartext-gray-300 text-gray-700'}`} style={{ direction: 'rtl' }}>
-                            بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
+                        <p className={`font-arabic mt-6 text-4xl dark:text-gray-300`} style={{ direction: 'rtl' }}>
+                            بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
                         </p>
                     )}
                 </div>
                 <div
-                    className={`font-arabic text-3xl dark:text-gray-300 text-gray-700'}`}
+                    className={`font-arabic text-3xl ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}
                     style={{
                         direction: 'rtl',
                         textAlign: 'justify',
@@ -378,15 +363,20 @@ export default function SurahIndex() {
                 >
                     {verses.length > 0 ? (
                         verses.map((verse, index) => {
+                            // Perbaikan di sini: errorLabels.penyetor
+                            // Menggunakan optional chaining (?) pada errorLabels.penyetor
                             const verseLabel = verseErrors[verse.id]
-                                ? errorLabels.find((l) => l.key === verseErrors[verse.id])
+                                ? valdateErrorLabels().find((l: ErrorLabel) => l.key === verseErrors[verse.id])
                                 : null;
-
                             return (
                                 <span key={verse.id}>
                                     <span
                                         key={verse.id}
-                                        className={cn("transition-colors duration-200", verseLabel && "dark:text-gray-900")}
+                                        // className={cn('transition-colors duration-200', verseLabel && 'dark:text-gray-900')}
+                                        className={cn(
+                                            'text-gray-900 transition-colors duration-200',
+                                            verseLabel ? 'dark:text-gray-900' : 'dark:text-gray-300',
+                                        )}
                                         style={{
                                             backgroundColor: verseLabel?.color || 'transparent',
                                             display: verseLabel ? 'inline-block' : '',
@@ -399,14 +389,22 @@ export default function SurahIndex() {
                                         onClick={() => handleClick('verse', verse.id)}
                                     >
                                         {verse.words.map((word) => {
-                                            const wordLabel = wordErrors[word.id]
-                                                ? errorLabels.find((l) => l.key === wordErrors[word.id])
+                                            // Perbaikan di sini: errorLabels.user, errorLabels.grup, errorLabels.penyetor
+                                            // Menggabungkan semua label untuk pencarian
+                                            const allAvailableLabels = [...(errorLabels.user || []), ...(errorLabels.grup[`${selectedGrup}`] || [])];
+                                            let wordLabel = wordErrors[word.id]
+                                                ? allAvailableLabels.find((l) => l.key === wordErrors[word.id])
                                                 : null;
-
+                                            const s = parseInt(word.location.split(':')[1], 10);
+                                            let versesLabel = verseErrors[verse.id];
+                                            const wordLabels = wordLabel || versesLabel;
                                             return (
                                                 <span
                                                     key={word.id}
-                                                    className={cn("cursor-pointer transition-colors duration-200 hover:text-blue-300", wordLabel && "dark:text-gray-900")}
+                                                    className={cn(
+                                                        'cursor-pointer text-gray-700 transition-colors duration-200 hover:text-blue-300 dark:hover:text-blue-300',
+                                                        wordLabels ? 'dark:text-gray-900' : 'dark:text-gray-300',
+                                                    )}
                                                     style={{
                                                         backgroundColor: wordLabel?.color || 'transparent',
                                                         display: 'inline',
@@ -435,9 +433,11 @@ export default function SurahIndex() {
 
                                     {groupedVerses[verse.page_number][groupedVerses[verse.page_number].length - 1].verse.id === verse.id && (
                                         <div className="my-4 flex items-center">
-                                            <hr className={`flex-1 border-t border-2 ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`} />
-                                            <span className={`mx-4 text-sm font-bold ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Page {verse.page_number}</span>
-                                            <hr className={`flex-1 border-t border-2 ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`} />
+                                            <hr className={`flex-1 border-2 border-t ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`} />
+                                            <span className={`mx-4 text-sm font-bold ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                Page {verse.page_number}
+                                            </span>
+                                            <hr className={`flex-1 border-2 border-t ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`} />
                                         </div>
                                     )}
                                     {index < verses.length - 1 && ' '}
@@ -445,7 +445,7 @@ export default function SurahIndex() {
                             );
                         })
                     ) : (
-                        <div className={'dark:text-gray-300 text-gray-700'}>Tidak ada data ayat untuk ditampilkan.</div>
+                        <div className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Tidak ada data ayat untuk ditampilkan.</div>
                     )}
                 </div>
             </div>

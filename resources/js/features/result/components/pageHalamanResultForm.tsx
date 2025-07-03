@@ -54,7 +54,7 @@ interface SetoranData {
     setoran_type: string;
     display: string;
     selectedGroup: string;
-    selectedJuz: string;
+    selectdeHalaman: string;
     page_number: string;
     surah: {
         id: string;
@@ -171,7 +171,7 @@ const PageRecapFormLayout: React.FC = () => {
             const data = localStorage.getItem('setoran-data');
             if (data) {
                 const parsedData: SetoranData = JSON.parse(data);
-                if (parsedData && parsedData.display === 'juz' && parsedData.surah /*&& Array.isArray(parsedData.surah.surah)*/) {
+                if (parsedData && parsedData.display === 'page' && parsedData.surah /*&& Array.isArray(parsedData.surah.surah)*/) {
                     setSetoranData(parsedData);
                     const transformedMistake: Mistake = {};
                     Object.entries(parsedData.mistake || {}).forEach(([page, data]) => {
@@ -191,7 +191,7 @@ const PageRecapFormLayout: React.FC = () => {
                         reciter: parsedData.reciter || { user_id: '', user_name: '', full_name: '' },
                         recipient: props.user_id || '',
                         setoran: parsedData.setoran || '',
-                        display: 'juz',
+                        display: 'halaman',
                         // page_number: parsedData.page_number || '',
                         surah: parsedData.surah,
                         mistake: transformedMistake,
@@ -319,8 +319,8 @@ const PageRecapFormLayout: React.FC = () => {
             penyetor: form.data.reciter?.user_name || '',
             penerima: parsedRecipient,
             setoran: form.data.setoran,
-            tampilan: 'juz',
-            nomor: setoranData.selectedJuz,
+            tampilan: 'page',
+            nomor: setoranData.selectedHalaman,
             info: info,
             hasil: form.data.kesimpulan,
             ket: form.data.catatan || null,
@@ -341,6 +341,8 @@ const PageRecapFormLayout: React.FC = () => {
                 router.visit('/home');
             })
             .catch((error) => {
+                console.log(postData);
+                console.log(error.response.data);
                 if (error.response && error.response.status === 422) {
                     const errors = error.response.data.errors;
                     Object.keys(errors).forEach((key) => {

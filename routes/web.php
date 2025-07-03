@@ -21,7 +21,8 @@ Route::get('/home', [HomeController::class, 'index'])->name('home');
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
 Route::get('/result', [ResultController::class, 'index'])->name('result');
-Route::get('/result/page', [ResultController::class, 'page'])->name('result.page');
+Route::get('/result/juz/{id}', [ResultController::class, 'juz'])->name('result.juz');
+Route::get('/result/page/{id}', [ResultController::class, 'page'])->name('result.page');
 
 Route::get('/recap', function () {
     return Inertia::render('recap/index');

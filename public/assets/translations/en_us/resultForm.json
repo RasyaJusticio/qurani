@@ -34,6 +34,8 @@
   "placeholders": {
     "select_verse": "Select Verse",
     "search_verse": "Search Verse",
+    "select_surah": "Select Chapter",
+    "search_Chapter": "Search Chapter",
     "select_conclusion": "Select Conclusion",
     "search_conclusion": "Search Conclusion"
   },

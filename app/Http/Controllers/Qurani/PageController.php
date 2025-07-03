@@ -8,6 +8,7 @@ use App\Models\Qurani\Verses;
 use App\Models\Qurani\Word;
 use App\Traits\FetchWords;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class PageController extends Controller
@@ -79,17 +80,17 @@ class PageController extends Controller
                 })->filter(function ($word) {
                     return $word['char_type_name'] === 'word';
                 })->values();
-                $verse->end_marker = $endMarkers->get($verse->verse_key, (object)['text_uthmani' => ''])->text_uthmani;
+                $verse->end_marker = $endMarkers->get($verse->verse_key, (object) ['text_uthmani' => ''])->text_uthmani;
                 return $verse;
             });
         }
 
-
+        Log::info($verses->toArray());
 
         // Render the Inertia view
         return Inertia::render('page/Index', [
             'page' => [
-                'page_number' => (int)$id
+                'page_number' => (int) $id
             ],
             'verses' => $verses,
             'chapters' => $chapters

@@ -267,7 +267,7 @@ export default function PageIndex() {
     return (
         <AppWrapper>
             <Head title={`Page ${page.page_number} - Recap`} />
-            <QuranHeader page={1} translateMode="read" target="/result/page" classNav="" />
+            <QuranHeader page={1} translateMode="read" target={`/result/page/${page.page_number}`} classNav="" />
             <style>
                 {`
                     .text-white {

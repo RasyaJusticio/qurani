@@ -1,9 +1,9 @@
 import AppWrapper from '@/components/layouts/app-wrapper';
 import PageHeader from '@/components/layouts/main-header';
+import { cn } from '@/lib/utils';
 import { Head, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import MistakeModal from '../../components/layouts/mistakeModal';
-import { cn } from '@/lib/utils';
 
 interface Word {
     id: number;
@@ -38,10 +38,24 @@ interface Juz {
     verses_count: number;
 }
 
+interface ErrorLabel {
+    id: number;
+    key: string;
+    value: string;
+    color: string;
+    status: number;
+}
+
 interface PageProps {
     juz: Juz;
     verses: Verse[];
     chapters: { [key: number]: Chapter };
+    errorLabels: {
+        user: ErrorLabel[];
+        grup: {
+            [key: number]: ErrorLabel[];
+        };
+    };
     [key: string]: unknown; // Add index signature to satisfy Inertia PageProps constraint
 }
 
@@ -61,33 +75,36 @@ interface ErrorsByPage {
     };
 }
 
-const errorLabels = [
-    { id: 1, key: 'sa-1', value: 'Ayat Lupa', color: '#CCCCCC', status: 1 },
-    { id: 2, key: 'sa-2', value: 'Ayat Waqaf atau Washal', color: '#99CCFF', status: 1 },
-    { id: 3, key: 'sa-3', value: 'Ayat Waqaf dan Ibtida', color: '#DFF18F', status: 1 },
-    { id: 4, key: 'sa-4', value: 'Ayat Tertukar', color: '#F4ACB6', status: 1 },
-    { id: 5, key: 'sa-5', value: 'Lainnya(Global)', color: '#FA7656', status: 1 },
-    { id: 6, key: 'sk-1', value: 'Gharib', color: '#FFCC99', status: 1 },
-    { id: 7, key: 'sk-2', value: 'Ghunnah', color: '#F4A384', status: 1 },
-    { id: 8, key: 'sk-3', value: 'Harakat tertukar', color: '#F8DD74', status: 1 },
-    { id: 9, key: 'sk-4', value: 'Huruf Tambah Kurang', color: '#FA7656', status: 1 },
-    { id: 10, key: 'sk-5', value: 'Lupa', color: '#B5C9DF', status: 1 },
-    { id: 11, key: 'sk-6', value: 'Mad', color: '#FE7D8F', status: 1 },
-    { id: 12, key: 'sk-7', value: 'Makhroj', color: '#A1D4CF', status: 1 },
-    { id: 13, key: 'sk-8', value: 'Nun Mati Tanwin', color: '#90CBAA', status: 1 },
-    { id: 14, key: 'sk-9', value: 'Qalqalah', color: '#FA7656', status: 1 },
-    { id: 15, key: 'sk-10', value: 'Tasydid', color: '#FE7D8F', status: 1 },
-    { id: 16, key: 'sk-11', value: 'Urutan Huruf / Kata', color: '#90CBAA', status: 1 },
-    { id: 17, key: 'sk-12', value: 'Waqof Washal', color: '#F8DD74', status: 1 },
-    { id: 18, key: 'sk-13', value: 'Waqaf Ibtida', color: '#CC99CC', status: 1 },
-    { id: 19, key: 'sk-14', value: 'Lainnya', color: '#CCCCCC', status: 1 },
-];
+// const errorLabels = [
+//     { id: 1, key: 'sa-1', value: 'Ayat Lupa', color: '#CCCCCC', status: 1 },
+//     { id: 2, key: 'sa-2', value: 'Ayat Waqaf atau Washal', color: '#99CCFF', status: 1 },
+//     { id: 3, key: 'sa-3', value: 'Ayat Waqaf dan Ibtida', color: '#DFF18F', status: 1 },
+//     { id: 4, key: 'sa-4', value: 'Ayat Tertukar', color: '#F4ACB6', status: 1 },
+//     { id: 5, key: 'sa-5', value: 'Lainnya(Global)', color: '#FA7656', status: 1 },
+//     { id: 6, key: 'sk-1', value: 'Gharib', color: '#FFCC99', status: 1 },
+//     { id: 7, key: 'sk-2', value: 'Ghunnah', color: '#F4A384', status: 1 },
+//     { id: 8, key: 'sk-3', value: 'Harakat tertukar', color: '#F8DD74', status: 1 },
+//     { id: 9, key: 'sk-4', value: 'Huruf Tambah Kurang', color: '#FA7656', status: 1 },
+//     { id: 10, key: 'sk-5', value: 'Lupa', color: '#B5C9DF', status: 1 },
+//     { id: 11, key: 'sk-6', value: 'Mad', color: '#FE7D8F', status: 1 },
+//     { id: 12, key: 'sk-7', value: 'Makhroj', color: '#A1D4CF', status: 1 },
+//     { id: 13, key: 'sk-8', value: 'Nun Mati Tanwin', color: '#90CBAA', status: 1 },
+//     { id: 14, key: 'sk-9', value: 'Qalqalah', color: '#FA7656', status: 1 },
+//     { id: 15, key: 'sk-10', value: 'Tasydid', color: '#FE7D8F', status: 1 },
+//     { id: 16, key: 'sk-11', value: 'Urutan Huruf / Kata', color: '#90CBAA', status: 1 },
+//     { id: 17, key: 'sk-12', value: 'Waqof Washal', color: '#F8DD74', status: 1 },
+//     { id: 18, key: 'sk-13', value: 'Waqaf Ibtida', color: '#CC99CC', status: 1 },
+//     { id: 19, key: 'sk-14', value: 'Lainnya', color: '#CCCCCC', status: 1 },
+// ];
 
 export default function JuzIndex() {
-    const { juz, verses, chapters } = usePage<PageProps>().props;
+    const { juz, verses, chapters, errorLabels } = usePage<PageProps>().props;
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedWordId, setSelectedWordId] = useState<number | null>(null);
     const [selectedVerseId, setSelectedVerseId] = useState<number | null>(null);
+    const [penyetor, setPenyetor] = useState<string>('');
+    const [selectedGrup, setSelectedGroup] = useState<number>(0);
+    const [selectedJuz, setSelectedJuz] = useState<number>(0);
     const [wordErrors, setWordErrors] = useState<{ [key: number]: string }>({});
     const [verseErrors, setVerseErrors] = useState<{ [key: number]: string }>({});
     const [selectedWordText, setSelectedWordText] = useState<string | null>(null);
@@ -98,6 +115,13 @@ export default function JuzIndex() {
             setModalOpen(true);
         }
     }, [verses]);
+
+    useEffect(() => {
+        const savedWordErrors = localStorage.getItem('wordErrors');
+        const savedVerseErrors = localStorage.getItem('verseErrors');
+        if (savedWordErrors) setWordErrors(JSON.parse(savedWordErrors));
+        if (savedVerseErrors) setVerseErrors(JSON.parse(savedVerseErrors));
+    }, []);
 
     useEffect(() => {
         const errorsByPage = generateErrorsByPage();
@@ -117,8 +141,16 @@ export default function JuzIndex() {
         if (existingData) {
             const parsedData = JSON.parse(existingData);
             dataToSave = { ...parsedData, surah: dataToSave.surah, mistake: errorsByPage };
+            setPenyetor(parsedData.penyetor);
+            setSelectedGroup(parseInt(parsedData.selectedGroup, 10));
+            setSelectedJuz(parseInt(parsedData.selectedJuz, 10));
+            localStorage.setItem('setoran-data', JSON.stringify(dataToSave));
         }
-        localStorage.setItem('setoran-data', JSON.stringify(dataToSave));
+    }, [wordErrors, verseErrors]);
+
+    useEffect(() => {
+        localStorage.setItem('wordErrors', JSON.stringify(wordErrors));
+        localStorage.setItem('verseErrors', JSON.stringify(verseErrors));
     }, [wordErrors, verseErrors]);
 
     const handleClick = (type: 'word' | 'verse', id: number) => {
@@ -176,7 +208,12 @@ export default function JuzIndex() {
                     errorsByPage[page] = { salahAyat: [], salahKata: [] };
                 }
                 const errorKey = verseErrors[verseId];
-                const errorLabel = errorLabels.find((label) => label.key === errorKey);
+                // Perbaikan di sini: errorLabels.user atau errorLabels.grup
+                // Asumsi errorLabels.find ini mencari di seluruh label yang tersedia
+                // Jika errorLabels.penyetor juga berisi label yang relevan, Anda perlu menggabungkannya
+                // Atau tentukan dari mana label ini berasal (user, grup, atau penyetor)
+                const allErrorLabels = [...(errorLabels.user || []), ...(errorLabels.grup[`${selectedGrup}`] || [])];
+                const errorLabel = allErrorLabels.find((label) => label.key === errorKey);
                 if (errorLabel) {
                     const surahId = parseInt(verse.verse_key.split(':')[0]);
                     const surahName = chapters[surahId].name_simple;
@@ -189,6 +226,7 @@ export default function JuzIndex() {
                 }
             }
         });
+
         Object.keys(wordErrors).forEach((wordIdStr) => {
             const wordId = Number(wordIdStr);
             const verse = verses.find((v) => v.words.some((w) => w.id === wordId));
@@ -200,7 +238,9 @@ export default function JuzIndex() {
                 const word = verse.words.find((w) => w.id === wordId);
                 if (word) {
                     const errorKey = wordErrors[wordId];
-                    const errorLabel = errorLabels.find((label) => label.key === errorKey);
+                    // Perbaikan di sini: errorLabels.find ini mencari di seluruh label yang tersedia
+                    const allErrorLabels = [...(errorLabels.user || []), ...(errorLabels.grup[`${selectedGrup}`] || [])];
+                    const errorLabel = allErrorLabels.find((label) => label.key === errorKey);
                     if (errorLabel) {
                         errorsByPage[page].salahKata.push({
                             salahKey: errorKey,
@@ -214,11 +254,43 @@ export default function JuzIndex() {
         return errorsByPage;
     };
 
+    const valdateErrorLabels = (): ErrorLabel[] => {
+        if (penyetor == 'grup') {
+            return errorLabels.grup[`${selectedGrup}`];
+        } else {
+            return errorLabels[`${penyetor}`];
+        }
+    };
+
+    // if (true) {
+    //     return (
+    //         <div role="status" className='absolute right-[50%] top-[50%]'>
+    //             <svg
+    //                 aria-hidden="true"
+    //                 className="h-8 w-8 animate-spin fill-blue-600 text-gray-200 dark:text-gray-600"
+    //                 viewBox="0 0 100 101"
+    //                 fill="none"
+    //                 xmlns="http://www.w3.org/2000/svg"
+    //             >
+    //                 <path
+    //                     d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+    //                     fill="currentColor"
+    //                 />
+    //                 <path
+    //                     d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+    //                     fill="currentFill"
+    //                 />
+    //             </svg>
+    //             <span className="sr-only">Loading...</span>
+    //         </div>
+    //     );
+    // }
+
     return (
         <AppWrapper>
             <Head title="Juz" />
-            <PageHeader page={1} translateMode="read" classNav="v" target="/result/page" />
-            <style>
+            <PageHeader page={1} translateMode="read" classNav="v" target={`/result/juz/${selectedJuz}`} />
+            {/* <style>
                 {`
                     :root {
                         --background-color: ${isDarkMode ? '#1a202c' : '#ffffff'};
@@ -238,7 +310,7 @@ export default function JuzIndex() {
                         border-color: ${isDarkMode ? '#4a5568' : '#e2e8f0'};
                     }
                 `}
-            </style>
+            </style> */}
             <div className="mx-auto max-w-4xl overflow-auto p-4">
                 <MistakeModal
                     isOpen={modalOpen}
@@ -250,6 +322,7 @@ export default function JuzIndex() {
                     }}
                     onLabelSelect={handleLabelSelect}
                     onRemoveLabel={handleRemoveLabel}
+                    errorLabels={valdateErrorLabels()}
                     versesEmpty={verses.length === 0}
                     selectedWordId={selectedWordId}
                     selectedVerseId={selectedVerseId}
@@ -258,9 +331,7 @@ export default function JuzIndex() {
                     verseErrors={verseErrors}
                 />
                 <div className="mt-20 mb-12 text-center">
-                    <p className={`text-lg dark:text-gray-300`}>
-                        Juz {juz.juz_number}
-                    </p>
+                    <p className={`text-lg dark:text-gray-300`}>Juz {juz.juz_number}</p>
                 </div>
                 <div
                     className={`font-arabic text-3xl dark:text-gray-300`}
@@ -278,7 +349,7 @@ export default function JuzIndex() {
                         const prevVerse = index > 0 ? verses[index - 1] : null;
                         const isNewSurah = !prevVerse || surahId !== parseInt(prevVerse.verse_key.split(':')[0]);
                         const verseLabel = verseErrors[verse.id]
-                            ? errorLabels.find((l) => l.key === verseErrors[verse.id])
+                            ? valdateErrorLabels().find((l: ErrorLabel) => l.key === verseErrors[verse.id])
                             : null;
 
                         return (
@@ -290,7 +361,7 @@ export default function JuzIndex() {
                                             {chapters[surahId].translated_name.name} ({chapters[surahId].name_simple})
                                         </p>
                                         {chapters[surahId].bismillah_pre && (
-                                            <p className="font-arabic mt-4 text-3xl dark:text-gray-300">
+                                            <p className="font-arabic mt-4 text-3xl text-black dark:text-gray-300">
                                                 بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
                                             </p>
                                         )}
@@ -298,7 +369,7 @@ export default function JuzIndex() {
                                 )}
                                 <span key={verse.id}>
                                     <span
-                                        className={cn("transition-colors duration-200", verseLabel && "dark:text-gray-900")}
+                                        className={cn('transition-colors duration-200', verseLabel && 'dark:text-gray-900')}
                                         style={{
                                             backgroundColor: verseLabel?.color || 'transparent',
                                             display: verseLabel ? 'inline-block' : '',
@@ -312,13 +383,16 @@ export default function JuzIndex() {
                                     >
                                         {verse.words.map((word) => {
                                             const wordLabel = wordErrors[word.id]
-                                                ? errorLabels.find((l) => l.key === wordErrors[word.id])
+                                                ? valdateErrorLabels().find((l) => l.key === wordErrors[word.id])
                                                 : null;
 
                                             return (
                                                 <span
                                                     key={word.id}
-                                                    className={cn("cursor-pointer transition-colors duration-200 hover:text-blue-300", wordLabel && "dark:text-gray-900")}
+                                                    className={cn(
+                                                        'cursor-pointer transition-colors duration-200 hover:text-blue-300',
+                                                        wordLabel && 'dark:text-gray-900',
+                                                    )}
                                                     style={{
                                                         backgroundColor: wordLabel?.color || 'transparent',
                                                         display: 'inline',
@@ -347,9 +421,9 @@ export default function JuzIndex() {
 
                                     {index < verses.length - 1 && verses[index + 1].page_number !== verse.page_number && (
                                         <div className="my-4 flex items-center">
-                                            <hr className="flex-1 border-t border-2 dark:border-gray-300 border-gray-700" />
-                                            <span className="mx-4 text-sm font-bold dark:text-gray-300 text-gray-700">Page {verse.page_number}</span>
-                                            <hr className="flex-1 border-t border-2 dark:border-gray-300 border-gray-700" />
+                                            <hr className="flex-1 border-2 border-t border-gray-700 dark:border-gray-300" />
+                                            <span className="mx-4 text-sm font-bold text-gray-700 dark:text-gray-300">Page {verse.page_number}</span>
+                                            <hr className="flex-1 border-2 border-t border-gray-700 dark:border-gray-300" />
                                         </div>
                                     )}
                                 </span>

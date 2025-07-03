@@ -7,13 +7,15 @@ use App\Models\Qurani\Juz;
 use App\Models\Qurani\Verses;
 use App\Models\Qurani\Word;
 use App\Models\Qurani\Chapter;
+use App\Traits\ErrorLabel;
 use App\Traits\FetchWords;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class JuzController extends Controller
 {
-    use FetchWords;
+    use FetchWords, ErrorLabel;
 
     public function show($id, Request $request)
     {
@@ -34,10 +36,11 @@ class JuzController extends Controller
         // Parse verse_mapping to get verse keys and surah IDs
         $verseKeys = [];
         $surahIds = [];
+        $errorLabel = $this->ErrorLabelGenerate(Auth::user());
         foreach ($juz->verse_mapping as $surah => $range) {
-            $surahIds[] = (int)$surah;
+            $surahIds[] = (int) $surah;
             [$start, $end] = explode('-', $range);
-            for ($i = (int)$start; $i <= (int)$end; $i++) {
+            for ($i = (int) $start; $i <= (int) $end; $i++) {
                 $verseKeys[] = "$surah:$i";
             }
         }
@@ -56,7 +59,6 @@ class JuzController extends Controller
 
         // Fetch verses for the Juz
         $verses = Verses::whereIn('verse_key', $verseKeys)
-            ->orderBy('verse_key')
             ->select([
                 'id',
                 'verse_number',
@@ -66,10 +68,16 @@ class JuzController extends Controller
                 'juz_number'
             ])
             ->get();
+        $sortedVerses = $verses->sortBy(function ($verse) {
+            list($surah, $ayat) = explode(':', $verse->verse_key);
+            $surah = (int) $surah;
+            $ayat = (int) $ayat;
+            return ($surah * 10000) + $ayat;
+        })->values();
 
         // Fetch words and end markers
-        if ($verses->isNotEmpty()) {
-            $verseKeys = $verses->pluck('verse_key')->toArray();
+        if ($sortedVerses->isNotEmpty()) {
+            $verseKeys = $sortedVerses->pluck('verse_key')->toArray();
             $wordsGroup = $this->fetchWordsForVerses($verseKeys);
             $endMarkers = Word::where(function ($query) use ($verseKeys) {
                 foreach ($verseKeys as $key) {
@@ -84,7 +92,7 @@ class JuzController extends Controller
                     return "$surah:$verse";
                 });
 
-            $verses->transform(function ($verse) use ($wordsGroup, $endMarkers) {
+            $sortedVerses->transform(function ($verse) use ($wordsGroup, $endMarkers) {
                 $verse->words = $wordsGroup->get($verse->verse_key, collect())->map(function ($word) {
                     return [
                         'id' => $word->id,
@@ -95,7 +103,7 @@ class JuzController extends Controller
                 })->filter(function ($word) {
                     return $word['char_type_name'] === 'word';
                 })->values();
-                $verse->end_marker = $endMarkers->get($verse->verse_key, (object)['text_uthmani' => ''])->text_uthmani;
+                $verse->end_marker = $endMarkers->get($verse->verse_key, (object) ['text_uthmani' => ''])->text_uthmani;
                 return $verse;
             });
         }
@@ -108,8 +116,65 @@ class JuzController extends Controller
                 'pages' => $juz->pages,
                 'verses_count' => $juz->verses_count
             ],
-            'verses' => $verses,
-            'chapters' => $chapters
+            'verses' => $sortedVerses,
+            'chapters' => $chapters,
+            'errorLabels' => $errorLabel,
         ]);
+    }
+
+    public function api($id, Request $request)
+    {
+        $juz = Juz::findOrFail($id, [
+            'id',
+            'juz_number',
+            'pages',
+            'verse_mapping',
+            'verses_count'
+        ]);
+
+        // Parse verse_mapping to get verse keys and surah IDs
+        $verseKeys = [];
+        $surahIds = [];
+        foreach ($juz->verse_mapping as $surah => $range) {
+            $surahIds[] = (int) $surah;
+            [$start, $end] = explode('-', $range);
+            for ($i = (int) $start; $i <= (int) $end; $i++) {
+                $verseKeys[] = "$surah:$i";
+            }
+        }
+
+        // Fetch chapters for the Surahs
+        $chapters = Chapter::whereIn('id', $surahIds)
+            ->select([
+                'id',
+                'name_arabic',
+                'name_simple',
+                'translated_name',
+                'bismillah_pre'
+            ])
+            ->get()
+            ->keyBy('id');
+
+        // Fetch verses for the Juz
+        $verses = Verses::whereIn('verse_key', $verseKeys)
+            ->select([
+                'id',
+                'verse_number',
+                'verse_key',
+                'text_uthmani',
+                'page_number',
+                'juz_number'
+            ])
+            ->get();
+
+        // Urutkan koleksi verses menggunakan custom callback
+        $sortedVerses = $verses->sortBy(function ($verse) {
+            list($surah, $ayat) = explode(':', $verse->verse_key);
+            $surah = (int) $surah;
+            $ayat = (int) $ayat;
+            return ($surah * 10000) + $ayat;
+        })->values();
+
+        return response()->json([$juz, $verseKeys, $sortedVerses]);
     }
 }

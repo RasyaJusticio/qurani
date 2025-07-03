@@ -7,21 +7,96 @@ use App\Models\LinkID\Kota;
 use App\Models\LinkID\QuSetoranRekap;
 use App\Models\LinkID\QuSetoran;
 use App\Models\LinkID\User;
+use App\Models\Qurani\Chapter;
+use App\Models\Qurani\Juz;
+use App\Models\Qurani\Verses;
+use App\Traits\ErrorLabel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class ResultController extends Controller
 {
+    use ErrorLabel;
     public function index()
     {
-        return Inertia::render('result/Index');
+        $user = Auth::user();
+        $errorLabels = $this->ErrorLabelGenerate($user);
+        return Inertia::render('result/Index', [
+            'user_id' => $user->user_id,
+            "errorLabels" => $errorLabels
+        ]);
     }
 
-    public function page(){
-        return Inertia::render('result/ResultPageJuz');
+    public function juz($id)
+    {
+        $user = Auth::user();
+        $errorLabels = $this->ErrorLabelGenerate($user);
+        $labels = [];
+        $juz = Juz::where("juz_number", $id)->first()->verse_mapping;
+        $id_surah = array_keys($juz);
+        foreach ($id_surah as $id) {
+            $surah = Chapter::where("id", $id)->first();
+            $labels["surah"][] = [
+                "value" => $surah->id,
+                "label" => $surah->name_simple . " " . "(" . $surah->id . ")",
+            ];
+            $ayat = explode("-", $juz[$id]);
+            $awalAyat = $ayat[0];
+            $akhirAyat = $ayat[1];
+            for ($i = $awalAyat; $i <= $akhirAyat; $i++) {
+                $labels["ayat"][$id][] = [
+                    "value" => $i,
+                    "label" => $i
+                ];
+            }
+        }
+        return Inertia::render('result/ResultPageJuz', ["labels" => $labels, 'user_id' => $user->user_id, "errorLabels" => $errorLabels]);
+    }
+
+    public function page($id)
+    {
+        $user = Auth::user();
+        $errorLabels = $this->ErrorLabelGenerate($user);
+        $labels = [];
+        $keyChapter = [];
+        // $verses = Verses::where("page_number", $id)->get();
+        $chapters = Chapter::get();
+        $validChapter = [];
+        foreach ($chapters as $value) {
+            $halaman = json_decode($value->pages, false);
+            $awalHalaman = $halaman[0];
+            $akhirHalmaan = $halaman[1];
+            if ($id >= $awalHalaman && $id <= $akhirHalmaan) {
+                $validChapter[] = $value->id;
+                $labels["surah"][] = [
+                    "value" => $value->id,
+                    "label" => $value->name_simple . "" . "(" . $value->id . ")",
+                ];
+            }
+        }
+
+        foreach ($validChapter as $chapter_id) {
+            $verse = Verses::where(function ($query) use ($chapter_id) {
+                $query->orWhere('verse_key', 'like', $chapter_id . ':%');
+            })->where("page_number", $id)->get();
+
+            foreach ($verse as $value) {
+                $labels["ayat"][$chapter_id][] = [
+                    "value" => $value->verse_number,
+                    "label" => $value->verse_number
+                ];
+            }
+        }
+        Log::info($labels);
+        // foreach ($verses as $key => $value) {
+        //     $chapter = Chapter::where("id", $value->chapter_id)->first();
+        //     if(isset($keyChapter[$chapter]))
+        // }
+        return Inertia::render('result/ResultPageHalaman', ["labels" => $labels, 'user_id' => $user->user_id,"errorLabels" => $errorLabels]);
     }
 
 
