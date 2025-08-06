@@ -1,29 +1,38 @@
 {
-  "history": {
-    "title": "Riwayat",
-    "table": {
-      "time": "Waktu",
-      "reciter": "Penyetor",
-      "recipient": "Penerima",
-      "recite": "Setoran",
-      "results": "Hasil",
-      "signature": "Paraf",
-      "noData": "Tidak ada riwayat setoran",
-      "ratings": {
-        "Excellent": "Sangat Baik",
-        "Very Good": "Baik Sekali",
-        "Good": "Baik",
-        "Pass": "Lulus",
-        "Weak": "Lemah",
-        "Not Pass": "Tidak Lulus"
-      }
-    },
-    "settingsButtonTitle": "Pengaturan Qurani",
-    "tableViewTitle": "Tampilan Tabel",
-    "confirmSignRecord": "Apakah anda ingin memberi paraf setoran ini?",
-    "errorMessages": {
-      "fetchFailed": "Gagal mengambil detail setoran",
-      "signFailed": "Gagal menandatangani rekaman"
+    "history": {
+        "title": "Riwayat",
+        "table": {
+            "time": "Waktu",
+            "reciter": "Penyetor",
+            "recipient": "Penerima",
+            "recite": "Setoran",
+            "results": "Hasil",
+            "signature": "Paraf",
+            "noData": "Tidak ada riwayat setoran",
+            "allResults": "Semua Hasil",
+            "allSignatures": "Semua Paraf",
+            "withSignature": "Dengan Paraf",
+            "withoutSignature": "Tanpa Paraf",
+            "ratings": {
+                "Excellent": "Sangat Baik",
+                "Very Good": "Baik Sekali",
+                "Good": "Baik",
+                "Pass": "Lulus",
+                "Weak": "Lemah",
+                "Not Pass": "Tidak Lulus"
+            }
+        },
+
+        "settingsButtonTitle": "Pengaturan Qurani",
+        "tableViewTitle": "Tampilan Tabel",
+        "confirmSignRecord": "Apakah anda ingin memberi paraf setoran ini?",
+        "errorMessages": {
+            "fetchFailed": "Gagal mengambil detail setoran",
+            "signFailed": "Gagal menandatangani rekaman"
+        },
+        "paginate": {
+            "previous": "Sebe...",
+            "next": "Sete..."
+        }
     }
-  }
 }

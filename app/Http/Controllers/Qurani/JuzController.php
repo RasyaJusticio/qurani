@@ -24,6 +24,33 @@ class JuzController extends Controller
             abort(404, 'Juz tidak ditemukan');
         }
 
+        $reciter = $request->input('reciter', 'teman');
+        $selectedGroup = $request->input('id_grup', null);
+        $anggota = $request->input('anggota', null);
+
+        if ($reciter == "grup") {
+            session()->put('reciter_data', [
+                'value' => $reciter, // Data reciter yang sebenarnya
+                'expires_at' => now()->addDays(7)->timestamp, // Timestamp kapan data ini kedaluwarsa
+            ]);
+            if ($selectedGroup) {
+                session()->put("grup_id", [
+                    'value' => $selectedGroup,
+                    'expires_at' => now()->addDays(7)->timestamp
+                ]); // Simpan grup yang dipilih
+            }
+        } else {
+            session()->put('reciter_data', [
+                'value' => null, // Data reciter yang sebenarnya
+                'expires_at' => now()->addDays(7)->timestamp, // Timestamp kapan data ini kedaluwarsa
+            ]);
+        }
+
+        session()->put('anggota', [
+            'value' => $anggota,
+            'expires_at' => now()->addDays(7)->timestamp
+        ]);
+
         // Fetch Juz details
         $juz = Juz::findOrFail($id, [
             'id',
@@ -97,15 +124,27 @@ class JuzController extends Controller
                     return [
                         'id' => $word->id,
                         'position' => $word->position,
+                        "location" => $word->location,
                         'text_uthmani' => $word->text_uthmani,
-                        'char_type_name' => $word->char_type_name
+                        'text_indopak' => $word->text_indopak,
+                        'char_type_name' => $word->char_type_name,
+                        "line_number" => $word->line_number,
                     ];
-                })->filter(function ($word) {
-                    return $word['char_type_name'] === 'word';
-                })->values();
+                })
+                    // ->filter(function ($word) {
+                    //     return $word['char_type_name'] === 'word';
+                    // })
+                    ->values();
                 $verse->end_marker = $endMarkers->get($verse->verse_key, (object) ['text_uthmani' => ''])->text_uthmani;
                 return $verse;
             });
+        }
+
+        $settingUser = false;
+
+        if (session("reciter_data")) {
+            $reciterData = session("reciter_data")['value'];
+            $settingUser = $reciterData == "grup" ? false : true;
         }
 
         // Render the Inertia view
@@ -119,6 +158,7 @@ class JuzController extends Controller
             'verses' => $sortedVerses,
             'chapters' => $chapters,
             'errorLabels' => $errorLabel,
+            'setting' => $settingUser,
         ]);
     }
 
@@ -175,6 +215,16 @@ class JuzController extends Controller
             return ($surah * 10000) + $ayat;
         })->values();
 
-        return response()->json([$juz, $verseKeys, $sortedVerses]);
+        return response()->json([
+            'juz' => [
+                'id' => $juz->id,
+                'juz_number' => $juz->juz_number,
+                'pages' => $juz->pages,
+                'verses_count' => $juz->verses_count
+            ],
+            'verses' => $sortedVerses,
+            'chapters' => $chapters,
+            // 'errorLabels' => $errorLabel,
+        ], 200);
     }
 }

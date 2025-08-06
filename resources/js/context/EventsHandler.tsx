@@ -23,7 +23,6 @@ export const EventsHandlerProvider: FC<Props> = ({ children }) => {
                 switch (evType) {
                     case 'initial_data': {
                         const evData = event.data as InitialDataEvent;
-
                         updateAppearance(evData.data.appearance);
                         changeLanguage(evData.data.language);
                         break;

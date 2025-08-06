@@ -1,6 +1,6 @@
 // File: mistakeModal.tsx
 import { X } from 'lucide-react';
-import { FC } from 'react';
+import { FC, useEffect, useRef } from 'react';
 
 interface ErrorLabel {
     id: number;
@@ -59,41 +59,59 @@ const MistakeModal: FC<MistakeModalProps> = ({
     wordErrors,
     verseErrors,
 }) => {
-    if (!isOpen) return null;
+    const modalRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            // Jika modal terbuka dan klik bukan di dalam modal
+            if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+                onClose();
+            }
+        };
 
-    const displayedLabels = selectedVerseId ? errorLabels.filter((label) => label.id <= 5) : errorLabels.filter((label) => label.id > 5);
+        // Tambahkan event listener saat modal terbuka
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        // Hapus event listener saat komponen unmount atau modal tertutup
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isOpen, onClose]);
+
+    if (!isOpen) return null;
+    const displayedLabels = selectedVerseId ? errorLabels.filter((label) => label.id <= 5) : errorLabels.filter((label) => label.id > 5 && label.key.startsWith('sk-'));
     const currentErrorKey =
         selectedWordId && wordErrors ? wordErrors[selectedWordId] : selectedVerseId && verseErrors ? verseErrors[selectedVerseId] : null;
-    const modalSize = selectedVerseId ? 'max-w-xs min-h-[15vh]' : 'max-w-sm min-h-[20vh]';
+    const modalSize = selectedVerseId ? 'max-w-xs min-h-[15vh] h-[370px]' : 'md:max-w-md max-w-xs md:h-[520px] h-[550px]';
     const labelListHeight = selectedVerseId ? 'min-h-48' : 'max-h-95';
-    console.log('errorLabels ', displayedLabels);
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className={`relative rounded-2xl bg-white p-6 ${modalSize} w-full overflow-y-auto border border-gray-200 shadow-2xl`}>
+            <div className={`relative rounded-2xl bg-white p-4 ${modalSize} w-full   overflow-y-auto border border-gray-200 shadow-2xl dark:bg-[rgb(38,45,52)] dark:border-gray-600`} ref={modalRef}>
                 {/* Tombol X */}
 
                 {versesEmpty ? (
                     <p className="mb-4 text-center text-gray-600">Tidak ada ayat yang ditemukan untuk Surah ini.</p>
                 ) : (
                     <>
-                        <div className="relative mb-4 flex items-center justify-center rounded-md bg-transparent p-2">
-                            <h2 className="font-arabic text-center text-xl font-bold text-gray-800">
+                        <div className="relative mb-4 flex items-center justify-between rounded-md bg-transparent p-2 ">
+                            <h2 className="font-arabic text-center text-xl font-bold text-gray-800 dark:text-white">
                                 {selectedVerseId ? 'Kesalahan Ayat' : 'Kesalahan Kata'}
+                                {selectedWordText && (
+                                    <span className="font-arabic mr-2 ml-2 text-xl text-gray-800 dark:text-white" style={{ direction: 'rtl' }}>
+                                        {selectedWordText}
+                                    </span>
+                                )}
                             </h2>
-                            {selectedWordText && (
-                                <span className="font-arabic mr-2 ml-2 text-xl text-gray-800" style={{ direction: 'rtl' }}>
-                                    {selectedWordText}
-                                </span>
-                            )}
-                            <button onClick={onClose} className="absolute top-0 right-0 text-gray-600 hover:text-gray-900" title="Tutup">
+                            <button onClick={onClose} className="justify-self-end text-gray-600 hover:text-gray-900 cursor-pointer" title="Tutup">
                                 <X size={20} />
                             </button>
                         </div>
 
-                        <div className={`flex flex-col gap-2 ${labelListHeight} overflow-y-auto`}>
+                        <div className={`grid grid-cols-2 gap-2 ${labelListHeight} `}>
                             {displayedLabels.map((label) => {
-                                if(!label.status) return;
+                                if (!label.status) return;
                                 return (
                                     <div
                                         key={label.id}
@@ -113,7 +131,7 @@ const MistakeModal: FC<MistakeModalProps> = ({
                                 );
                             })}
                         </div>
-                        <div className="mt-4 flex justify-center gap-2">
+                        <div className="mt-8 md:mt-3 flex justify-center gap-2">
                             {currentErrorKey && (
                                 <button
                                     onClick={onRemoveLabel}

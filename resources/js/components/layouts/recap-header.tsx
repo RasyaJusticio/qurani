@@ -121,9 +121,6 @@ const RecapHeader: React.FC<QuranHeaderProps> = ({ page, translateMode = 'read',
         return ['dashboard', 'filter', 'result','page','recap'].includes(segments[0]);
     };
 
-    console.log(urlNow)
-    console.log(segments)
-    console.log(noFinishButton())
 
     return (
         <div className={`px-0 ${classNav} fixed z-50 w-full bg-neutral-100 text-black dark:bg-gray-800 dark:text-white shadow-md`}>

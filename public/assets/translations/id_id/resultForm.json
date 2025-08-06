@@ -1,44 +1,46 @@
 {
-  "general": {
-    "hasilrekap": "Hasil Setoran"
-  },
-  "rekapan": {
-    "form": {
-      "peserta": "Peserta",
-      "awal_surah": "Awal Surah",
-      "awal_ayat": "Awal Ayat",
-      "akhir_surah": "Akhir Surah",
-      "akhir_ayat": "Akhir Ayat",
-      "kesimpulan": "Kesimpulan",
-      "pilih_kesimpulan": "Pilih Kesimpulan",
-      "catatan": "Catatan",
-      "catatan_khusus": "Catatan Khusus",
-      "kesalahan_ayat": "Kesalahan Ayat",
-      "tidak_ada_kesalahan_ayat": "Tidak Ada Kesalahan Ayat",
-      "kesalahan_kata": "Kesalahan Kata",
-      "tidak_ada_kesalahan_kata": "Tidak Ada Kesalahan Kata",
-      "mengirim": "Mengirim...",
-      "kirim": "Kirim",
-      "halaman": "Halaman",
-      "setoran": "Jenis Setoran"
+    "general": {
+        "hasilrekap": "Hasil Setoran"
     },
-    "kesimpulan_options": {
-      "Excellent": "Sempurna",
-      "Very Good": "Baik Sekali",
-      "Good": "Baik",
-      "Pass": "Lulus",
-      "Weak": "Lemah",
-      "Not Pass": "Tidak Lulus"
+    "rekapan": {
+        "form": {
+            "peserta": "Peserta",
+            "awal_surah": "Awal Surah",
+            "awal_ayat": "Awal Ayat",
+            "akhir_surah": "Akhir Surah",
+            "akhir_ayat": "Akhir Ayat",
+            "kesimpulan": "Kesimpulan",
+            "pilih_kesimpulan": "Pilih Kesimpulan",
+            "catatan": "Catatan",
+            "catatan_khusus": "Catatan Khusus",
+            "kesalahan_ayat": "Kesalahan Ayat",
+            "tidak_ada_kesalahan_ayat": "Tidak Ada Kesalahan Ayat",
+            "kesalahan_kata": "Kesalahan Kata",
+            "tidak_ada_kesalahan_kata": "Tidak Ada Kesalahan Kata",
+            "mengirim": "Mengirim...",
+            "kirim": "Kirim",
+            "halaman": "Halaman",
+            "setoran": "Jenis Setoran",
+            "more_detail": "Detail Mushaf",
+            "ayat": "Ayat"
+        },
+        "kesimpulan_options": {
+            "Excellent": "Sempurna",
+            "Very Good": "Baik Sekali",
+            "Good": "Baik",
+            "Pass": "Lulus",
+            "Weak": "Lemah",
+            "Not Pass": "Tidak Lulus"
+        }
+    },
+    "placeholders": {
+        "select_verse": "Pilih Ayat",
+        "search_verse": "Cari Ayat",
+        "select_conclusion": "Pilih Kesimpulan",
+        "search_conclusion": "Cari Kesimpulan"
+    },
+    "notFoundText": {
+        "verse_not_found": "Ayat tidak ditemukan",
+        "conclusion_not_found": "Kesimpulan tidak ditemukan"
     }
-  },
-  "placeholders": {
-    "select_verse": "Pilih Ayat",
-    "search_verse": "Cari Ayat",
-    "select_conclusion": "Pilih Kesimpulan",
-    "search_conclusion": "Cari Kesimpulan"
-  },
-  "notFoundText": {
-    "verse_not_found": "Ayat tidak ditemukan",
-    "conclusion_not_found": "Kesimpulan tidak ditemukan"
-  }
 }

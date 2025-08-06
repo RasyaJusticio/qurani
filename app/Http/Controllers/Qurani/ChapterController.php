@@ -23,6 +23,35 @@ class ChapterController extends Controller
             abort(404, 'Surah tidak ditemukan');
         }
 
+        $reciter = $request->input('reciter', 'teman');
+        $selectedGroup = $request->input('id_grup', null);
+        $anggota = $request->input('anggota', null);
+
+        if ($reciter == "grup") {
+            session()->put('reciter_data', [
+                'value' => $reciter, // Data reciter yang sebenarnya
+                'expires_at' => now()->addDays(7)->timestamp, // Timestamp kapan data ini kedaluwarsa
+            ]);
+            if ($selectedGroup) {
+                session()->put("grup_id", [
+                    'value' => $selectedGroup,
+                    'expires_at' => now()->addDays(7)->timestamp
+                ]);
+            }
+        } else {
+            session()->put('reciter_data', [
+                'value' => null, // Data reciter yang sebenarnya
+                'expires_at' => now()->addDays(7)->timestamp, // Timestamp kapan data ini kedaluwarsa
+            ]);
+        }
+
+        session()->put('anggota', [
+            'value' => $anggota,
+            'expires_at' => now()->addDays(7)->timestamp
+        ]);
+
+        Log::info(session('reciter_data'));
+
         $surah = Chapter::findOrFail($id, [
             'id',
             'revelation_place',
@@ -48,7 +77,7 @@ class ChapterController extends Controller
         if ($verses->isNotEmpty()) {
             $verseKeys = $verses->pluck('verse_key')->toArray();
             $wordsGroup = $this->fetchWordsForVerses($verseKeys);
-            $errorLabel= $this->ErrorLabelGenerate(Auth::user());
+            $errorLabel = $this->ErrorLabelGenerate(Auth::user());
             $endMarkers = Word::where(function ($query) use ($verseKeys) {
                 foreach ($verseKeys as $key) {
                     $query->orWhere('location', 'like', $key . ':%');
@@ -68,15 +97,40 @@ class ChapterController extends Controller
                         'id' => $word->id,
                         'position' => $word->position,
                         'text_uthmani' => $word->text_uthmani,
+                        'text_indopak' => $word->text_indopak,
                         'char_type_name' => $word->char_type_name,
-                        'location' => $word->location
+                        'location' => $word->location,
+                        "line_number" => $word->line_number,
                     ];
-                })->filter(function ($word) {
-                    return $word['char_type_name'] === 'word';
-                })->values();
-                $verse->end_marker = $endMarkers->get($verse->verse_key, (object)['text_uthmani' => ''])->text_uthmani;
+                })
+                    // ->filter(function ($word) {
+                    //     return $word['char_type_name'] === 'word';
+                    // })
+                    ->values();
+                $verse->end_marker = $endMarkers->get($verse->verse_key, (object) ['text_uthmani' => ''])->text_uthmani;
                 return $verse;
             });
+        }
+
+        $settingUser = false;
+
+        $lineNumber = [];
+
+        foreach ($verses as $verse) {
+            foreach ($verse->words as $word) {
+                if (!isset($lineNumber[$word['line_number']])) {
+                    $lineNumber[$word['line_number']] = $word['line_number'];
+                }
+            }
+        }
+
+        Log::info(
+            $lineNumber
+        );
+
+        if (session("reciter_data")) {
+            $reciterData = session("reciter_data")['value'];
+            $settingUser = $reciterData == "grup" ? false : true;
         }
 
         return Inertia::render('surah/Index', [
@@ -91,6 +145,8 @@ class ChapterController extends Controller
             ],
             'verses' => $verses,
             'errorLabels' => $errorLabel,
+            "setting" => $settingUser,
+            'lineNumber' => $lineNumber,
         ]);
     }
 }

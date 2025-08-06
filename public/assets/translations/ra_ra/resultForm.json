@@ -20,7 +20,9 @@
       "mengirim": "جارٍ الإرسال...",
       "kirim": "إرسال",
       "halaman": "الصفحة",
-      "setoran": "نوع التسليم"
+      "setoran": "نوع التسليم",
+      "more_detail" : "أكمل",
+      "ayat" : "آية"
     },
     "kesimpulan_options": {
       "Excellent": "ممتاز",

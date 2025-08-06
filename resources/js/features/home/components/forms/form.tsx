@@ -81,7 +81,7 @@ interface QuraniFormProps {
 }
 
 const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs }) => {
-    const { t } = useTranslation('form');
+    const { t, ready } = useTranslation('form');
     const { isDarkMode } = useTheme();
     const { props } = usePage();
     const [translationsReady, setTranslationsReady] = useState<boolean>(false);
@@ -202,6 +202,8 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
     }, [penyetor, setoran, tampilkan, selectedGroup, selectedMember, selectedFriend, selectedSurahValue, selectedJuz, selectedHalaman, isDarkMode]);
 
     useEffect(() => {
+        localStorage.setItem("verseErrors", '{}');
+        localStorage.setItem("wordErrors", '{}');
         const loadUserData = () => {
             try {
                 const storedParentData = localStorage.getItem('parent_data');
@@ -209,7 +211,9 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                     const parsedParentData = JSON.parse(storedParentData);
                     setUserData(parsedParentData);
                 }
-            } catch (error) {}
+            } catch (error) {
+                console.log(error)
+            }
         };
         loadUserData();
     }, []);
@@ -235,7 +239,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
         else {
             if (tampilkan === 'surah' && !selectedSurahValue) newErrors.surah = t('newErrors.Surah_must_be_selected');
             else if (tampilkan === 'juz' && !selectedJuz) newErrors.juz = t('newErrors.Juz_must_be_selected');
-            else if (tampilkan === 'halaman' && !selectedHalaman) newErrors.halaman = t('newErrors.Page_must_be_selected');
+            else if (tampilkan === 'page' && !selectedHalaman) newErrors.halaman = t('newErrors.Page_must_be_selected');
         }
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -314,8 +318,14 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
         }
 
         const redirectUrl = getRedirectUrl();
-        console.log(redirectUrl);
-        router.visit(redirectUrl);
+        router.visit(redirectUrl, {
+            replace: true,
+            data: {
+                reciter: formData.penyetor,
+                id_grup: selectedGroup,
+                anggota: formData.reciter?.user_name,
+            }
+        });
 
         // if (redirectUrl !== '/') Inertia.visit(route('surah', 1));
         // // if (redirectUrl !== '/') window.location.pathname=redirectUrl;
@@ -363,11 +373,11 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
         return () => document.removeEventListener('click', handleClickOutside);
     }, []);
 
-    if (!translationsReady) return null;
+    if (!ready) return null;
 
     return (
         <div className="flex w-full justify-center px-0">
-            <div className="w-full max-w-sm sm:max-w-md md:max-w-xl lg:max-w-2xl">
+            <div className="w-full max-w-xl sm:max-w-xl md:max-w-xl lg:max-w-2xl">
                 <div className={`min-h-[520px] overflow-hidden rounded-lg bg-white shadow-lg dark:bg-[rgb(38,45,52)]`}>
                     <div className={`bg-white px-4 py-3 md:px-6 dark:bg-[rgb(38,45,52)]`}>
                         <div className="flex items-center justify-between">
@@ -424,7 +434,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                         <label className={`text-gray-700'} w-full text-sm font-medium sm:w-24 dark:text-gray-300`}>
                                             {t('labels.group')}
                                         </label>
-                                        <div className="w-full sm:w-96">
+                                        <div className="w-full sm:w-96 ">
                                             <Combobox
                                                 options={groups.map((group) => ({
                                                     label: group.group_title,
@@ -439,7 +449,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                                     setSelectedMember('');
                                                     setErrors((prev) => ({ ...prev, group: '' }));
                                                 }}
-                                                className={'bg-white text-black text-gray-200 dark:bg-gray-700'}
+                                                className={'bg-white text-black dark:text-gray-200 dark:bg-gray-700'}
                                             />
                                             {errors.group && <p className="mt-1 text-sm text-red-500">{errors.group}</p>}
                                         </div>
@@ -468,7 +478,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                                         setSelectedMember(value);
                                                         setErrors((prev) => ({ ...prev, member: '' }));
                                                     }}
-                                                    className={'bg-white text-black text-gray-200 dark:bg-gray-700'}
+                                                    className={'bg-white text-black dark:text-gray-200 dark:bg-gray-700'}
                                                 />
                                                 {errors.member && <p className="mt-1 text-sm text-red-500">{errors.member}</p>}
                                             </div>
@@ -492,7 +502,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                                 setSelectedFriend(value);
                                                 setErrors((prev) => ({ ...prev, friend: '' }));
                                             }}
-                                            className={'bg-white text-black text-gray-200 dark:bg-gray-700'}
+                                            className={'bg-white text-black dark:bg-gray-700'}
                                         />
                                         {errors.friend && <p className="mt-1 text-sm text-red-500">{errors.friend}</p>}
                                     </div>

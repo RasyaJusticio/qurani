@@ -28,7 +28,7 @@ const PopUp: React.FC<PopUpProps> = ({ isOpen, onClose, onConfirm, message }) =>
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]" onClick={onClose}>
             <div
                 className="bg-white p-6 rounded-lg shadow-[0_4px_6px_rgba(0,0,0,0.1),_0_1px_3px_rgba(0,0,0,0.08),_0_-1px_3px_rgba(0,0,0,0.08),_-1px_0_3px_rgba(0,0,0,0.08),_1px_0_3px_rgba(0,0,0,0.08)] w-full max-w-md text-center transform transition-all duration-300 ease-out scale-95 opacity-0 animate-fadeIn"
                 onClick={(e) => e.stopPropagation()} // Mencegah klik pada popup menutupnya

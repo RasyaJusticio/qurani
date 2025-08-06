@@ -21,16 +21,41 @@ trait ErrorLabel
         });
         $settings["teman"] = $this->formatArray($globalSettingForTeman, $settingUser);
 
-        foreach ($group_id as $value) {
-            $settingGroup = SettingGroup::where("group", $value)->get();
+        $reciter = session("reciter_data");
+        $id_grup = session("grup_id");
+        if ($reciter["value"] && $reciter["value"] == "grup") {
+            if ($id_grup) {
+                $settingGroup = SettingGroup::where("group", (int) $id_grup["value"])->get();
 
-            // **Penting: Kloning SETIAP item di dalam koleksi globalSetting**
+                // **Penting: Kloning SETIAP item di dalam koleksi globalSetting**
 
-            $globalSettingForGrup = $globalSetting->map(function ($item) {
-                return clone $item; // Kloning setiap objek model lagi untuk yang grup
-            });
-            $settings["grup"][$value] = $this->formatArray($globalSettingForGrup, $settingGroup);
+                $globalSettingForGrup = $globalSetting->map(function ($item) {
+                    return clone $item; // Kloning setiap objek model lagi untuk yang grup
+                });
+                $grup = $this->formatArray($globalSettingForGrup, $settingGroup);
+                ;
+                $settings = $grup;
+                // Log::info($grup);
+            }
+        } else {
+            $user = $this->formatArray($globalSettingForTeman, $settingUser);
+            ;
+            // log::info($user);
+            $settings = $user;
         }
+
+        // foreach ($group_id as $value) {
+        //     $settingGroup = SettingGroup::where("group", $value)->get();
+
+        //     // **Penting: Kloning SETIAP item di dalam koleksi globalSetting**
+
+        //     $globalSettingForGrup = $globalSetting->map(function ($item) {
+        //         return clone $item; // Kloning setiap objek model lagi untuk yang grup
+        //     });
+        //     $grup = $this->formatArray($globalSettingForGrup, $settingGroup);
+        //     $settings["grup"][$value] = $grup;
+        //     // $settings["grup"][$value] = $this->formatArray($grup, $settingUser);
+        // }
         return $settings;
     }
 

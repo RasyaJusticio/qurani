@@ -1,46 +1,48 @@
 {
-  "general": {
-    "hasilrekap": "Submission Results"
-  },
-  "rekapan": {
-    "form": {
-      "peserta": "Participant",
-      "awal_surah": "Start Surah",
-      "awal_ayat": "Start Verse",
-      "akhir_surah": "End Surah",
-      "akhir_ayat": "End Verse",
-      "kesimpulan": "Conclusion",
-      "pilih_kesimpulan": "Select Conclusion",
-      "catatan": "Notes",
-      "catatan_khusus": "Special Notes",
-      "kesalahan_ayat": "Verse Errors",
-      "tidak_ada_kesalahan_ayat": "No Verse Errors",
-      "kesalahan_kata": "Word Errors",
-      "tidak_ada_kesalahan_kata": "No Word Errors",
-      "mengirim": "Sending...",
-      "kirim": "Send",
-      "halaman": "Page",
-      "setoran": "Submission Type"
+    "general": {
+        "hasilrekap": "Submission Results"
     },
-    "kesimpulan_options": {
-      "Excellent": "Excellent",
-      "Very Good": "Very Good",
-      "Good": "Good",
-      "Pass": "Pass",
-      "Weak": "Weak",
-      "Not Pass": "Not Pass"
+    "rekapan": {
+        "form": {
+            "peserta": "Participant",
+            "awal_surah": "Start Surah",
+            "awal_ayat": "Start Verse",
+            "akhir_surah": "End Surah",
+            "akhir_ayat": "End Verse",
+            "kesimpulan": "Conclusion",
+            "pilih_kesimpulan": "Select Conclusion",
+            "catatan": "Notes",
+            "catatan_khusus": "Special Notes",
+            "kesalahan_ayat": "Verse Errors",
+            "tidak_ada_kesalahan_ayat": "No Verse Errors",
+            "kesalahan_kata": "Word Errors",
+            "tidak_ada_kesalahan_kata": "No Word Errors",
+            "mengirim": "Sending...",
+            "kirim": "Send",
+            "halaman": "Page",
+            "setoran": "Submission Type",
+            "more_detail": "Mushaf Details",
+            "ayat": "Verse"
+        },
+        "kesimpulan_options": {
+            "Excellent": "Excellent",
+            "Very Good": "Very Good",
+            "Good": "Good",
+            "Pass": "Pass",
+            "Weak": "Weak",
+            "Not Pass": "Not Pass"
+        }
+    },
+    "placeholders": {
+        "select_verse": "Select Verse",
+        "search_verse": "Search Verse",
+        "select_surah": "Select Chapter",
+        "search_Chapter": "Search Chapter",
+        "select_conclusion": "Select Conclusion",
+        "search_conclusion": "Search Conclusion"
+    },
+    "notFoundText": {
+        "verse_not_found": "Verse not found",
+        "conclusion_not_found": "Conclusion not found"
     }
-  },
-  "placeholders": {
-    "select_verse": "Select Verse",
-    "search_verse": "Search Verse",
-    "select_surah": "Select Chapter",
-    "search_Chapter": "Search Chapter",
-    "select_conclusion": "Select Conclusion",
-    "search_conclusion": "Search Conclusion"
-  },
-  "notFoundText": {
-    "verse_not_found": "Verse not found",
-    "conclusion_not_found": "Conclusion not found"
-  }
 }

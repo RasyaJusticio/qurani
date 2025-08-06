@@ -25,9 +25,11 @@ class ResultController extends Controller
     {
         $user = Auth::user();
         $errorLabels = $this->ErrorLabelGenerate($user);
+        $previousUrl = url()->previous();
         return Inertia::render('result/Index', [
             'user_id' => $user->user_id,
-            "errorLabels" => $errorLabels
+            "errorLabels" => $errorLabels,
+            "previousUrl" => $previousUrl
         ]);
     }
 
@@ -38,6 +40,7 @@ class ResultController extends Controller
         $labels = [];
         $juz = Juz::where("juz_number", $id)->first()->verse_mapping;
         $id_surah = array_keys($juz);
+        $previousUrl = url()->previous();
         foreach ($id_surah as $id) {
             $surah = Chapter::where("id", $id)->first();
             $labels["surah"][] = [
@@ -54,7 +57,12 @@ class ResultController extends Controller
                 ];
             }
         }
-        return Inertia::render('result/ResultPageJuz', ["labels" => $labels, 'user_id' => $user->user_id, "errorLabels" => $errorLabels]);
+        return Inertia::render('result/ResultPageJuz', [
+            "labels" => $labels,
+            'user_id' => $user->user_id,
+            "errorLabels" => $errorLabels,
+            "previousUrl" => $previousUrl
+        ]);
     }
 
     public function page($id)
@@ -66,6 +74,7 @@ class ResultController extends Controller
         // $verses = Verses::where("page_number", $id)->get();
         $chapters = Chapter::get();
         $validChapter = [];
+        $previousUrl = url()->previous();
         foreach ($chapters as $value) {
             $halaman = json_decode($value->pages, false);
             $awalHalaman = $halaman[0];
@@ -74,7 +83,7 @@ class ResultController extends Controller
                 $validChapter[] = $value->id;
                 $labels["surah"][] = [
                     "value" => $value->id,
-                    "label" => $value->name_simple . "" . "(" . $value->id . ")",
+                    "label" => $value->name_simple . " " . "(" . $value->id . ")",
                 ];
             }
         }
@@ -91,12 +100,12 @@ class ResultController extends Controller
                 ];
             }
         }
-        Log::info($labels);
-        // foreach ($verses as $key => $value) {
-        //     $chapter = Chapter::where("id", $value->chapter_id)->first();
-        //     if(isset($keyChapter[$chapter]))
-        // }
-        return Inertia::render('result/ResultPageHalaman', ["labels" => $labels, 'user_id' => $user->user_id,"errorLabels" => $errorLabels]);
+        return Inertia::render('result/ResultPageHalaman', [
+            "labels" => $labels,
+            'user_id' => $user->user_id,
+            "errorLabels" => $errorLabels,
+            "previousUrl" => $previousUrl
+        ]);
     }
 
 
@@ -113,17 +122,27 @@ class ResultController extends Controller
             'ket' => 'nullable|string|max:100',
             'kesalahan' => 'nullable|array',
             'perhalaman' => 'nullable|array',
+
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validasi gagal',
+                'message' => 'Validasi gawal',
                 'errors' => $validator->errors(),
             ], 422);
         }
 
+        $anggota = session('anggota', null);
+        if ($anggota && $anggota['value']) {
+            $request->merge(['anggota' => $anggota['value']]);
+        } else {
+            $request->merge(['anggota' => null]);
+        }
+
+        Log::info($anggota);
+
         try {
-            $penyetor = User::where('user_name', $request->penyetor)->firstOrFail();
+            $penyetor = User::where('user_name', $request->anggota)->firstOrFail();
             $penerima = $request->penerima;
 
             $timestamp = Carbon::now()->setTimezone('Asia/Jakarta');

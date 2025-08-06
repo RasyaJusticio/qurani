@@ -1,11 +1,12 @@
 import AppWrapper from '@/components/layouts/app-wrapper';
 import Combobox from '@/components/ui/combobox';
-import { router, useForm, usePage } from '@inertiajs/react';
+import { Link, router, useForm, usePage, useRemember } from '@inertiajs/react';
 import axios from 'axios';
 import { AlertCircle, CheckCircle2, ChevronDown, ChevronUp, FileText } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../components/layouts/theme-context';
+import Alert from '@/components/ui/Alert';
 
 // Updated Surah interface to match localStorage structure
 interface Surah {
@@ -90,67 +91,55 @@ interface ErrorLabel {
 }
 
 interface PageProps {
-    errorLabels: {
-        user: ErrorLabel[];
-        grup: {
-            [key: number]: ErrorLabel[];
-        };
-    };
+    errorLabels: ErrorLabel[]
+    previousUrl: string;
     [key: string]: unknown;
 }
 
-const t = (key: string): string => {
-    const translations: { [key: string]: string } = {
-        'general.hasilrekap': 'Hasil Setoran',
-        'rekapan.form.peserta': 'Peserta',
-        'rekapan.form.awal_surah': 'Awal Surah',
-        'rekapan.form.awal_ayat': 'Awal Ayat',
-        'rekapan.form.akhir_surah': 'Akhir Surah',
-        'rekapan.form.akhir_ayat': 'Akhir Ayat',
-        'rekapan.form.kesimpulan': 'Kesimpulan',
-        'rekapan.form.pilih_kesimpulan': 'Pilih Kesimpulan',
-        'rekapan.form.catatan': 'Catatan',
-        'rekapan.form.catatan_khusus': 'Catatan Khusus',
-        'rekapan.form.kesalahan_ayat': 'Kesalahan Ayat',
-        'rekapan.form.tidak_ada_kesalahan_ayat': 'Tidak Ada Kesalahan Ayat',
-        'rekapan.form.kesalahan_kata': 'Kesalahan Kata',
-        'rekapan.form.tidak_ada_kesalahan_kata': 'Tidak Ada Kesalahan Kata',
-        'rekapan.kesimpulan_options.Excellent': 'Excellent',
-        'rekapan.kesimpulan_options.Very Good': 'Very Good',
-        'rekapan.kesimpulan_options.Good': 'Good',
-        'rekapan.kesimpulan_options.Pass': 'Pass',
-        'rekapan.kesimpulan_options.Weak': 'Weak',
-        'rekapan.kesimpulan_options.Not Pass': 'Not Pass',
-        'rekapan.form.mengirim': 'Mengirim...',
-        'rekapan.form.kirim': 'Kirim',
-        'rekapan.form.halaman': 'Halaman',
-        'rekapan.form.setoran': 'Jenis Setoran',
-        'placeholders.select_verse': 'Pilih Ayat',
-        'placeholders.search_verse': 'Cari Ayat',
-        'notFoundText.verse_not_found': 'Ayat tidak ditemukan',
-        'placeholders.select_conclusion': 'Pilih Kesimpulan',
-        'placeholders.search_conclusion': 'Cari Kesimpulan',
-        'notFoundText.conclusion_not_found': 'Kesimpulan tidak ditemukan',
-    };
-    return translations[key] || key;
-};
+// const t = (key: string): string => {
+//     const translations: { [key: string]: string } = {
+//         'general.hasilrekap': 'Hasil Setoran',
+//         'rekapan.form.peserta': 'Peserta',
+//         'rekapan.form.awal_surah': 'Awal Surah',
+//         'rekapan.form.awal_ayat': 'Awal Ayat',
+//         'rekapan.form.akhir_surah': 'Akhir Surah',
+//         'rekapan.form.akhir_ayat': 'Akhir Ayat',
+//         'rekapan.form.kesimpulan': 'Kesimpulan',
+//         'rekapan.form.pilih_kesimpulan': 'Pilih Kesimpulan',
+//         'rekapan.form.catatan': 'Catatan',
+//         'rekapan.form.catatan_khusus': 'Catatan Khusus',
+//         'rekapan.form.kesalahan_ayat': 'Kesalahan Ayat',
+//         'rekapan.form.tidak_ada_kesalahan_ayat': 'Tidak Ada Kesalahan Ayat',
+//         'rekapan.form.kesalahan_kata': 'Kesalahan Kata',
+//         'rekapan.form.tidak_ada_kesalahan_kata': 'Tidak Ada Kesalahan Kata',
+//         'rekapan.kesimpulan_options.Excellent': 'Excellent',
+//         'rekapan.kesimpulan_options.Very Good': 'Very Good',
+//         'rekapan.kesimpulan_options.Good': 'Good',
+//         'rekapan.kesimpulan_options.Pass': 'Pass',
+//         'rekapan.kesimpulan_options.Weak': 'Weak',
+//         'rekapan.kesimpulan_options.Not Pass': 'Not Pass',
+//         'rekapan.form.mengirim': 'Mengirim...',
+//         'rekapan.form.kirim': 'Kirim',
+//         'rekapan.form.halaman': 'Halaman',
+//         'rekapan.form.setoran': 'Jenis Setoran',
+//         'placeholders.select_verse': 'Pilih Ayat',
+//         'placeholders.search_verse': 'Cari Ayat',
+//         'notFoundText.verse_not_found': 'Ayat tidak ditemukan',
+//         'placeholders.select_conclusion': 'Pilih Kesimpulan',
+//         'placeholders.search_conclusion': 'Cari Kesimpulan',
+//         'notFoundText.conclusion_not_found': 'Kesimpulan tidak ditemukan',
+//     };
+//     return translations[key] || key;
+// };
 
 const ResultFormLayout: React.FC = () => {
     const { props } = usePage<PageProps>();
     const { isDarkMode } = useTheme();
+    const [alert, setAlert] = useState<boolean>(false)
     const [panels, setPanels] = useState<{ [key: string]: boolean }>({});
     const [setoranData, setSetoranData] = useState<SetoranData | null>(null);
     const { t } = useTranslation('resultForm');
-    const [translationsReady, setTranslationsReady] = useState(false);
-
-    useEffect(() => {
-        const loadTranslations = async () => {
-            // await setupTranslations('resultForm');
-            setTranslationsReady(true);
-        };
-        loadTranslations();
-    }, []);
-
+    const btnSubmit = useRef<HTMLButtonElement>(null);
     const form = useForm<FormData>({
         reciter: null,
         recipient: '',
@@ -301,6 +290,7 @@ const ResultFormLayout: React.FC = () => {
 
     const handleSubmit = (e: React.FormEvent): void => {
         e.preventDefault();
+        console.log("kirim")
         form.clearErrors();
 
         // Validasi wajib
@@ -338,17 +328,21 @@ const ResultFormLayout: React.FC = () => {
             ket: form.data.catatan,
             perhalaman: perhalamanData,
         };
-        console.log('form_result ', postData);
-        axios
-            .post('/api/result', postData, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-                    Accept: 'application/json',
-                },
-            })
-            .then((response) => {
-                alert('Data berhasil dikirim!');
+        if (btnSubmit.current) {
+            if (btnSubmit.current.disabled) return; // Prevent multiple submissions
+            btnSubmit.current.disabled = true; // Disable the button to prevent multiple submissions
+        }
+        axios.post('/api/result', postData, {
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                Accept: 'application/json',
+            },
+            withCredentials: true
+        })
+            .then(() => {
+                // alert('Data berhasil dikirim!');
+                setAlert(true)
                 // Simpan data kesalahan kembali ke localStorage
                 const updatedMistake = form.data.mistake;
                 const existingData = localStorage.getItem('setoran-data');
@@ -389,7 +383,9 @@ const ResultFormLayout: React.FC = () => {
                 });
                 localStorage.setItem('wordErrors', JSON.stringify(wordErrorsFromMistake));
                 localStorage.setItem('verseErrors', JSON.stringify(verseErrorsFromMistake));
-                router.visit('/home');
+                localStorage.removeItem('setoran-data');
+                localStorage.setItem("verseErrors", "{}")
+                localStorage.setItem("wordErrors", "{}")
                 // window.location.pathname = '/home'; // Redirect to home page after successful submission
             })
             .catch((error) => {
@@ -401,6 +397,10 @@ const ResultFormLayout: React.FC = () => {
                 } else {
                     console.error('Error:', error);
                     form.setError('submit', 'Gagal mengirim data. Silakan coba lagi.');
+                }
+            }).finally(() => {
+                if (btnSubmit.current) {
+                    btnSubmit.current.disabled = false;
                 }
             });
     };
@@ -418,8 +418,8 @@ const ResultFormLayout: React.FC = () => {
 
     function checkPanel(): string {
         let result = 'tampilkan';
-        const displayPanelCheck = setoranData?.penyetor == "grup"? props.errorLabels.grup[`${parseInt(setoranData.selectedGroup)}`] :props.errorLabels[`${setoranData?.penyetor}`];
-        displayPanelCheck.map((v: ErrorLabel, i: number) => {
+        const displayPanelCheck = props.errorLabels
+        displayPanelCheck.map((v: ErrorLabel) => {
             if (v.key == 'kesimpulan') {
                 result = v.value;
             }
@@ -434,25 +434,32 @@ const ResultFormLayout: React.FC = () => {
     return (
         <AppWrapper>
             <div className="min-h-screen bg-gray-50 py-6 dark:bg-gray-900">
-                <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8">
+                <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8 mt-11">
+                    <Alert show={alert} to='/home' heading='Data Berhasil Dikirim' message='Lihat Detail Recap pada tabel' status='success' />
                     <div className="mb-6 text-center">
                         <h1 className="text-1xl mb-1 font-bold text-gray-900 dark:text-white">{t('general.hasilrekap')}</h1>
                     </div>
 
                     <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8">
-                        <button
-                            onClick={() => window.history.back()}
+                        <Link
+                            href={props.previousUrl}
                             className="mb-4 flex items-center text-sm text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                            preserveScroll
+                            preserveState
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="mr-1 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="mr-1 h-5 w-5"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                            >
                                 <path
                                     fillRule="evenodd"
                                     d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
                                     clipRule="evenodd"
                                 />
                             </svg>
-                        </button>
-
+                        </Link>
                         <div className="mb-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                             <div className="mb-4 grid grid-cols-1 gap-4">
                                 <div>
@@ -569,7 +576,7 @@ const ResultFormLayout: React.FC = () => {
                                     type="button"
                                     onClick={handleSubmit}
                                     className="rounded-md bg-[rgb(94,114,228)] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[rgb(57,69,138)] disabled:cursor-not-allowed disabled:bg-blue-300"
-                                    disabled={form.processing}
+                                    ref={btnSubmit}
                                 >
                                     {form.processing ? t('rekapan.form.mengirim') : t('rekapan.form.kirim')}
                                 </button>
@@ -578,10 +585,10 @@ const ResultFormLayout: React.FC = () => {
                         </div>
 
                         {checkPanel() == 'tampilkan' && (
-                            <div className="space-y-3">
+                            <div className="space-y-3 mb-20 lg:mb-0">
                                 {Object.entries(setoranData.mistake || {})
                                     .sort(([pageA], [pageB]) => parseInt(pageA) - parseInt(pageB))
-                                    .map(([page, errors]) => (
+                                    .map(([page]) => (
                                         <div
                                             key={page}
                                             className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
@@ -592,18 +599,18 @@ const ResultFormLayout: React.FC = () => {
                                             >
                                                 <div className="flex items-center">
                                                     <FileText className="mr-2 h-4 w-4 text-blue-600 dark:text-blue-400" />
-                                                    <h3 className="text-base font-medium text-gray-900 dark:text-white">
+                                                    <h3 className="text-sm lg:font-medium text-gray-900 dark:text-white">
                                                         {`${surahName} - ${t('rekapan.form.halaman')} ${page}`}
                                                     </h3>
                                                     <div className="ml-3 flex items-center space-x-2">
                                                         {form.data.mistake[page]?.salahAyat.length > 0 && (
-                                                            <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900 dark:text-red-200">
-                                                                {form.data.mistake[page].salahAyat.length} ayat
+                                                            <span className="inline-flex items-center lg:rounded-full rounded-sm bg-orange-100 lg:px-2 lg:py-0.5 p-1 text-xs font-medium text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+                                                                {form.data.mistake[page].salahAyat.length} {" "} ayat
                                                             </span>
                                                         )}
                                                         {form.data.mistake[page]?.salahKata.length > 0 && (
-                                                            <span className="inline-flex items-center rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-800 dark:bg-orange-900 dark:text-orange-200">
-                                                                {form.data.mistake[page].salahKata.length} kata
+                                                            <span className="inline-flex items-center lg:rounded-full rounded-sm bg-orange-100 lg:px-2 lg:py-0.5 p-1 text-xs font-medium text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+                                                                {form.data.mistake[page].salahKata.length}{" "}kata
                                                             </span>
                                                         )}
                                                         {(!form.data.mistake[page]?.salahAyat || form.data.mistake[page].salahAyat.length === 0) &&
@@ -650,13 +657,13 @@ const ResultFormLayout: React.FC = () => {
                                                                             <span className="mt-0.5 mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                                                                 {idx + 1}
                                                                             </span>
-                                                                            <div className="flex flex-1 items-center">
+                                                                            <div className="flex flex-items-center">
                                                                                 <span
                                                                                     className={`inline-block rounded-md px-2 py-0.5 text-xs font-medium ${getErrorTextColor(
                                                                                         err.salahKey,
                                                                                     )}`}
                                                                                 >
-                                                                                    Ayah : {err.noAyat}
+                                                                                    {t("rekapan.form.ayat")} : {err.noAyat}
                                                                                 </span>
                                                                                 <p className="ml-2 text-right text-sm text-gray-700 dark:text-gray-300">
                                                                                     {err.salah}
@@ -757,7 +764,7 @@ const ResultFormLayout: React.FC = () => {
                     </div>
                 </div>
             </div>
-        </AppWrapper>
+        </AppWrapper >
     );
 };
 

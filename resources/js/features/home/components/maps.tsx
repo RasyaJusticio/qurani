@@ -6,6 +6,7 @@ import { Calendar, Expand, Grid2X2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
 import { useTheme } from '../../../components/layouts/theme-context';
+import { useTranslation } from 'react-i18next';
 
 // Fix default icon issues
 L.Icon.Default.mergeOptions({
@@ -13,12 +14,6 @@ L.Icon.Default.mergeOptions({
     iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
     shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
-
-const translations = {
-    en: { title: 'Qurani History' },
-    id: { title: 'Riwayat Qurani' },
-    ar: { title: 'تاريخ قرآني' },
-};
 
 const INDONESIA_BOUNDS = L.latLngBounds(L.latLng(-11, 94), L.latLng(6, 141));
 
@@ -33,10 +28,10 @@ const MapBounds = () => {
             }
         };
         const handleMoveEnd = () => map.invalidateSize();
-    
+
         map.on('drag', handleDrag);
         map.on('moveend', handleMoveEnd);
-    
+
         return () => {
             map.off('drag', handleDrag);
             map.off('moveend', handleMoveEnd);
@@ -88,7 +83,7 @@ interface MapsProps {
 
 const Maps: React.FC<MapsProps> = ({ setoranRekap, setoranRekapTotal, periodes, selectedPeriode }) => {
     const [isExpanded, setIsExpanded] = useState(false);
-    const [lang, setLang] = useState<'en' | 'id' | 'ar'>('en');
+    const { t } = useTranslation('maps')
     const [map, setMap] = useState<L.Map | null>(null);
     const { isDarkMode } = useTheme();
 
@@ -109,13 +104,6 @@ const Maps: React.FC<MapsProps> = ({ setoranRekap, setoranRekapTotal, periodes, 
     };
 
     useEffect(() => {
-        const locale = localStorage.getItem('language_code');
-        const langMap: Record<string, 'id' | 'ar' | 'en'> = { id_id: 'id', ra_ra: 'ar', en_us: 'en' };
-        const validLang = locale && langMap[locale] ? langMap[locale] : 'id';
-        setLang(validLang);
-    }, []);
-
-    useEffect(() => {
         document.body.classList.toggle('overflow-hidden', isExpanded);
         return () => document.body.classList.remove('overflow-hidden');
     }, [isExpanded]);
@@ -133,11 +121,11 @@ const Maps: React.FC<MapsProps> = ({ setoranRekap, setoranRekapTotal, periodes, 
     const mapData = data.periode ? setoranRekap.filter((item) => item.periode === data.periode) : setoranRekapTotal;
 
     return (
-        <div className={`mx-auto h-full w-full ${isExpanded ? 'fixed inset-0 z-50' : ''}`}>
+        <div className={`mx-auto h-full w-full ${isExpanded ? 'fixed inset-0 z-40' : ''}`}>
             <div className={`h-full w-full overflow-hidden rounded-lg shadow-lg dark:bg-[rgb(38,45,52)] bg-white`}>
                 {/* Header Card */}
                 <div className={`flex items-center justify-between p-4 rounded-t-lg dark:bg-[rgb(38,45,52)] bg-white`}>
-                    <h2 className={`text-xl font-semibold dark:text-white text-gray-800`}>{translations[lang].title}</h2>
+                    <h2 className={`text-xl font-semibold dark:text-white text-gray-800`}>{t("title")}</h2>
                     <div className="flex items-center space-x-2">
                         <button
                             onClick={() => (window.location.href = '/dashboard')}
@@ -146,14 +134,14 @@ const Maps: React.FC<MapsProps> = ({ setoranRekap, setoranRekapTotal, periodes, 
                         >
                             <Grid2X2 className="h-5 w-5" />
                         </button>
-                        <div className="relative">
+                        <div className="relative group">
                             <select
                                 value={data.periode}
                                 onChange={handlePeriodeChange}
-                                className={`appearance-none rounded-full p-2 pr-8 transition-colors hover:cursor-pointer dark:bg-[rgb(38,45,52)] text-gray-300 hover:bg-gray-700 text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
+                                className={`appearance-none rounded-full p-2 pr-9 transition-colors group-hover:cursor-pointer  dark:text-gray-300 group-hover:bg-gray-700 text-gray-600 group-hover:text-gray-100`}
                                 aria-label="Filter by period"
                             >
-                                <option value="">{lang === 'en' ? 'All' : lang === 'ar' ? 'الكل' : 'Semua'}</option>
+                                <option value="">{t("label")}</option>
                                 {periodes.map((periode) => (
                                     <option key={periode} value={periode}>
                                         {new Date(periode + '-01').toLocaleString('id-ID', {
@@ -163,7 +151,7 @@ const Maps: React.FC<MapsProps> = ({ setoranRekap, setoranRekapTotal, periodes, 
                                     </option>
                                 ))}
                             </select>
-                            <Calendar className={`pointer-events-none absolute top-1/2 right-2 h-5 w-5 -translate-y-1/2 transform dark:text-gray-300 text-gray-600'}`} />
+                            <Calendar className={`pointer-events-none absolute top-1/2 right-2 h-5 w-5 -translate-y-1/2 transform dark:text-gray-300 group-hover:text-gray-100 text-gray-600`} />
                         </div>
                         {!isExpanded && (
                             <button
@@ -191,7 +179,7 @@ const Maps: React.FC<MapsProps> = ({ setoranRekap, setoranRekapTotal, periodes, 
                     >
                         <TileLayer
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        // attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                         />
                         <MapBounds />
                         <MinimizeControl isExpanded={isExpanded} toggleExpand={toggleExpand} isDarkMode={isDarkMode} />
@@ -206,9 +194,8 @@ const Maps: React.FC<MapsProps> = ({ setoranRekap, setoranRekapTotal, periodes, 
                 </div>
 
                 {/* Footer Card */}
-                <div className={`p-3 text-sm rounded-b-lg dark:bg-[rgb(38,45,52)] text-gray-300 bg-gray-50 text-gray-600'}`}>
-                    {/* Footer content */}
-                </div>
+                {/* <div className={`p-3 text-sm rounded-b-lg dark:bg-[rgb(38,45,52)] text-gray-300 bg-gray-50 text-gray-600'}`}>
+                </div> */}
             </div>
         </div>
     );

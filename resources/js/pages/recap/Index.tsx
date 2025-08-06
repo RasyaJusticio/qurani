@@ -1,9 +1,9 @@
 import React from 'react'
-import RecapForm from '@/features/result/components/resultForm'
+// import RecapForm from '@/features/result/components/resultForm'
 import { Head } from '@inertiajs/react'
 import AppWrapper from '@/components/layouts/app-wrapper'
-import QuranHeader from '@/components/layouts/main-header'
-import { Inertia } from '@inertiajs/inertia'
+// import QuranHeader from '@/components/layouts/main-header'
+// import { Inertia } from '@inertiajs/inertia'
 import DisabledRecapFormLayout from '@/features/recap/Index'
 import RecapHeader from '@/components/layouts/recap-header'
 

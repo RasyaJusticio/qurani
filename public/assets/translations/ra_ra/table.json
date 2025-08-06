@@ -1,29 +1,37 @@
 {
-  "history": {
-    "title": "التاريخ",
-    "table": {
-      "time": "الوقت",
-      "reciter": "القارئ",
-      "recipient": "المستلم",
-      "recite": "التلاوة",
-      "results": "النتائج",
-      "signature": "التوقيع",
-      "noData": "لا يوجد تاريخ تلاوة",
-      "ratings": {
-        "Excellent": "ممتاز",
-        "Very Good": "جيد جدًا",
-        "Good": "جيد",
-        "Pass": "مقبول",
-        "Weak": "ضعيف",
-        "Not Pass": "راسب"
-      }
-    },
-    "settingsButtonTitle": "إعدادات القرآني",
-    "tableViewTitle": "عرض الجدول",
-    "confirmSignMessage": "تأكيد لتوقيع هذا السجل؟",
-    "errorMessages": {
-      "fetchFailed": "فشل في جلب تفاصيل التلاوة",
-      "signFailed": "فشل في توقيع السجل"
+    "history": {
+        "title": "التاريخ",
+        "table": {
+            "time": "الوقت",
+            "reciter": "القارئ",
+            "recipient": "المستلم",
+            "recite": "التلاوة",
+            "results": "النتائج",
+            "signature": "التوقيع",
+            "noData": "لا يوجد تاريخ تلاوة",
+            "allResults": "جميع النتائج",
+            "allSignatures": "جميع التوقيعات",
+            "withSignature": "مع التوقيع",
+            "withoutSignature": "بدون توقيع",
+            "ratings": {
+                "Excellent": "ممتاز",
+                "Very Good": "جيد جدًا",
+                "Good": "جيد",
+                "Pass": "مقبول",
+                "Weak": "ضعيف",
+                "Not Pass": "راسب"
+            }
+        },
+        "paginate": {
+            "previous": "السابق",
+            "next": "بعد"
+        },
+        "settingsButtonTitle": "إعدادات القرآني",
+        "tableViewTitle": "عرض الجدول",
+        "confirmSignMessage": "تأكيد لتوقيع هذا السجل؟",
+        "errorMessages": {
+            "fetchFailed": "فشل في جلب تفاصيل التلاوة",
+            "signFailed": "فشل في توقيع السجل"
+        }
     }
-  }
 }

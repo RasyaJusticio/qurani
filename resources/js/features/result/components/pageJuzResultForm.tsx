@@ -1,8 +1,9 @@
+import Alert from '@/components/ui/Alert';
 import Combobox from '@/components/ui/combobox';
-import { router, useForm, usePage } from '@inertiajs/react';
+import { Link, useForm, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { AlertCircle, CheckCircle2, ChevronDown, ChevronUp, FileText } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface Reciter {
@@ -110,12 +111,8 @@ interface PageProps {
         };
     };
     user_id: number;
-    errorLabels: {
-        user: ErrorLabel[];
-        grup: {
-            [key: number]: ErrorLabel[];
-        };
-    };
+    errorLabels: ErrorLabel[]
+    previousUrl: string;
     [key: string]: unknown;
 }
 
@@ -123,7 +120,9 @@ const PageRecapFormLayout: React.FC = () => {
     const { props } = usePage<PageProps>();
     const [panels, setPanels] = useState<{ [key: string]: boolean }>({});
     const [setoranData, setSetoranData] = useState<SetoranData | null>(null);
+    const [alert, setAlert] = useState<boolean>(false)
     const { t } = useTranslation('resultForm');
+    const btnSubmit = useRef<HTMLButtonElement>(null);
     const form = useForm<FormData>({
         reciter: null,
         recipient: '',
@@ -242,8 +241,7 @@ const PageRecapFormLayout: React.FC = () => {
         form.clearErrors(key);
     };
 
-    const handlePageChange = (page: string, field: 'kesimpulan' | 'catatan') => (e: React.ChangeEvent<HTMLSelectElement | HTMLTextAreaElement>) => {
-        const value = e.target.value;
+    const handlePageChange = (page: string, field: 'kesimpulan' | 'catatan') => (value: string) => {
         form.setData('mistake', {
             ...form.data.mistake,
             [page]: {
@@ -326,7 +324,10 @@ const PageRecapFormLayout: React.FC = () => {
             ket: form.data.catatan || null,
             perhalaman: perhalamanData,
         };
-
+        if (btnSubmit.current) {
+            if (btnSubmit.current.disabled) return; // Prevent multiple submissions
+            btnSubmit.current.disabled = true; // Disable the button to prevent multiple submissions
+        }
         axios
             .post('/api/result', postData, {
                 headers: {
@@ -336,9 +337,12 @@ const PageRecapFormLayout: React.FC = () => {
                 },
             })
             .then(() => {
-                alert('Data berhasil dikirim!');
+                // alert('Data berhasil dikirim!');
+                setAlert(true)
                 localStorage.removeItem('setoran-data');
-                router.visit('/home');
+                localStorage.setItem("verseErrors", "{}")
+                localStorage.setItem("wordErrors", "{}")
+                // router.visit('/home');
             })
             .catch((error) => {
                 if (error.response && error.response.status === 422) {
@@ -350,7 +354,11 @@ const PageRecapFormLayout: React.FC = () => {
                     console.error('Error:', error);
                     form.setError('submit', 'Gagal mengirim data. Silakan coba lagi.');
                 }
-            });
+            }).finally(() => {
+                if (btnSubmit.current) {
+                    btnSubmit.current.disabled = false;
+                }
+            });;
     };
 
     const generateConclusionOptions = (): { value: string; label: string }[] => {
@@ -361,7 +369,6 @@ const PageRecapFormLayout: React.FC = () => {
     };
     const conclusionOptions = generateConclusionOptions();
 
-    console.log('ini Halaman form result ', props.labels);
     if (!props.labels || !setoranData) {
         return null;
     }
@@ -399,11 +406,8 @@ const PageRecapFormLayout: React.FC = () => {
 
     function checkPanel(): string {
         let result = 'tampilkan';
-        const displayPanelCheck =
-            setoranData?.penyetor == 'grup'
-                ? props.errorLabels.grup[`${parseInt(setoranData?.selectedGroup)}`]
-                : props.errorLabels[`${setoranData?.penyetor}`];
-        displayPanelCheck.map((v: ErrorLabel, i: number) => {
+        const displayPanelCheck = props.errorLabels;
+        displayPanelCheck.map((v: ErrorLabel) => {
             if (v.key == 'kesimpulan') {
                 result = v.value;
             }
@@ -413,20 +417,28 @@ const PageRecapFormLayout: React.FC = () => {
     return (
         <div className="min-h-screen bg-gray-50 py-6 dark:bg-[rgb(16,24,40)]">
             <div className="mx-auto mt-12 w-full max-w-4xl px-4 sm:px-6 lg:px-8">
+                <Alert show={alert} to='/home' heading='Data Berhasil Dikirim' message='Lihat Detail Recap pada tabel' />
                 <div className="mb-6 text-center dark:bg-[rgb(16,24,40)]">
                     {/* <h1 className="mb-1 text-2xl font-bold text-gray-900">{t('general.hasilrekap')}</h1> */}
-                    <button
-                        onClick={() => window.history.back()}
-                        className="mb-4 flex items-center text-sm text-gray-600 hover:text-gray-900 dark:bg-[rgb(16,24,40)] dark:text-gray-300 dark:hover:text-white"
+                    <Link
+                        href={props.previousUrl}
+                        className="mb-4 flex items-center text-sm text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                        preserveScroll
+                        preserveState
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="mr-1 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="mr-1 h-5 w-5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                        >
                             <path
                                 fillRule="evenodd"
                                 d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
                                 clipRule="evenodd"
                             />
                         </svg>
-                    </button>
+                    </Link>
                 </div>
                 <div className="mb-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                     <div className="mb-4 grid grid-cols-1 gap-4">
@@ -542,7 +554,7 @@ const PageRecapFormLayout: React.FC = () => {
                             type="button"
                             onClick={handleSubmit}
                             className="rounded-md bg-[rgb(94,114,228)] px-4 py-2 text-sm font-medium text-white transition-colors hover:cursor-pointer hover:bg-[rgb(57,69,138)] disabled:cursor-not-allowed disabled:bg-blue-300"
-                            disabled={form.processing}
+                            ref={btnSubmit}
                         >
                             {form.processing ? t('rekapan.form.mengirim') : t('rekapan.form.kirim')}
                         </button>
@@ -550,10 +562,10 @@ const PageRecapFormLayout: React.FC = () => {
                     {form.errors.submit && <p className="mt-2 text-xs text-red-500">{form.errors.submit}</p>}
                 </div>
                 {checkPanel() == 'tampilkan' && (
-                    <div className="space-y-3">
+                    <div className="space-y-3 mb-20 lg:mb-0">
                         {Object.entries(setoranData.mistake || {})
                             .sort(([pageA], [pageB]) => parseInt(pageA) - parseInt(pageB))
-                            .map(([page, errors]) => (
+                            .map(([page]) => (
                                 <div
                                     key={page}
                                     className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
@@ -627,7 +639,7 @@ const PageRecapFormLayout: React.FC = () => {
                                                                                 err.salahKey,
                                                                             )}`}
                                                                         >
-                                                                            Ayah : {err.noAyat}
+                                                                            {t("rekapan.form.ayat")} : {err.noAyat}
                                                                         </span>
                                                                         <p className="ml-2 text-right text-sm text-gray-700 dark:text-gray-300">
                                                                             {err.salah}
@@ -701,7 +713,7 @@ const PageRecapFormLayout: React.FC = () => {
                                                                 notFoundText={t('notFoundText.conclusion_not_found')}
                                                                 value={form.data.mistake[page]?.kesimpulan || ''}
                                                                 onValueChange={handlePageChange(page, 'kesimpulan')}
-                                                                // className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
+                                                            // className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
                                                             />
                                                         </div>
                                                     </div>
