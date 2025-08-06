@@ -18,7 +18,7 @@ class AppLoadController extends Controller
         $token = $request->get('token');
         if (!$token || empty($token)) {
             return redirect()->route('redirect');
-        }
+        }   
 
         [$encoded, $signature] = explode('.', $token, 2);
 

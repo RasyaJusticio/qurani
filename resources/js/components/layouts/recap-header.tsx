@@ -1,5 +1,6 @@
 import { faHome } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -117,14 +118,15 @@ const RecapHeader: React.FC<QuranHeaderProps> = ({ page, translateMode = 'read',
     }
 
     const noFinishButton = () => {
-        return ['dashboard', 'filter', 'result','page','recap'].includes(segments[segments.length - 1]);
+        return ['dashboard', 'filter', 'result','page','recap'].includes(segments[0]);
     };
 
+
     return (
-        <div className={`px-6 ${classNav} fixed z-50 w-full bg-white`}>
+        <div className={`px-0 ${classNav} fixed z-50 w-full bg-neutral-100 text-black dark:bg-gray-800 dark:text-white shadow-md`}>
             <div className="ml-3 mt-3 mb-3 flex items-center justify-between">
                 <div className="flex items-center">
-                    <div className="cursor-pointer" onClick={() => (window.location.href = `/`)}>
+                    <div className="cursor-pointer" onClick={() => (router.visit("/home"))}>
                         <FontAwesomeIcon icon={faHome} className={`${iconSize} text-[#2CA4AB]`} />
                     </div>
                     <span className={`ml-1 ${textSize}`}>/ Recap</span>

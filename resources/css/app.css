@@ -154,14 +154,34 @@
     }
 }
 @import url('https://fonts.googleapis.com/css2?family=Scheherazade+New:wght@400;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Lateef:wght@400;700&display=swap');
+/* @import url('https://fonts.googleapis.com/css2?family=Lateef:wght@400;700&display=swap'); */
+
+@font-face {
+    font-family: 'utsmanic';
+    src: url('/assets/fonts/kitab.ttf');
+    ascent-override: 90%;
+    descent-override: 35%;
+}
+
+@font-face {
+    font-family: 'IndoPak';
+    src: url('/assets/fonts/indopak-nastaleeq.woff');
+    ascent-override: 90%;
+    descent-override: 35%;
+}
 
 .font-arabic {
-    font-family: 'Scheherazade New', 'Lateef', serif;
-    line-height: 2.5;
+    font-family: 'utsmanic';
+    /* line */
 }
+.font-arabic-indopak {
+    font-family: 'IndoPak', sans-serif;
+    /* font-size-adjust: 0.5; */
+    font-feature-settings: 'liga' on 'calt' on;
+}
+
 /* Tambahkan di CSS global */
 .page-loading {
-  visibility: hidden !important;
-  opacity: 0 !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
 }

@@ -26,7 +26,7 @@
         "search_member": "ابحث عن العضو",
         "search_friend": "ابحث عن الصديق"
     },
-    "notFoundText": {
+    "notFoundText":     {
         "member_not_found": "العضو غير موجود",
         "group_not_found": "المجموعة غير موجودة",
         "friend_not_found": "الصديق غير موجود",

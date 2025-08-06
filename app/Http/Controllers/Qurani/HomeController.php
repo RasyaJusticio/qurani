@@ -21,6 +21,8 @@ class HomeController extends Controller
 {
     public function index(Request $request)
     {
+        $page = $request->input('page', 1);
+
         try {
             $uId = Auth::user()->user_id;
             $friends = $this->getFriends();
@@ -28,10 +30,11 @@ class HomeController extends Controller
             $chapters = $this->getChapters();
             $juzs = $this->getJuzs();
             $userSettings = $this->getUserSettings(4);
-            $setoran = $this->getSetoran();
+            $setoran = $this->getSetoran($page, $request); // Pass the request object
             $setoranRekap = $this->getSetoranRekap();
             $setoranRekapTotal = $this->getSetoranRekapTotal();
             $periodes = $this->getPeriodes();
+
 
             return Inertia::render('index', [
                 'friends' => $friends,
@@ -43,7 +46,8 @@ class HomeController extends Controller
                 'setoranRekap' => $setoranRekap,
                 'setoranRekapTotal' => $setoranRekapTotal,
                 'periodes' => $periodes,
-                'u_id' => $uId
+                'u_id' => $uId,
+                'filters' => $request->only(['reciter', 'result', 'timeRange', 'signature']) // Pass current filters to view
             ]);
         } catch (Exception $e) {
             Log::error('Error in HomeController@index', [
@@ -69,9 +73,16 @@ class HomeController extends Controller
     public function recap(Request $request)
     {
         try {
+            $id_setoran = $request->query("id_setoran");
             $uId = Auth::user()->user_id;
+            $chapter = Chapter::select([
+                "id",
+                "name_simple"
+            ])->get();
             return Inertia::render('recap/Index', [
-                'u_id' => $uId
+                'u_id' => $uId,
+                'chapters' => $chapter,
+                "id_setoran" => $id_setoran
             ]);
         } catch (Exception $e) {
             Log::error('Error in HomeController@recap', [
@@ -134,9 +145,11 @@ class HomeController extends Controller
                 return [];
             }
 
-            return Group::with(['users' => function ($query) use ($uId) {
-                $query->where('users.user_id', '!=', $uId);
-            }])
+            return Group::with([
+                'users' => function ($query) use ($uId) {
+                    $query->where('users.user_id', '!=', $uId);
+                }
+            ])
                 ->whereHas('users', function ($query) use ($uId) {
                     $query->where('users.user_id', $uId);
                 })
@@ -214,19 +227,254 @@ class HomeController extends Controller
         }
     }
 
-    private function getSetoran()
+    // private function getSetoran($page)
+    // {
+    //     try {
+    //         $uId = Auth::user()->user_id;
+    //         if (!$uId) {
+    //             return [
+    //                 'data' => [],
+    //                 'meta' => [],
+    //             ];
+    //         }
+
+    //         $paginator = QuSetoran::select(
+    //             'qu_setoran.id',
+    //             'qu_setoran.tgl',
+    //             DB::raw("CONCAT(penyetor.user_firstname, ' ', penyetor.user_lastname) AS reciter_name"),
+    //             'penyetor.user_name AS reciter_username',
+    //             DB::raw("CONCAT(penerima.user_firstname, ' ', penerima.user_lastname) AS recipient_name"),
+    //             'penerima.user_name AS recipient_username',
+    //             'qu_setoran.setoran',
+    //             'qu_setoran.tampilan',
+    //             'qu_setoran.nomor',
+    //             'qu_setoran.info',
+    //             'qu_setoran.hasil',
+    //             'qu_setoran.ket',
+    //             'qu_setoran.perhalaman',
+    //             'qu_setoran.paraf'
+    //         )
+    //             ->join('users AS penyetor', 'qu_setoran.penyetor', '=', 'penyetor.user_id')
+    //             ->join('users AS penerima', 'qu_setoran.penerima', '=', 'penerima.user_id')
+    //             ->where(function ($query) use ($uId) {
+    //                 $query->where('qu_setoran.penyetor', $uId)
+    //                     ->orWhere('qu_setoran.penerima', $uId);
+    //             })
+    //             ->orderByDesc('qu_setoran.tgl')
+    //             ->paginate(10, ['*'], 'page', $page);
+
+    //         $transformedData = $paginator->getCollection()->map(function ($item) {
+    //             if ($item->tampilan === 'surah') {
+    //                 $chapter = Chapter::find($item->nomor);
+    //                 $display = $chapter ? $chapter->name_simple : $item->nomor;
+    //                 $recite = ucfirst($item->setoran) . ' Surah ' . $display . ' Ayat ' . $item->info;
+    //             } else {
+    //                 $recite = ucfirst($item->setoran) . ' ' . ucfirst($item->tampilan) . ' ' . $item->nomor;
+    //             }
+
+    //             return [
+    //                 'id' => $item->id,
+    //                 'time' => Carbon::parse($item->tgl)->toDateTimeString(),
+    //                 'reciter' => $item->reciter_name,
+    //                 'reciter_username' => $item->reciter_username,
+    //                 'recipient' => $item->recipient_name,
+    //                 'recipient_username' => $item->recipient_username,
+    //                 'recite' => $recite,
+    //                 'results' => $item->hasil,
+    //                 'signature' => $item->paraf ? 1 : 0,
+    //             ];
+    //         });
+
+    //         return [
+    //             'data' => $transformedData,
+    //             'meta' => [
+    //                 'current_page' => $paginator->currentPage(),
+    //                 'last_page' => $paginator->lastPage(),
+    //                 'per_page' => $paginator->perPage(),
+    //                 'total' => $paginator->total(),
+    //                 'has_more_pages' => $paginator->hasMorePages(),
+    //             ],
+    //         ];
+    //     } catch (Exception $e) {
+    //         Log::error('Error in getSetoran', ['message' => $e->getMessage()]);
+    //         return [
+    //             'data' => [],
+    //             'meta' => [],
+    //         ];
+    //     }
+    // }
+
+    // private function getSetoran($page, Request $request)
+    // {
+    //     try {
+    //         $uId = Auth::user()->user_id;
+    //         if (!$uId) {
+    //             return [
+    //                 'data' => [],
+    //                 'meta' => [],
+    //             ];
+    //         }
+
+    //         // Get filter parameters from request
+    //         $reciter = $request->input('reciter', null);
+    //         $result = $request->input('result', null);
+    //         $timeRange = $request->input('timeRange', null);
+    //         $signature = $request->input('signature', null);
+
+    //         $query = QuSetoran::select(
+    //             'qu_setoran.id',
+    //             'qu_setoran.tgl',
+    //             DB::raw("CONCAT(penyetor.user_firstname, ' ', penyetor.user_lastname) AS reciter_name"),
+    //             'penyetor.user_name AS reciter_username',
+    //             'penyetor.user_id AS reciter_id',
+    //             DB::raw("CONCAT(penerima.user_firstname, ' ', penerima.user_lastname) AS recipient_name"),
+    //             'penerima.user_name AS recipient_username',
+    //             'qu_setoran.setoran',
+    //             'qu_setoran.tampilan',
+    //             'qu_setoran.nomor',
+    //             'qu_setoran.info',
+    //             'qu_setoran.hasil',
+    //             'qu_setoran.ket',
+    //             'qu_setoran.perhalaman',
+    //             'qu_setoran.paraf'
+    //         )
+    //             ->join('users AS penyetor', 'qu_setoran.penyetor', '=', 'penyetor.user_id')
+    //             ->join('users AS penerima', 'qu_setoran.penerima', '=', 'penerima.user_id')
+    //             ->where(function ($query) use ($uId) {
+    //                 $query->where('qu_setoran.penyetor', $uId)
+    //                     ->orWhere('qu_setoran.penerima', $uId);
+    //             });
+
+    //         // Apply reciter filter if provided - now searches for similar usernames
+    //         if ($reciter) {
+    //             $query->where(function ($q) use ($reciter) {
+    //                 $q->where('penyetor.user_name', 'LIKE', "%{$reciter}%")
+    //                     ->orWhere('penyetor.user_firstname', 'LIKE', "%{$reciter}%")
+    //                     ->orWhere('penyetor.user_lastname', 'LIKE', "%{$reciter}%")
+    //                     ->orWhere(DB::raw("CONCAT(penyetor.user_firstname, ' ', penyetor.user_lastname)"), 'LIKE', "%{$reciter}%");
+    //             });
+    //         }
+
+    //         // Apply result filter if provided
+    //         if ($result && in_array($result, ['baik', 'kurang', 'cukup'])) {
+    //             $query->where('qu_setoran.hasil', $result);
+    //         }
+
+    //         // Apply signature filter if provided
+    //         if ($signature !== null) {
+    //             $query->where('qu_setoran.paraf', $signature ? 1 : 0);
+    //         }
+
+    //         // Apply time range filter if provided
+    //         if ($timeRange) {
+    //             $now = Carbon::now();
+    //             switch ($timeRange) {
+    //                 case 'today':
+    //                     $query->whereDate('qu_setoran.tgl', $now->toDateString());
+    //                     break;
+    //                 case 'week':
+    //                     $query->whereBetween('qu_setoran.tgl', [
+    //                         $now->copy()->startOfWeek()->toDateTimeString(),
+    //                         $now->copy()->endOfWeek()->toDateTimeString()
+    //                     ]);
+    //                     break;
+    //                 case 'month':
+    //                     $query->whereBetween('qu_setoran.tgl', [
+    //                         $now->copy()->startOfMonth()->toDateTimeString(),
+    //                         $now->copy()->endOfMonth()->toDateTimeString()
+    //                     ]);
+    //                     break;
+    //                 case 'year':
+    //                     $query->whereBetween('qu_setoran.tgl', [
+    //                         $now->copy()->startOfYear()->toDateTimeString(),
+    //                         $now->copy()->endOfYear()->toDateTimeString()
+    //                     ]);
+    //                     break;
+    //             }
+    //         }
+
+
+    //         // Apply pagination
+    //         $paginator = $query->orderByDesc('qu_setoran.tgl')
+    //             ->paginate(10, ['*'], 'page', $page);
+    //         $links = $paginator->toArray()['links'];
+
+    //         $transformedData = $paginator->getCollection()->map(function ($item) {
+    //             if ($item->tampilan === 'surah') {
+    //                 $chapter = Chapter::find($item->nomor);
+    //                 $display = $chapter ? $chapter->name_simple : $item->nomor;
+    //                 $recite = ucfirst($item->setoran) . ' Surah ' . $display . ' Ayat ' . $item->info;
+    //             } else {
+    //                 $recite = ucfirst($item->setoran) . ' ' . ucfirst($item->tampilan) . ' ' . $item->nomor;
+    //             }
+
+    //             return [
+    //                 'id' => $item->id,
+    //                 'time' => Carbon::parse($item->tgl)->toDateTimeString(),
+    //                 'reciter' => $item->reciter_name,
+    //                 'reciter_username' => $item->reciter_username,
+    //                 'reciter_id' => $item->reciter_id,
+    //                 'recipient' => $item->recipient_name,
+    //                 'recipient_username' => $item->recipient_username,
+    //                 'recite' => $recite,
+    //                 'results' => $item->hasil,
+    //                 'signature' => $item->paraf ? 1 : 0,
+    //             ];
+    //         });
+
+    //         return [
+    //             'data' => $transformedData,
+    //             'meta' => [
+    //                 'current_page' => $paginator->currentPage(),
+    //                 'last_page' => $paginator->lastPage(),
+    //                 'per_page' => $paginator->perPage(),
+    //                 'total' => $paginator->total(),
+    //                 'has_more_pages' => $paginator->hasMorePages(),
+    //                 'links' => $links,
+    //             ],
+    //             'filters' => [
+    //                 'reciter' => $reciter,
+    //                 'result' => $result,
+    //                 'timeRange' => $timeRange,
+    //                 'signature' => $signature
+    //             ]
+    //         ];
+    //     } catch (Exception $e) {
+    //         Log::error('Error in getSetoran', ['message' => $e->getMessage()]);
+    //         return [
+    //             'data' => [],
+    //             'meta' => [],
+    //             'filters' => []
+    //         ];
+    //     }
+    // }
+
+    private function getSetoran($page, Request $request)
     {
         try {
+
+            Log::info($request->query('signature'));
             $uId = Auth::user()->user_id;
             if (!$uId) {
-                return [];
+                return [
+                    'data' => [],
+                    'meta' => [],
+                ];
             }
 
-            return QuSetoran::select(
+            // Get filter parameters from request
+            $reciter = $request->input('reciter', null);
+            $result = $request->input('result', null);
+            $timeRange = $request->input('timeRange', null);
+            $signature = $request->input('signature', null);
+            Log::info($request->all());
+
+            $query = QuSetoran::select(
                 'qu_setoran.id',
                 'qu_setoran.tgl',
                 DB::raw("CONCAT(penyetor.user_firstname, ' ', penyetor.user_lastname) AS reciter_name"),
                 'penyetor.user_name AS reciter_username',
+                'penyetor.user_id AS reciter_id',
                 DB::raw("CONCAT(penerima.user_firstname, ' ', penerima.user_lastname) AS recipient_name"),
                 'penerima.user_name AS recipient_username',
                 'qu_setoran.setoran',
@@ -236,45 +484,127 @@ class HomeController extends Controller
                 'qu_setoran.hasil',
                 'qu_setoran.ket',
                 'qu_setoran.perhalaman',
-                'qu_setoran.paraf',
+                'qu_setoran.paraf'
             )
                 ->join('users AS penyetor', 'qu_setoran.penyetor', '=', 'penyetor.user_id')
                 ->join('users AS penerima', 'qu_setoran.penerima', '=', 'penerima.user_id')
                 ->where(function ($query) use ($uId) {
-                    $query->where('qu_setoran.penyetor', $uId) // User sebagai reciter
-                        ->orWhere('qu_setoran.penerima', $uId); // User sebagai recipient
-                })
-                ->orderBy('qu_setoran.tgl', 'desc')
-                ->limit(10)
-                ->get()
-                ->map(function ($item) {
-                    $surahName = null;
-                    if ($item->tampilan === 'surah') {
-                        $chapter = Chapter::find($item->nomor);
-                        $surahName = $chapter ? $chapter->name_simple : null;
-                        $display = $surahName ?: $item->nomor;
-                        $recite = ucfirst($item->setoran) . ' ' . ucfirst($item->tampilan) . ' ' . $display . ' Ayat ' . $item->info;
-                    } else {
-                        // For 'page' or 'juz', only show the number without verse info
-                        $display = $item->nomor;
-                        $recite = ucfirst($item->setoran) . ' ' . ucfirst($item->tampilan) . ' ' . $display;
+                    $query->where('qu_setoran.penyetor', $uId)
+                        ->orWhere('qu_setoran.penerima', $uId);
+                });
+
+            if ($reciter) {
+                $searchTerms = explode(' ', $reciter);
+                $query->where(function ($q) use ($searchTerms) {
+                    foreach ($searchTerms as $term) {
+                        $q->where(function ($innerQ) use ($term) {
+                            $innerQ->where('penyetor.user_name', 'LIKE', "%{$term}%")
+                                ->orWhere('penyetor.user_firstname', 'LIKE', "%{$term}%")
+                                ->orWhere('penyetor.user_lastname', 'LIKE', "%{$term}%")
+                                ->orWhere(DB::raw("CONCAT(penyetor.user_firstname, ' ', penyetor.user_lastname)"), 'LIKE', "%{$term}%");
+                        });
                     }
-                    return [
-                        'id' => $item->id,
-                        'time' => Carbon::parse($item->tgl)->toDateTimeString(),
-                        'reciter' => $item->reciter_name,
-                        'reciter_username' => $item->reciter_username,
-                        'recipient' => $item->recipient_name,
-                        'recipient_username' => $item->recipient_username,
-                        'recite' => $recite,
-                        'results' => $item->hasil,
-                        'signature' => $item->paraf ? 1 : 0,
-                    ];
-                })
-                ->toArray();
+                });
+            }
+
+            // Apply result filter if provided
+            if ($result) {
+                $query->where('qu_setoran.hasil', $result);
+            }
+
+            // Apply signature filter if provided
+            if ($signature !== null) {
+                $query->where('qu_setoran.paraf', $signature ? 1 : 0);
+            }
+
+
+            // Apply time range filter if provided
+            if (!empty($timeRange)) {
+                try {
+                    // Cek jika timeRange adalah string JSON
+                    if (is_string($timeRange)) {
+                        $timeRange = json_decode($timeRange, true);
+                    }
+
+                    // Pastikan timeRange adalah array
+                    if (is_array($timeRange)) {
+                        $start = $timeRange['start'] ?? null;
+                        $end = $timeRange['end'] ?? null;
+
+                        if ($start && $end) {
+                            $startDate = Carbon::parse($start)->startOfDay();
+                            $endDate = Carbon::parse($end)->endOfDay();
+
+                            $query->whereBetween('qu_setoran.tgl', [
+                                $startDate->toDateTimeString(),
+                                $endDate->toDateTimeString()
+                            ]);
+                        } elseif ($start) {
+                            $query->where('qu_setoran.tgl', '>=', Carbon::parse($start)->startOfDay());
+                        } elseif ($end) {
+                            $query->where('qu_setoran.tgl', '<=', Carbon::parse($end)->endOfDay());
+                        }
+                    }
+                } catch (\Exception $e) {
+                    Log::error('Error processing timeRange filter', [
+                        'error' => $e->getMessage(),
+                        'timeRange' => $timeRange
+                    ]);
+                }
+            }
+
+            // Apply pagination
+            $paginator = $query->orderByDesc('qu_setoran.tgl')
+                ->paginate(10, ['*'], 'page', $page)
+                ->withQueryString(); // Add query string parameters to pagination links;
+
+            $transformedData = $paginator->getCollection()->map(function ($item) {
+                if ($item->tampilan === 'surah') {
+                    $chapter = Chapter::find($item->nomor);
+                    $display = $chapter ? $chapter->name_simple : $item->nomor;
+                    $recite = ucfirst($item->setoran) . ' Surah ' . $display . ' Ayat ' . $item->info;
+                } else {
+                    $recite = ucfirst($item->setoran) . ' ' . ucfirst($item->tampilan) . ' ' . $item->nomor;
+                }
+
+                return [
+                    'id' => $item->id,
+                    'time' => Carbon::parse($item->tgl)->toDateTimeString(),
+                    'reciter' => $item->reciter_name,
+                    'reciter_username' => $item->reciter_username,
+                    'reciter_id' => $item->reciter_id,
+                    'recipient' => $item->recipient_name,
+                    'recipient_username' => $item->recipient_username,
+                    'recite' => $recite,
+                    'results' => $item->hasil,
+                    'signature' => $item->paraf ? 1 : 0,
+                ];
+            });
+
+            return [
+                'data' => $transformedData,
+                'meta' => [
+                    'current_page' => $paginator->currentPage(),
+                    'last_page' => $paginator->lastPage(),
+                    'per_page' => $paginator->perPage(),
+                    'total' => $paginator->total(),
+                    'has_more_pages' => $paginator->hasMorePages(),
+                    'links' => $paginator->toArray()["links"],
+                ],
+                'filters' => [
+                    'reciter' => $reciter,
+                    'result' => $result,
+                    'timeRange' => $timeRange,
+                    'signature' => $signature
+                ]
+            ];
         } catch (Exception $e) {
             Log::error('Error in getSetoran', ['message' => $e->getMessage()]);
-            return [];
+            return [
+                'data' => [],
+                'meta' => [],
+                'filters' => []
+            ];
         }
     }
 

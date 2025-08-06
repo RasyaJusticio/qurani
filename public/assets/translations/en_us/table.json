@@ -1,15 +1,32 @@
 {
-  "history": {
-    "title": "History",
-    "table": {
-      "time": "Time",
-      "reciter": "Reciter",
-      "recipient": "Recipient",
-      "recite": "Recite",
-      "results": "Results",
-      "signature": "Signature",
-      "noData": "Doesn't recite history"
-    },
-    "settingsButtonTitle": "Qurani Setting"
-  }
+    "history": {
+        "title": "History",
+        "table": {
+            "time": "Time",
+            "reciter": "Reciter",
+            "recipient": "Recipient",
+            "recite": "Recite",
+            "results": "Results",
+            "signature": "Signature",
+            "noData": "Doesn't recite history",
+            "allResults": "All Results",
+            "allSignatures": "All Signatures",
+            "withSignature": "With Signature",
+            "withoutSignature": "Without Signature",
+            "ratings": {
+                "Excellent": "Excellent",
+                "Very Good": "Very Good",
+                "Good": "Good",
+                "Pass": "Pass",
+                "Weak": "Weak",
+                "Not Pass": "Not Pass"
+            }
+        },
+        "confirmSignRecord": "Would you like to initial this deposit?",
+        "settingsButtonTitle": "Qurani Setting",
+        "paginate": {
+            "previous": "Previous",
+            "next": "Next"
+        }
+    }
 }
