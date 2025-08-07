@@ -98,10 +98,12 @@ export default function JuzIndex() {
     const [isMobile, setIsMobile] = useState<boolean>(false);
     const [currentErrorLabels, setCurrentErrorLabels] = useState<ErrorLabel[] | null>(null);
     const [wordIndopak, setWordIndopak] = useState<WordIndopak | null>(null)
+    const [wordUtsmani, setWordUtsmani] = useState<WordIndopak | null>(null)
+    // const [fontCache, setFontCache] = useState<Record<number, boolean>>({});
     const { t, ready } = useTranslation("surah");
 
     useEffect(() => {
-        async function fetchData() {
+        async function fetchDataIndopak() {
             try {
                 // Path relatif ke file JSON Anda di folder public
                 const response = await fetch('/assets/json/indopak-nastaleeq.json');
@@ -116,8 +118,24 @@ export default function JuzIndex() {
                 console.log(e)
             }
         }
+        async function fetchDataUtsmani() {
+            try {
+                // Path relatif ke file JSON Anda di folder public
+                const response = await fetch('/assets/json/qpc-utsmani.json');
 
-        fetchData();
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                setWordUtsmani(data);
+            } catch (e) {
+                console.log(e)
+            }
+        }
+
+        fetchDataUtsmani();
+        fetchDataIndopak();
     }, []);
 
     useEffect(() => {
@@ -309,10 +327,40 @@ export default function JuzIndex() {
 
 
     function getFont(location: string): string {
-        if (!wordIndopak || !wordIndopak[`${location}`]) {
-            return '';
+        if (fontType() == "IndoPak") {
+            if (!wordIndopak || !wordIndopak[`${location}`]) {
+                return '';
+            }
+            return wordIndopak[`${location}`]?.text || '';
+
+        } else {
+            if (!wordUtsmani || !wordUtsmani[`${location}`]) {
+                return '';
+            }
+            return wordUtsmani[`${location}`]?.text || '';
         }
-        return wordIndopak[`${location}`]?.text || '';
+    }
+
+    function loadFontFace(page: number): string {
+        const fontName = `QPCPage${page}`;
+        const fontUrl = `/assets/fonts/QPC V1 Font/p${page}.woff2`;
+
+        // Buat elemen style untuk inject font-face
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @font-face {
+                font-family: '${fontName}';
+                src: url('${fontUrl}') format('woff2');
+                font-display: swap;
+            }
+
+            .${fontName} {
+                font-family : ${fontName}
+            }
+        `;
+        document.head.appendChild(style);
+
+        return fontName
     }
 
     function getTataLetakClass(): JSX.Element {
@@ -366,8 +414,7 @@ export default function JuzIndex() {
                                             const wordLabel = wordErrors[word.id]
                                                 ? allAvailableLabels.find((l) => l.key === wordErrors[word.id])
                                                 : null;
-                                            const versesLabel = verseErrors[verse.id];
-                                            const wordLabels = wordLabel || versesLabel;
+                                            const wordLabels = wordLabel || verseLabel;
                                             return (
                                                 <span
                                                     key={word.id}
@@ -475,6 +522,8 @@ export default function JuzIndex() {
                                     }
                                 });
                             });
+
+                            const classUtsmani = fontType() !== "IndoPak" ? loadFontFace(pageNumber) : ""
 
                             return (
                                 <div key={pageNumber} style={{ margin: '0 auto' }}>
@@ -595,7 +644,7 @@ export default function JuzIndex() {
                                                                             minWidth: 'min-content'
                                                                         }}
                                                                         className={cn(
-                                                                            `${fontType() == "IndoPak" ? "font-arabic-indopak" : "font-arabic"}
+                                                                            `
                                                                         cursor-pointer text-gray-700 transition-colors duration-200
                                                                     hover:text-blue-300 dark:hover:text-blue-300`,
                                                                             showWordHighlight ? 'dark:text-gray-900' : 'dark:text-gray-300',
@@ -604,29 +653,29 @@ export default function JuzIndex() {
                                                                         {
                                                                             word.char_type_name == "word" && (
                                                                                 <span
-                                                                                    className={fontType() == "IndoPak" ? "font-arabic-indopak" : "font-arabic"}
+                                                                                    className={fontType() == "IndoPak" ? "font-arabic-indopak" : `${classUtsmani}`}
                                                                                     onClick={(e) => {
                                                                                         e.stopPropagation();
                                                                                         handleClick('word', word.id);
                                                                                     }}
                                                                                 >
-                                                                                    {fontType() == "IndoPak" ? getFont(word.location) : word.text_uthmani}
+                                                                                    {getFont(word.location)}
                                                                                 </span>
                                                                             )
                                                                         }
                                                                         {
                                                                             word.char_type_name == "end" && (
                                                                                 <span
-                                                                                    className="font-arabic"
-                                                                                    onClick={() => handleClick('verse', verse.id)}
+                                                                                    onClick={() => handleClick('verse', verse?.id || 1)}
                                                                                 >
                                                                                     {fontType() == "IndoPak" ? (
                                                                                         <span className="font-arabic-indopak">
                                                                                             {getFont(word.location)}
                                                                                         </span>
                                                                                     ) : (
-                                                                                        <span className="font-arabic">
-                                                                                            ۝{word.text_uthmani}
+                                                                                        <span className={`${classUtsmani}`}>
+                                                                                            {/* ۝{word.text_uthmani} */}
+                                                                                            {getFont(word.location)}
                                                                                         </span>
                                                                                     )}
                                                                                 </span>
