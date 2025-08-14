@@ -83,7 +83,6 @@ interface QuraniFormProps {
 const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs }) => {
     const { t, ready } = useTranslation('form');
     const { isDarkMode } = useTheme();
-    const { props } = usePage();
     const [translationsReady, setTranslationsReady] = useState<boolean>(false);
     const [userData, setUserData] = useState<UserData>({});
     const [penyetor, setPenyetor] = useState<string>('grup');
@@ -95,9 +94,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
     const [temanInput, setTemanInput] = useState<string>('');
     const [surahInput, setSurahInput] = useState<string>('');
     const [selectedSurahValue, setSelectedSurahValue] = useState<string>('');
-    const [juzInput, setJuzInput] = useState<string>('');
     const [selectedJuz, setSelectedJuz] = useState<string>('');
-    const [halamanInput, setHalamanInput] = useState<string>('');
     const [selectedHalaman, setSelectedHalaman] = useState<string>('');
     const [selectedGroup, setSelectedGroup] = useState<string>('');
     const [selectedMember, setSelectedMember] = useState<string>('');
@@ -682,7 +679,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                                     setSelectedJuz(value);
                                                     setErrors((prev) => ({ ...prev, juz: '' }));
                                                 }}
-                                                className={'bg-white text-black text-gray-200 dark:bg-gray-700'}
+                                                className={'bg-white text-black dark:bg-gray-700 dark:text-gray-200'}
                                             />
                                             {errors.juz && <p className="mt-1 text-sm text-red-500">{errors.juz}</p>}
                                         </div>
@@ -721,7 +718,7 @@ const QuraniCard: React.FC<QuraniFormProps> = ({ friends, groups, chapters, juzs
                                                     setSelectedHalaman(value);
                                                     setErrors((prev) => ({ ...prev, halaman: '' }));
                                                 }}
-                                                className={'bg-white text-black text-gray-200 dark:bg-gray-700'}
+                                                className={'bg-white text-black dark:bg-gray-700 dark:text-gray-200'}
                                             />
                                             {errors.halaman && <p className="mt-1 text-sm text-red-500">{errors.halaman}</p>}
                                         </div>

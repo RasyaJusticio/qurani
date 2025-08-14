@@ -1,19 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Filter, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
-
-interface DataItem {
-    id: number;
-    recipient: string;
-    recipient_username: string;
-    recite: string;
-    reciter: string;
-    reciter_username: string;
-    results: string;
-    signature: number;
-    time: string;
-}
 
 interface FilterOptions {
     recipient?: string;

@@ -185,10 +185,8 @@ const QuranHeader: React.FC<QuranHeaderProps> = ({ page, translateMode = 'read',
         if (checkLocalStorage()) return router.visit("/home");
         if (target) {
             router.visit(target);
-            console.log(target);
         } else {
             router.visit("/result");
-            console.log(target);
         }
     };
 
@@ -572,12 +570,14 @@ const QuranHeader: React.FC<QuranHeaderProps> = ({ page, translateMode = 'read',
                                     }}>+</span>
                                 </div>
                             </div>
-                            <div className={`flex mt-5 justify-center items-center ${fontType == "IndoPak" ? "font-arabic-indopak" : "font-arabic"}`}
+                            <div className={`flex mt-5 justify-center items-center ${fontType == "IndoPak" ? "font-arabic-indopak" : "qpc"}`}
                                 style={{
                                     fontSize: getFontSizeClass()
                                 }}
                             >
-                                بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
+                                {
+                                    fontType == "IndoPak" ? "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ" : "ﭑ ﭒ ﭓ ﭔ"
+                                }
                             </div>
                             <div className='mt-7'>
                                 <h1>Tata Letak</h1>
