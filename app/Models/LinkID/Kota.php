@@ -8,7 +8,5 @@ class Kota extends Model
 {
 
     protected $connection = 'linkid';
-    protected $table = 'kota';
-
-
+    protected $table = 'system_cities';
 }
