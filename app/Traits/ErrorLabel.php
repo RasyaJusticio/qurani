@@ -2,10 +2,10 @@
 
 namespace App\Traits;
 
-use App\Models\LinkId\GroupMemberModel;
-use App\Models\LinkId\SettingGlobal;
-use App\Models\LinkId\SettingGroup;
-use App\Models\LinkId\SettingUser;
+use App\Models\LinkID\GroupMemberModel;
+use App\Models\LinkID\SettingGlobal;
+use App\Models\LinkID\SettingGroup;
+use App\Models\LinkID\SettingUser;
 use Illuminate\Support\Facades\Log;
 
 trait ErrorLabel
