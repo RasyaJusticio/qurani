@@ -185,10 +185,8 @@ const QuranHeader: React.FC<QuranHeaderProps> = ({ page, translateMode = 'read',
         if (checkLocalStorage()) return router.visit("/home");
         if (target) {
             router.visit(target);
-            console.log(target);
         } else {
             router.visit("/result");
-            console.log(target);
         }
     };
 

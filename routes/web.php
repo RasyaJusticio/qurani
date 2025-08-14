@@ -66,9 +66,7 @@ Route::get('/recap', [HomeController::class, 'recap'])->name('recap');
 // Route::get('/recap/page/{id}', [RecapController::class, 'page'])->name('recap.page');
 Route::get('/recap/{id}', [RecapController::class, 'validateRouteSetoran'])->name('recap.page');
 Route::post('/setoran/{id}/sign', [HomeController::class, 'updateSignature']);
-
 Route::get("/info/{id}", [InfoSurahController::class, "index"])->name("info");
-
 // settings
 Route::post("/setting", [SettingController::class, 'store']);
 Route::post("/setting/reset", [SettingController::class, 'reset']);

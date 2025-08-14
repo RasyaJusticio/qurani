@@ -50,8 +50,6 @@ class ChapterController extends Controller
             'expires_at' => now()->addDays(7)->timestamp
         ]);
 
-        Log::info(session('reciter_data'));
-
         $surah = Chapter::findOrFail($id, [
             'id',
             'revelation_place',
@@ -114,24 +112,12 @@ class ChapterController extends Controller
 
         $settingUser = false;
 
-        $lineNumber = [];
-
-        foreach ($verses as $verse) {
-            foreach ($verse->words as $word) {
-                if (!isset($lineNumber[$word['line_number']])) {
-                    $lineNumber[$word['line_number']] = $word['line_number'];
-                }
-            }
-        }
-
-        Log::info(
-            $lineNumber
-        );
-
         if (session("reciter_data")) {
             $reciterData = session("reciter_data")['value'];
             $settingUser = $reciterData == "grup" ? false : true;
         }
+
+        Log::info($verses->toArray());
 
         return Inertia::render('surah/Index', [
             'surah' => [
@@ -146,7 +132,6 @@ class ChapterController extends Controller
             'verses' => $verses,
             'errorLabels' => $errorLabel,
             "setting" => $settingUser,
-            'lineNumber' => $lineNumber,
         ]);
     }
 }

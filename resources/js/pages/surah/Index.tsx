@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { Head, router, usePage, useRemember } from '@inertiajs/react';
 import React, { JSX, useEffect, useState } from 'react';
 import MistakeModal from '../../components/layouts/mistakeModal';
-import { Info } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface Word {
     id: number;
@@ -56,16 +56,11 @@ interface Surah {
     translated_name: { name: string; language_name: string };
 }
 
-interface LineNumber {
-    [key: number]: number;
-}
-
 interface PageProps {
     surah: Surah;
     verses: Verse[];
     errorLabels: ErrorLabel[];
     setting: boolean;
-    lineNumber?: LineNumber;
     [key: string]: unknown;
 }
 
@@ -116,6 +111,7 @@ export default function SurahIndex() {
     const [shouldReload, setShouldReload] = useRemember(false);
     const [wordIndopak, setWordIndopak] = useState<WordIndopak | null>(null)
     const [wordUtsmani, setWordUtsmani] = useState<WordIndopak | null>(null)
+    const { t, ready } = useTranslation("surah")
 
     useEffect(() => {
         async function fetchDataIndopak() {
@@ -378,38 +374,32 @@ export default function SurahIndex() {
         router.visit(`/info/${id}`)
     }
 
-    function getFontSizeClass() {
-        let fontSizeValue = isMobile ? 0 : 30;
-        const kaliFont = isMobile ? 5 : 6; // Adjust multiplier based on mobile or desktop
+    function getFontSizeClass(realSize: boolean = false): string | number {
+        const kaliFont = isMobile ? 5 : 6;
+        let finalCalculatedPx = isMobile ? 0 : 30;
+        let finalRealSize: number = 16;
+
         const labels = validateErrorLabels();
 
         if (labels) {
             const fontSizeLabel = labels.find((v) => v.key === "font-size");
-            if (fontSizeLabel) {
+
+            if (fontSizeLabel && fontSizeLabel.value) {
                 const parsedValue = parseInt(fontSizeLabel.value, 10);
+
                 if (!isNaN(parsedValue)) {
-                    fontSizeValue = parsedValue * kaliFont; // Multiply by kaliFont for larger font size
+                    finalRealSize = parsedValue;
+                    finalCalculatedPx = parsedValue * kaliFont;
                 }
             }
         }
-        return `${fontSizeValue}px`;
+
+        if (realSize) {
+            return finalRealSize;
+        } else {
+            return `${finalCalculatedPx}px`;
+        }
     }
-
-    // function checkFontSizeDisplay() {
-    //     const labels = validateErrorLabels();
-
-    //     if (labels) {
-    //         const fontSizeLabel = labels.find((v) => v.key === "font-size");
-    //         if (fontSizeLabel) {
-    //             const parsedValue = parseInt(fontSizeLabel.value, 10);
-    //             if (parsedValue >= 4 && isMobile) {
-    //                 return "inline"; // Font size is set to a positive value
-    //             } else {
-    //                 return "flex"; // Font size is not set to a positive value
-    //             }
-    //         }
-    //     }
-    // }
 
     function getFont(location: string): string {
         if (fontType() == "IndoPak") {
@@ -430,312 +420,331 @@ export default function SurahIndex() {
         const fontName = `QPCPage${page}`;
         const fontUrl = `/assets/fonts/QPC V1 Font/p${page}.woff2`;
 
+        // Cek apakah style dengan fontName sudah ada
+        const existingStyle = Array.from(document.head.querySelectorAll('style'))
+            .find(style => style.innerHTML.includes(`font-family: '${fontName}'`));
+
+        if (existingStyle) {
+            // Font sudah dimuat, tidak perlu inject ulang
+            return fontName;
+        }
+
         // Buat elemen style untuk inject font-face
         const style = document.createElement('style');
         style.innerHTML = `
-            @font-face {
-                font-family: '${fontName}';
-                src: url('${fontUrl}') format('woff2');
-                font-display: swap;
-            }
+        @font-face {
+            font-family: '${fontName}';
+            src: url('${fontUrl}') format('woff2');
+            font-display: swap;
+        }
 
-            .${fontName} {
-                font-family : ${fontName}
-            }
-        `;
+        .${fontName} {
+            font-family: '${fontName}';
+        }
+    `;
         document.head.appendChild(style);
 
-        return fontName
+        return fontName;
+    }
+
+    function renderFleksibel(): JSX.Element {
+        return (
+            <>
+                {verses.length > 0 ? (
+                    verses.map((verse, index) => {
+                        const verseLabel = verseErrors[verse.id]
+                            ? validateErrorLabels().find((l: ErrorLabel) => l.key === verseErrors[verse.id])
+                            : null;
+
+                        const classUtsmani = loadFontFace(verse.page_number)
+                        return (
+                            <span key={verse.id} className={`${index < verses.length - 1 && 'ml-0'}`}>
+                                <span
+                                    key={verse.id}
+                                    className={cn(
+                                        `text-gray-900 transition-colors duration-200`,
+                                        verseLabel ? 'dark:text-gray-900' : 'dark:text-gray-300',
+                                    )}
+                                    style={{
+                                        fontSize: getFontSizeClass(),
+                                        backgroundColor: verseLabel?.color || 'transparent',
+                                        padding: fontType() == "IndoPak" ? '5px 3px' : '5px 6px',
+                                        lineHeight: fontType() == "IndoPak" ? '170%' : '170%',
+                                        borderRadius: verseLabel ? '6px' : '0',
+                                        marginRight: verseLabel ? '4px' : '0',
+                                        verticalAlign: 'middle',
+                                    }}
+                                    onClick={() => handleClick('verse', verse.id)}
+                                >
+                                    {verse.words.map((word) => {
+                                        const allAvailableLabels = errorLabels;
+                                        const wordLabel = wordErrors[word.id]
+                                            ? allAvailableLabels.find((l) => l.key === wordErrors[word.id])
+                                            : null;
+                                        const wordLabels = wordLabel;
+                                        return (
+                                            <span
+                                                key={word.id}
+                                                className={cn(
+                                                    `${fontType() == "IndoPak" ? "font-arabic-indopak" : "font-arabic"} cursor-pointer text-gray-700 transition-colors duration-200 hover:text-blue-300 dark:hover:text-blue-300`,
+                                                    wordLabels || verseLabel ? 'dark:text-gray-900' : 'dark:text-gray-300',
+                                                )}
+                                                style={{
+                                                    fontSize: getFontSizeClass(),
+                                                    backgroundColor: wordLabels?.color || 'transparent',
+                                                    display: "inline-block",
+                                                    borderRadius: wordLabels ? '6px' : '0',
+                                                    margin: wordLabel ? '0 1px' : '0',
+                                                    padding: wordLabel ? "0px 3px" : "0px 5px",
+                                                    textAlign: "center",
+                                                    lineHeight: "1.2",
+                                                    verticalAlign: 'middle',
+                                                }}
+                                            >
+                                                {
+                                                    word.char_type_name == "word" && (
+                                                        <span
+                                                            className={fontType() == "IndoPak" ? "font-arabic-indopak" : classUtsmani}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleClick('word', word.id);
+                                                            }}
+                                                        >
+                                                            {getFont(word.location)}
+                                                        </span>
+                                                    )
+                                                }
+                                                {
+                                                    word.char_type_name == "end" && (
+                                                        <span
+                                                            className={fontType() == "IndoPak" ? "font-arabic-indopak" : classUtsmani}
+                                                            onClick={() => handleClick('verse', verse?.id || 1)}
+                                                        >
+                                                            {getFont(word.location)}
+                                                        </span>
+                                                    )
+                                                }
+                                            </span>
+                                        );
+                                    })}
+                                </span>
+
+                                {groupedVerses[verse.page_number][groupedVerses[verse.page_number].length - 1].verse.id === verse.id && (
+                                    <div className="my-4 flex items-center">
+                                        <hr className={`flex-1 border-2 border-t border-gray-300`} />
+                                        <span className={`mx-4 text-sm font-bold text-gray-700 dark:text-white  `}>
+                                            Page {verse.page_number}
+                                        </span>
+                                        <hr className={`flex-1 border-2 border-t border-gray-300`} />
+                                    </div>
+                                )}
+                                {index < verses.length - 1 && ''}
+                            </span>
+                        );
+                    })
+                ) : (
+                    <div className={`text-gray-700`}>Tidak ada data ayat untuk ditampilkan.</div>
+                )}
+            </>
+        );
+    }
+    function renderMushaf(): JSX.Element {
+        const versesByPage: { [pageNumber: number]: Verse[] } = {};
+        verses.forEach(verse => {
+            if (!versesByPage[verse.page_number]) {
+                versesByPage[verse.page_number] = [];
+            }
+            versesByPage[verse.page_number].push(verse);
+        });
+        console.log(versesByPage[235])
+        return (
+            <div style={{
+                width: "fit-content",
+                margin: '0 auto',
+            }}>
+                {Object.keys(versesByPage).length > 0 ? (
+                    Object.entries(versesByPage).map(([pageNumberStr, pageVerses]) => {
+                        const pageNumber = parseInt(pageNumberStr);
+                        const isValidationPage = pageNumber === 1 || pageNumber === 2;
+
+                        // Group all words by line_number across all verses in this page
+                        const wordsByLine: { [lineNumber: number]: { verse: Verse, word: Word }[] } = {};
+                        pageVerses.forEach(verse => {
+                            verse.words.forEach(word => {
+                                if (word.line_number !== undefined) {
+                                    if (!wordsByLine[word.line_number]) {
+                                        wordsByLine[word.line_number] = [];
+                                    }
+                                    wordsByLine[word.line_number].push({ verse, word });
+                                }
+                            });
+                        });
+
+                        if (pageNumber == 235) {
+                            console.log(wordsByLine)
+                        }
+
+                        const classUtsmani = fontType() !== "IndoPak" ? loadFontFace(pageNumber) : ""
+
+                        return (
+                            <div key={pageNumber} style={{ margin: '0 auto' }}>
+                                {Object.entries(wordsByLine).map(([lineNumberStr, lineWords]) => {
+                                    const lineNumber = parseInt(lineNumberStr);
+
+                                    // Group words by verse in this line
+                                    const wordsByVerse: { [verseId: number]: Word[] } = {};
+                                    lineWords.forEach(({ verse, word }) => {
+                                        if (!wordsByVerse[verse.id]) {
+                                            wordsByVerse[verse.id] = [];
+                                        }
+                                        wordsByVerse[verse.id].push(word);
+                                    });
+
+                                    return (
+                                        <div
+                                            key={lineNumber}
+                                            style={{
+                                                display: 'flex',
+                                                justifyContent: isValidationPage ? 'center' : 'space-between',
+                                                alignItems: 'center',
+                                                marginBottom: '5px',
+                                                width: '100%',
+                                                direction: 'rtl',
+                                                textAlign: isValidationPage ? 'center' : 'justify'
+                                            }}
+                                        >
+                                            {Object.entries(wordsByVerse).map(([verseIdStr, words]) => {
+                                                const verseId = parseInt(verseIdStr);
+                                                const verse = verses.find(v => v.id === verseId);
+                                                const verseLabel = verseErrors[verseId]
+                                                    ? errorLabels.find((l) => l.key === verseErrors[verseId])
+                                                    : null;
+
+                                                const totalWordsInVerse = words.length;
+
+                                                return (
+                                                    <div
+                                                        key={verseId}
+                                                        style={{
+                                                            backgroundColor: verseLabel?.color || 'transparent',
+                                                            borderRadius: verseLabel ? '6px' : '0',
+                                                            padding: verseLabel ? "2px 3px" : "0",
+                                                            margin: '0 1px',
+                                                            display: 'flex',
+                                                            justifyContent: isValidationPage ? 'center' :
+                                                                (totalWordsInVerse <= 2 ? 'flex-start' : 'space-between'),
+                                                            alignItems: 'center',
+                                                            flex: isValidationPage ? 'none' :
+                                                                (totalWordsInVerse <= 2 ? '0 1 auto' : '1 1 auto'),
+                                                            minWidth: 'fit-content',
+                                                            gap: totalWordsInVerse <= 2 ? '4px' : '0px'
+                                                        }}
+                                                    >
+                                                        {words.map((word) => {
+                                                            const wordLabel = wordErrors[word.id]
+                                                                ? errorLabels.find((l) => l.key === wordErrors[word.id])
+                                                                : null;
+
+                                                            const showWordHighlight = wordLabel || verseLabel;
+
+                                                            return (
+                                                                <span
+                                                                    key={word.id}
+                                                                    style={{
+                                                                        fontSize: getFontSizeClass(),
+                                                                        backgroundColor: showWordHighlight ? wordLabel?.color : 'transparent',
+                                                                        borderRadius: showWordHighlight ? '4px' : '0',
+                                                                        margin: '0 1px',
+                                                                        display: 'inline-block',
+                                                                        lineHeight: '1.5',
+                                                                        textAlign: 'center',
+                                                                        flex: isValidationPage ? 'none' :
+                                                                            (totalWordsInVerse <= 2 ? '0 0 auto' : '0 0 auto'),
+                                                                        minWidth: 'min-content'
+                                                                    }}
+                                                                    className={cn(
+                                                                        `cursor-pointer text-gray-700 transition-colors duration-200
+                                                                    hover:text-blue-300 dark:hover:text-blue-300`,
+                                                                        showWordHighlight ? 'dark:text-gray-900' : 'dark:text-gray-300',
+                                                                    )}
+                                                                >
+                                                                    {
+                                                                        word.char_type_name == "word" && (
+                                                                            <span
+                                                                                className={fontType() == "IndoPak" ? "font-arabic-indopak" : classUtsmani}
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    handleClick('word', word.id);
+                                                                                }}
+                                                                            >
+                                                                                {getFont(word.location)}
+                                                                            </span>
+                                                                        )
+                                                                    }
+                                                                    {
+                                                                        word.char_type_name == "end" && (
+                                                                            <span
+                                                                                className={fontType() == "IndoPak" ? "font-arabic-indopak" : classUtsmani}
+                                                                                onClick={() => handleClick('verse', verse?.id || 1)}
+                                                                            >
+                                                                                {getFont(word.location)}
+                                                                            </span>
+                                                                        )
+                                                                    }
+                                                                </span>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    );
+                                })}
+
+                                {/* Page separator */}
+                                {pageVerses.length > 0 && (
+                                    <div className="my-4 flex items-center">
+                                        <hr className={`flex-1 border-2 border-t border-gray-300`} />
+                                        <span className={`mx-4 text-sm font-bold text-gray-700 dark:text-white`}>
+                                            Page {pageNumber}
+                                        </span>
+                                        <hr className={`flex-1 border-2 border-t border-gray-300`} />
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })
+                ) : (
+                    <div className="text-gray-700">Tidak ada data ayat untuk ditampilkan.</div>
+                )}
+            </div>
+        );
     }
 
     function getTataLetakClass(): JSX.Element {
         const labels = validateErrorLabels();
-        const tataLetakValue = labels?.find((v) => v.key === "tata-letak")?.value || "fleksibel";
+        const tataletakValue = labels?.find((v) => v.key === "tata-letak")?.value;
 
-        if (tataLetakValue == "fleksibel") {
-            return (
-                <>
-                    {verses.length > 0 ? (
-                        verses.map((verse, index) => {
-                            const verseLabel = verseErrors[verse.id]
-                                ? validateErrorLabels().find((l: ErrorLabel) => l.key === verseErrors[verse.id])
-                                : null;
-                            return (
-                                <span key={verse.id} className={`${index < verses.length - 1 && 'ml-0'}`}>
-                                    <span
-                                        key={verse.id}
-                                        className={cn(
-                                            `text-gray-900 transition-colors duration-200`,
-                                            verseLabel ? 'dark:text-gray-900' : 'dark:text-gray-300',
-                                        )}
-                                        style={{
-                                            fontSize: getFontSizeClass(),
-                                            backgroundColor: verseLabel?.color || 'transparent',
-                                            padding: fontType() == "IndoPak" ? '5px 3px' : '5px 6px',
-                                            lineHeight: fontType() == "IndoPak" ? '170%' : '170%',
-                                            borderRadius: verseLabel ? '6px' : '0',
-                                            marginRight: verseLabel ? '4px' : '0',
-                                            verticalAlign: 'middle',
-                                        }}
-                                        onClick={() => handleClick('verse', verse.id)}
-                                    >
-                                        {verse.words.map((word) => {
-                                            const allAvailableLabels = errorLabels;
-                                            const wordLabel = wordErrors[word.id]
-                                                ? allAvailableLabels.find((l) => l.key === wordErrors[word.id])
-                                                : null;
-                                            const versesLabel = verseErrors[verse.id];
-                                            const wordLabels = wordLabel || versesLabel;
-                                            return (
-                                                <span
-                                                    key={word.id}
-                                                    className={cn(
-                                                        `${fontType() == "IndoPak" ? "font-arabic-indopak" : "font-arabic"} cursor-pointer text-gray-700 transition-colors duration-200 hover:text-blue-300 dark:hover:text-blue-300`,
-                                                        wordLabels ? 'dark:text-gray-900' : 'dark:text-gray-300',
-                                                    )}
-                                                    style={{
-                                                        fontSize: getFontSizeClass(),
-                                                        backgroundColor: wordLabels?.color || 'transparent',
-                                                        display: "inline-block",
-                                                        borderRadius: wordLabels ? '6px' : '0',
-                                                        margin: wordLabel ? '0 1px' : '0',
-                                                        padding: wordLabel ? "0px 3px" : "0px 5px",
-                                                        textAlign: "center",
-                                                        lineHeight: "1.2",
-                                                        verticalAlign: 'middle',
-                                                    }}
-                                                >
-                                                    {
-                                                        word.char_type_name == "word" && (
-                                                            <span onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleClick('word', word.id);
-                                                            }} className={fontType() == "IndoPak" ? "font-arabic-indopak" : "font-arabic"}>
-                                                                {fontType() == "IndoPak" ? getFont(word.location) : word.text_uthmani}
-                                                            </span>
-                                                        )
-                                                    }
-                                                    {word.char_type_name == "end" && (
-                                                        <span
-                                                            className="font-arabic cursor-pointer transition-colors duration-200 hover:text-blue-300"
-                                                            onClick={() => handleClick('verse', verse.id)}
-                                                        >
-                                                            {
-                                                                fontType() == "IndoPak" ? (
-                                                                    <span className="font-arabic-indopak">
-                                                                        {getFont(word.location)}
-                                                                    </span>
-                                                                ) : (
-                                                                    <span className="font-arabic">
-                                                                        ۝{word.text_uthmani}
-                                                                    </span>
-                                                                )
-                                                            }
-                                                        </span>
-                                                    )}
-                                                </span>
-                                            );
-                                        })}
-
-                                        {/* <span
-                                            className="font-arabic cursor-pointer transition-colors duration-200 hover:text-blue-300"
-                                            onClick={() => handleClick('verse', verse.id)}
-                                        >
-                                            ۝{verse.end_marker || verse.verse_number}
-                                        </span> */}
-                                    </span>
-
-                                    {groupedVerses[verse.page_number][groupedVerses[verse.page_number].length - 1].verse.id === verse.id && (
-                                        <div className="my-4 flex items-center">
-                                            <hr className={`flex-1 border-2 border-t border-gray-300`} />
-                                            <span className={`mx-4 text-sm font-bold text-gray-700 dark:text-white  `}>
-                                                Page {verse.page_number}
-                                            </span>
-                                            <hr className={`flex-1 border-2 border-t border-gray-300`} />
-                                        </div>
-                                    )}
-                                    {index < verses.length - 1 && ''}
-                                </span>
-                            );
-                        })
-                    ) : (
-                        <div className={`text-gray-700`}>Tidak ada data ayat untuk ditampilkan.</div>
-                    )}
-                </>
-            );
+        if (isMobile) {
+            const fontSize = getFontSizeClass(true);
+            if (typeof fontSize === "number" && fontSize >= 5) {
+                return renderFleksibel();
+            }
+            if (typeof fontSize === "number" && fontSize < 5) {
+                return renderMushaf();
+            }
         }
-        else {
-            const versesByPage: { [pageNumber: number]: Verse[] } = {};
-            verses.forEach(verse => {
-                if (!versesByPage[verse.page_number]) {
-                    versesByPage[verse.page_number] = [];
-                }
-                versesByPage[verse.page_number].push(verse);
-            });
-            return (
-                <div style={{
-                    width: "fit-content",
-                    margin: '0 auto',
-                }}>
-                    {Object.keys(versesByPage).length > 0 ? (
-                        Object.entries(versesByPage).map(([pageNumberStr, pageVerses]) => {
-                            const pageNumber = parseInt(pageNumberStr);
-                            const isValidationPage = pageNumber === 1 || pageNumber === 2;
 
-                            // Group all words by line_number across all verses in this page
-                            const wordsByLine: { [lineNumber: number]: { verse: Verse, word: Word }[] } = {};
-                            pageVerses.forEach(verse => {
-                                verse.words.forEach(word => {
-                                    if (word.line_number !== undefined) {
-                                        if (!wordsByLine[word.line_number]) {
-                                            wordsByLine[word.line_number] = [];
-                                        }
-                                        wordsByLine[word.line_number].push({ verse, word });
-                                    }
-                                });
-                            });
-
-                            const classUtsmani = loadFontFace(pageNumber)
-
-                            return (
-                                <div key={pageNumber} style={{ margin: '0 auto' }}>
-                                    {Object.entries(wordsByLine).map(([lineNumberStr, lineWords]) => {
-                                        const lineNumber = parseInt(lineNumberStr);
-
-                                        // Group words by verse in this line
-                                        const wordsByVerse: { [verseId: number]: Word[] } = {};
-                                        lineWords.forEach(({ verse, word }) => {
-                                            if (!wordsByVerse[verse.id]) {
-                                                wordsByVerse[verse.id] = [];
-                                            }
-                                            wordsByVerse[verse.id].push(word);
-                                        });
-
-                                        return (
-                                            <div
-                                                key={lineNumber}
-                                                style={{
-                                                    display: 'flex',
-                                                    justifyContent: isValidationPage ? 'center' : 'space-between',
-                                                    alignItems: 'center',
-                                                    marginBottom: '5px',
-                                                    width: '100%',
-                                                    direction: 'rtl',
-                                                    textAlign: isValidationPage ? 'center' : 'justify'
-                                                }}
-                                            >
-                                                {Object.entries(wordsByVerse).map(([verseIdStr, words]) => {
-                                                    const verseId = parseInt(verseIdStr);
-                                                    const verse = verses.find(v => v.id === verseId);
-                                                    const verseLabel = verseErrors[verseId]
-                                                        ? errorLabels.find((l) => l.key === verseErrors[verseId])
-                                                        : null;
-
-                                                    const totalWordsInVerse = words.length;
-
-                                                    return (
-                                                        <div
-                                                            key={verseId}
-                                                            style={{
-                                                                backgroundColor: verseLabel?.color || 'transparent',
-                                                                borderRadius: verseLabel ? '6px' : '0',
-                                                                padding: verseLabel ? "2px 3px" : "0",
-                                                                margin: '0 1px',
-                                                                display: 'flex',
-                                                                justifyContent: isValidationPage ? 'center' :
-                                                                    (totalWordsInVerse <= 2 ? 'flex-start' : 'space-between'),
-                                                                alignItems: 'center',
-                                                                flex: isValidationPage ? 'none' :
-                                                                    (totalWordsInVerse <= 2 ? '0 1 auto' : '1 1 auto'),
-                                                                minWidth: 'fit-content',
-                                                                gap: totalWordsInVerse <= 2 ? '4px' : '0px'
-                                                            }}
-                                                        >
-                                                            {words.map((word) => {
-                                                                const wordLabel = wordErrors[word.id]
-                                                                    ? errorLabels.find((l) => l.key === wordErrors[word.id])
-                                                                    : null;
-
-                                                                const showWordHighlight = wordLabel || verseLabel;
-
-                                                                return (
-                                                                    <span
-                                                                        key={word.id}
-                                                                        style={{
-                                                                            fontSize: getFontSizeClass(),
-                                                                            backgroundColor: showWordHighlight ? wordLabel?.color : 'transparent',
-                                                                            borderRadius: showWordHighlight ? '4px' : '0',
-                                                                            margin: '0 2px',
-                                                                            padding: showWordHighlight ? "1px 2px" : "0 2px",
-                                                                            display: 'inline-block',
-                                                                            lineHeight: '1.5',
-                                                                            textAlign: 'center',
-                                                                            flex: isValidationPage ? 'none' :
-                                                                                (totalWordsInVerse <= 2 ? '0 0 auto' : '0 0 auto'),
-                                                                            minWidth: 'min-content'
-                                                                        }}
-                                                                        className={cn(
-                                                                            `cursor-pointer text-gray-700 transition-colors duration-200
-                                                                    hover:text-blue-300 dark:hover:text-blue-300`,
-                                                                            showWordHighlight ? 'dark:text-gray-900' : 'dark:text-gray-300',
-                                                                        )}
-                                                                    >
-                                                                        {
-                                                                            word.char_type_name == "word" && (
-                                                                                <span
-                                                                                    className={fontType() == "IndoPak" ? "font-arabic-indopak" : classUtsmani}
-                                                                                    onClick={(e) => {
-                                                                                        e.stopPropagation();
-                                                                                        handleClick('word', word.id);
-                                                                                    }}
-                                                                                >
-                                                                                    {getFont(word.location)}
-                                                                                </span>
-                                                                            )
-                                                                        }
-                                                                        {
-                                                                            word.char_type_name == "end" && (
-                                                                                <span
-                                                                                    className={fontType() == "IndoPak" ? "font-arabic-indopak" : classUtsmani}
-                                                                                    onClick={() => handleClick('verse', verse?.id || 1)}
-                                                                                >
-                                                                                    {getFont(word.location)}
-                                                                                </span>
-                                                                            )
-                                                                        }
-                                                                    </span>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        );
-                                    })}
-
-                                    {/* Page separator */}
-                                    {pageVerses.length > 0 && (
-                                        <div className="my-4 flex items-center">
-                                            <hr className={`flex-1 border-2 border-t border-gray-300`} />
-                                            <span className={`mx-4 text-sm font-bold text-gray-700 dark:text-white`}>
-                                                Page {pageNumber}
-                                            </span>
-                                            <hr className={`flex-1 border-2 border-t border-gray-300`} />
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })
-                    ) : (
-                        <div className="text-gray-700">Tidak ada data ayat untuk ditampilkan.</div>
-                    )}
-                </div>
-            );
+        // Logika di luar blok `isMobile`
+        if (tataletakValue === "fleksibel") {
+            return renderFleksibel();
         }
+
+        return renderMushaf();
     }
 
 
-    if (!surah || !verses || !errorLabels || !fontType()) {
+    if (!surah || !verses || !errorLabels || !fontType() || !ready) {
         return <div>Data tidak tersedia.</div>;
     }
 
@@ -765,8 +774,22 @@ export default function SurahIndex() {
 
                 />
                 <div className="mt-20 mb-12 text-center">
-                    <p className={`text-lg text-gray-700 dark:text-gray-300`}>
-                        {surah.name_simple} ({surah.id}) <Info className='ml-3 w-3.5 lg:w-5 inline text-blue-400 cursor-pointer' onClick={() => { handelInfoChapter(surah.id) }} />
+                    <h2 style={{
+                        fontFamily: fontType() === "IndoPak" ? "'IndoPak', 'Traditional Arabic'" : "'Uthmani', 'Traditional Arabic'",
+                        fontSize: '28px',
+                        fontWeight: 'bold',
+                        marginBottom: '5px'
+                    }}
+                        className='text-black dark:text-white'
+                    >
+                        {surah.name_arabic}
+                    </h2>
+                    <p style={{
+                        fontSize: '16px',
+                        color: '#555',
+                        marginBottom: '10px'
+                    }}>
+                        {surah.name_simple} ({t(`surah.${surah.id}`)})
                     </p>
                     {surah.bismillah_pre && (
                         <p className={`${fontType() == "IndoPak" ? "font-arabic-indopak" : "font-arabic"} mt-6 text-4xl dark:text-gray-300`} style={{ direction: 'rtl' }}>

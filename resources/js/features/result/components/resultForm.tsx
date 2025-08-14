@@ -386,6 +386,7 @@ const ResultFormLayout: React.FC = () => {
                 localStorage.removeItem('setoran-data');
                 localStorage.setItem("verseErrors", "{}")
                 localStorage.setItem("wordErrors", "{}")
+                localStorage.setItem("filters", "{}")
                 // window.location.pathname = '/home'; // Redirect to home page after successful submission
             })
             .catch((error) => {
