@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Qurani;
 
 use App\Http\Controllers\Controller;
-use App\Models\LinkId\SettingUser;
+use App\Models\LinkID\SettingUser;
 use App\Traits\ErrorLabel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
