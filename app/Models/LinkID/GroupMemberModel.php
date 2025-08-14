@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\LinkId;
+namespace App\Models\LinkID;
 
 use Illuminate\Database\Eloquent\Model;
 
