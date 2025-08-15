@@ -43,6 +43,7 @@
     },
     "notFoundText": {
         "verse_not_found": "Verse not found",
+        "surah_not_found": "Surah not found",
         "conclusion_not_found": "Conclusion not found"
     }
 }

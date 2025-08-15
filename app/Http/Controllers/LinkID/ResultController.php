@@ -129,7 +129,7 @@ class ResultController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validasi gawal',
+                'message' => 'Validasi gagal',
                 'errors' => $validator->errors(),
             ], 422);
         }

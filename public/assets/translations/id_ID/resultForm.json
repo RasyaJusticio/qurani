@@ -35,12 +35,15 @@
     },
     "placeholders": {
         "select_verse": "Pilih Ayat",
+        "select_surah": "Pilih Surat",
         "search_verse": "Cari Ayat",
+        "search_surah": "Cari Surat",
         "select_conclusion": "Pilih Kesimpulan",
         "search_conclusion": "Cari Kesimpulan"
     },
     "notFoundText": {
         "verse_not_found": "Ayat tidak ditemukan",
+        "surah_not_found": "Surat tidak ditemukan",
         "conclusion_not_found": "Kesimpulan tidak ditemukan"
     }
 }

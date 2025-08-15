@@ -7,16 +7,20 @@ interface AlertProps {
     to: string | null;
     heading?: string;
     message?: string;
+    setAlert: (value: boolean) => void;
     status?: 'success' | 'error' | 'warning';
 }
 
-const Alert: React.FC<AlertProps> = ({ show, to, heading, message, status }) => {
+const Alert: React.FC<AlertProps> = ({ show, to, heading, message, status, setAlert }) => {
     const [animate, setAnimate] = useState(false);
 
     useEffect(() => {
         if (show) {
             setAnimate(true);
-            const timer = setTimeout(() => setAnimate(false), 1000); // hilang setelah 3 detik
+            const timer = setTimeout(() => {
+                setAnimate(false);
+                setAlert(false);
+            }, 1000); // hilang setelah 3 detik
             if (!to) {
                 return;
             }

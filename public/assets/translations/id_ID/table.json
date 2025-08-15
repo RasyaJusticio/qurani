@@ -31,8 +31,8 @@
             "signFailed": "Gagal menandatangani rekaman"
         },
         "paginate": {
-            "previous": "Sebe...",
-            "next": "Sete..."
+            "previous": "<",
+            "next": ">"
         }
     }
 }
