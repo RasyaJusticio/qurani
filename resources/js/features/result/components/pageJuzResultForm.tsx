@@ -54,6 +54,7 @@ interface SetoranData {
     recipient: string;
     setoran_type: string;
     display: string;
+    setoran: string;
     selectedGroup: string;
     selectedJuz: string;
     page_number: string;
@@ -121,6 +122,8 @@ const PageRecapFormLayout: React.FC = () => {
     const [panels, setPanels] = useState<{ [key: string]: boolean }>({});
     const [setoranData, setSetoranData] = useState<SetoranData | null>(null);
     const [alert, setAlert] = useState<boolean>(false)
+    const [alertError, setAlertError] = useState<boolean>(false);
+    const [error, setError] = useState<string>('');
     const { t } = useTranslation('resultForm');
     const btnSubmit = useRef<HTMLButtonElement>(null);
     const form = useForm<FormData>({
@@ -182,10 +185,10 @@ const PageRecapFormLayout: React.FC = () => {
                             salahKata: data.salahKata || [],
                         };
                     });
-                    let awalSurah = props.labels.surah[0].value;
-                    let akhirSurah = props.labels.surah[props.labels.surah.length - 1].value;
-                    let awalAyat = props.labels.ayat[`${props.labels.surah[0].value}`][0].value;
-                    let akhirAyat = props.labels.ayat[akhirSurah][props.labels.ayat[akhirSurah].length - 1].value;
+                    const awalSurah = props.labels.surah[0].value;
+                    const akhirSurah = props.labels.surah[props.labels.surah.length - 1].value;
+                    const awalAyat = props.labels.ayat[`${props.labels.surah[0].value}`][0].value;
+                    const akhirAyat = props.labels.ayat[akhirSurah][props.labels.ayat[akhirSurah].length - 1].value;
                     form.setData({
                         reciter: parsedData.reciter || { user_id: '', user_name: '', full_name: '' },
                         recipient: props.user_id || '',
@@ -196,8 +199,8 @@ const PageRecapFormLayout: React.FC = () => {
                         mistake: transformedMistake,
                         selected_first_surah: awalSurah,
                         selected_last_surah: akhirSurah,
-                        selected_first_ayat: awalAyat,
-                        selected_last_ayat: akhirAyat,
+                        selected_first_ayah: awalAyat,
+                        selected_last_ayah: akhirAyat,
                         kesimpulan: '',
                         catatan: '',
                     });
@@ -219,23 +222,19 @@ const PageRecapFormLayout: React.FC = () => {
     }, [props]);
 
     const handleChange = (key: keyof FormData, value: string) => {
-        let awalSurah = props.labels.surah[0].value;
-        let akhirSurah = props.labels.surah[props.labels.surah.length - 1].value;
-        let awalAyat = props.labels.ayat[`${props.labels.surah[0].value}`][0].value;
-        let akhirAyat = props.labels.ayat[akhirSurah][props.labels.ayat[akhirSurah].length - 1].value;
         form.setData(key, value);
         if (key == 'selected_first_surah') {
             if (!value) {
-                form.setData('selected_first_ayat', '');
+                form.setData('selected_first_ayah', '');
             } else {
-                form.setData('selected_first_ayat', props.labels.ayat[`${value}`][0].value);
+                form.setData('selected_first_ayah', props.labels.ayat[`${value}`][0].value);
             }
         }
         if (key == 'selected_last_surah') {
             if (!value) {
-                form.setData('selected_last_ayat', '');
+                form.setData('selected_last_ayah', '');
             } else {
-                form.setData('selected_last_ayat', props.labels.ayat[`${value}`][props.labels.ayat[`${value}`].length - 1].value);
+                form.setData('selected_last_ayah', props.labels.ayat[`${value}`][props.labels.ayat[`${value}`].length - 1].value);
             }
         }
         form.clearErrors(key);
@@ -262,48 +261,58 @@ const PageRecapFormLayout: React.FC = () => {
     const handleSubmit = (e: React.FormEvent): void => {
         e.preventDefault();
         form.clearErrors();
-
-        let hasError = false;
+        setError("");
 
         if (!form.data.reciter?.user_name) {
             form.setError('reciter', 'Peserta harus dipilih');
-            hasError = true;
+            setAlertError(true);
+            setError('Peserta harus dipilih');
         }
-
         const parsedRecipient = parseInt(form.data.recipient);
         if (!form.data.recipient || isNaN(parsedRecipient)) {
             form.setError('recipient', 'Penerima tidak valid');
-            hasError = true;
+            setAlertError(true);
+            setError('Penerima tidak valid');
         }
-
         if (!form.data.setoran) {
             form.setError('setoran_type', 'Jenis setoran harus dipilih');
-            hasError = true;
+            setAlertError(true);
+            setError('Jenis setoran harus dipilih');
         }
-
-        // if (!form.data.page_number || isNaN(parseInt(form.data.page_number))) {
-        //     form.setError('page_number', 'Nomor halaman tidak valid');
-        //     hasError = true;
-        // }
-
         if (!form.data.kesimpulan) {
             form.setError('kesimpulan', 'Kesimpulan harus dipilih');
-            hasError = true;
+            setAlertError(true);
+            setError('Kesimpulan harus dipilih');
         }
-
-        if (!form.data.selected_first_surah || !form.data.selected_first_ayat) {
-            form.setError('selected_first_surah', 'Awal surah dan ayat harus dipilih');
-            hasError = true;
+        if (!form.data.selected_first_surah) {
+            form.setError('selected_first_surah', 'Awal surah harus dipilih');
+            setAlertError(true);
+            setError('Awal surah harus dipilih');
         }
-
-        if (!form.data.selected_last_surah || !form.data.selected_last_ayat) {
-            form.setError('selected_last_surah', 'Akhir surah dan ayat harus dipilih');
-            hasError = true;
+        if (!form.data.selected_first_ayah) {
+            form.setError('selected_first_ayah', 'Awal ayat harus dipilih');
+            setAlertError(true);
+            setError('Awal ayat harus dipilih');
         }
-        if (hasError) return;
+        if (!form.data.selected_last_surah) {
+            form.setError('selected_last_surah', 'Akhir surah harus dipilih');
+            setAlertError(true);
+            setError('Akhir surah dipilih');
+        }
+        if (!form.data.selected_last_ayah) {
+            form.setError('selected_last_ayah', 'Akhir ayat harus dipilih');
+            setAlertError(true);
+            setError('Akhir ayat harus dipilih');
+        }
+        // if (!form.data.page_number || isNaN(parseInt(form.data.page_number))) {
+        //     form.setError('page_number', 'Nomor halaman tidak valid');
+        //
+        // }
 
-        const firstVerse = `${form.data.selected_first_surah}-${form.data.selected_first_ayat}`;
-        const lastVerse = `${form.data.selected_last_surah}-${form.data.selected_last_ayat}`;
+        if (Object.keys(form.errors).length > 0) return;
+
+        const firstVerse = `${form.data.selected_first_surah}-${form.data.selected_first_ayah}`;
+        const lastVerse = `${form.data.selected_last_surah}-${form.data.selected_last_ayah}`;
         const info = `${firstVerse}-${lastVerse}`;
         const perhalamanData = Object.entries(form.data.mistake).map(([page, data]) => ({
             halaman: page,
@@ -318,7 +327,7 @@ const PageRecapFormLayout: React.FC = () => {
             penerima: parsedRecipient,
             setoran: form.data.setoran,
             tampilan: 'juz',
-            nomor: setoranData.selectedJuz,
+            nomor: setoranData?.selectedJuz,
             info: info,
             hasil: form.data.kesimpulan,
             ket: form.data.catatan || null,
@@ -337,12 +346,10 @@ const PageRecapFormLayout: React.FC = () => {
                 },
             })
             .then(() => {
-                // alert('Data berhasil dikirim!');
                 setAlert(true)
                 localStorage.removeItem('setoran-data');
                 localStorage.setItem("verseErrors", "{}")
                 localStorage.setItem("wordErrors", "{}")
-                // router.visit('/home');
             })
             .catch((error) => {
                 if (error.response && error.response.status === 422) {
@@ -353,6 +360,8 @@ const PageRecapFormLayout: React.FC = () => {
                 } else {
                     console.error('Error:', error);
                     form.setError('submit', 'Gagal mengirim data. Silakan coba lagi.');
+                    setError('Gagal mengirim data. Silakan coba lagi.');
+                    setAlertError(true);
                 }
             }).finally(() => {
                 if (btnSubmit.current) {
@@ -375,22 +384,23 @@ const PageRecapFormLayout: React.FC = () => {
     function generateVerseOptions(s: string): AyatOption[] {
         // if(!form.data.selected_first_surah|| !form.data.selected_last_surah_surah) return;
         if (s == 'awal') {
-            let verses;
+            let verses: AyatOption[];
             if (!form.data.selected_first_surah) {
                 verses = props.labels.ayat[`${props.labels.surah[0].value}`];
             } else {
-                verses = props.labels.ayat[`${form.data.selected_first_surah}`];
+                const selectedFirstSurah = parseInt(form.data.selected_first_surah);
+                verses = props.labels.ayat[`${selectedFirstSurah}`];
             }
             return verses;
         } else {
-            let verses;
+            let verses: AyatOption[];
             if (!form.data.selected_last_surah) {
                 verses = props.labels.ayat[props.labels.surah[props.labels.surah.length - 1].value];
             } else {
-                verses = props.labels.ayat[`${form.data.selected_last_surah}`];
+                const selectedFirstSurah = parseInt(form.data.selected_last_surah);
+                verses = props.labels.ayat[`${selectedFirstSurah}`];
             }
             return verses;
-            // let akhirSurah = props.labels.surah[form.data.selected_last_surah].value;
         }
     }
 
@@ -417,7 +427,8 @@ const PageRecapFormLayout: React.FC = () => {
     return (
         <div className="min-h-screen bg-gray-50 py-6 dark:bg-[rgb(16,24,40)]">
             <div className="mx-auto mt-12 w-full max-w-4xl px-4 sm:px-6 lg:px-8">
-                <Alert show={alert} to='/home' heading='Data Berhasil Dikirim' message='Lihat Detail Recap pada tabel' />
+                <Alert show={alert} to='/home' setAlert={setAlert} heading='Data Berhasil Dikirim' message='Lihat Detail Recap pada tabel' />
+                <Alert show={alertError} setAlert={setAlertError} to={null} heading={"Kesalahan"} message={error} status='error' />
                 <div className="mb-6 text-center dark:bg-[rgb(16,24,40)]">
                     {/* <h1 className="mb-1 text-2xl font-bold text-gray-900">{t('general.hasilrekap')}</h1> */}
                     <Link
@@ -460,9 +471,9 @@ const PageRecapFormLayout: React.FC = () => {
                                 </label>
                                 <Combobox
                                     options={props.labels.surah}
-                                    placeholder={t('placeholders.select_verse')}
-                                    searchPlaceholder={t('placeholders.search_verse')}
-                                    notFoundText={t('notFoundText.verse_not_found')}
+                                    placeholder={t('placeholders.select_surah')}
+                                    searchPlaceholder={t('placeholders.search_surah')}
+                                    notFoundText={t('notFoundText.surah_not_found')}
                                     value={form.data.selected_first_surah}
                                     onValueChange={(value) => handleChange('selected_first_surah', value)}
                                     className="w-full"
@@ -479,12 +490,12 @@ const PageRecapFormLayout: React.FC = () => {
                                         placeholder={t('placeholders.select_verse')}
                                         searchPlaceholder={t('placeholders.search_verse')}
                                         notFoundText={t('notFoundText.verse_not_found')}
-                                        value={form.data.selected_first_ayat}
-                                        onValueChange={(value) => handleChange('selected_first_ayat', value)}
+                                        value={form.data.selected_first_ayah}
+                                        onValueChange={(value) => handleChange('selected_first_ayah', value)}
                                         className="w-full"
                                     />
                                 </div>
-                                {form.errors.selected_first_ayat && <p className="mt-1 text-xs text-red-500">{form.errors.selected_first_ayat}</p>}
+                                {form.errors.selected_first_ayah && <p className="mt-1 text-xs text-red-500">{form.errors.selected_first_ayah}</p>}
                             </div>
                             <div>
                                 <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-[rgb(209,213,220)]">
@@ -492,9 +503,9 @@ const PageRecapFormLayout: React.FC = () => {
                                 </label>
                                 <Combobox
                                     options={props.labels.surah}
-                                    placeholder={t('placeholders.select_verse')}
-                                    searchPlaceholder={t('placeholders.search_verse')}
-                                    notFoundText={t('notFoundText.verse_not_found')}
+                                    placeholder={t('placeholders.select_surah')}
+                                    searchPlaceholder={t('placeholders.search_surah')}
+                                    notFoundText={t('notFoundText.surah_not_found')}
                                     value={form.data.selected_last_surah}
                                     onValueChange={(value) => handleChange('selected_last_surah', value)}
                                     className="w-full"
@@ -511,12 +522,12 @@ const PageRecapFormLayout: React.FC = () => {
                                         placeholder={t('placeholders.select_verse')}
                                         searchPlaceholder={t('placeholders.search_verse')}
                                         notFoundText={t('notFoundText.verse_not_found')}
-                                        value={form.data.selected_last_ayat}
-                                        onValueChange={(value) => handleChange('selected_last_ayat', value)}
+                                        value={form.data.selected_last_ayah}
+                                        onValueChange={(value) => handleChange('selected_last_ayah', value)}
                                         className="w-full"
                                     />
                                 </div>
-                                {form.errors.selected_last_ayat && <p className="mt-1 text-xs text-red-500">{form.errors.selected_last_ayat}</p>}
+                                {form.errors.selected_last_ayah && <p className="mt-1 text-xs text-red-500">{form.errors.selected_last_ayah}</p>}
                             </div>
                         </div>
                         <div>
@@ -561,85 +572,131 @@ const PageRecapFormLayout: React.FC = () => {
                     </div>
                     {form.errors.submit && <p className="mt-2 text-xs text-red-500">{form.errors.submit}</p>}
                 </div>
-                {checkPanel() == 'tampilkan' && (
-                    <div className="space-y-3 mb-20 lg:mb-0">
-                        {Object.entries(setoranData.mistake || {})
-                            .sort(([pageA], [pageB]) => parseInt(pageA) - parseInt(pageB))
-                            .map(([page]) => (
-                                <div
-                                    key={page}
-                                    className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
-                                >
-                                    <div
-                                        className="flex cursor-pointer items-center justify-between border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-3 hover:bg-blue-100 dark:border-gray-700 dark:from-blue-900 dark:to-indigo-900 dark:hover:bg-blue-800"
-                                        onClick={() => togglePanel(page)}
-                                    >
-                                        <div className="flex items-center">
-                                            <FileText className="mr-2 h-4 w-4 text-blue-600 dark:text-blue-400" />
-                                            <h3 className="text-base font-medium text-gray-900 dark:text-white">
-                                                {`${getPageName(setoranData)} - ${t('rekapan.form.halaman')} ${page}`}
-                                            </h3>
-                                            <div className="ml-3 flex items-center space-x-2">
-                                                {form.data.mistake[page]?.salahAyat.length > 0 && (
-                                                    <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900 dark:text-red-200">
-                                                        {form.data.mistake[page].salahAyat.length} ayat
-                                                    </span>
-                                                )}
-                                                {form.data.mistake[page]?.salahKata.length > 0 && (
-                                                    <span className="inline-flex items-center rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-800 dark:bg-orange-900 dark:text-orange-200">
-                                                        {form.data.mistake[page].salahKata.length} kata
-                                                    </span>
-                                                )}
-                                                {(!form.data.mistake[page]?.salahAyat || form.data.mistake[page].salahAyat.length === 0) &&
-                                                    (!form.data.mistake[page]?.salahKata || form.data.mistake[page].salahKata.length === 0) && (
-                                                        <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-200">
-                                                            <CheckCircle2 className="mr-1 h-3 w-3" />
-                                                            Perfect
-                                                        </span>
-                                                    )}
-                                            </div>
-                                        </div>
-                                        {panels[page] ? (
-                                            <ChevronUp className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                                        ) : (
-                                            <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                                        )}
-                                    </div>
 
-                                    {panels[page] && (
-                                        <div className="space-y-4 p-4">
-                                            <div>
-                                                <div className="mb-3 flex items-center">
-                                                    <AlertCircle className="mr-2 h-4 w-4 text-red-500 dark:text-red-400" />
-                                                    <h4 className="text-base font-medium text-gray-900 dark:text-white">
-                                                        {t('rekapan.form.kesalahan_ayat')}
-                                                    </h4>
+                <div className="space-y-3 mb-20 lg:mb-0">
+                    {Object.entries(setoranData.mistake || {})
+                        .sort(([pageA], [pageB]) => parseInt(pageA) - parseInt(pageB))
+                        .map(([page]) => (
+                            <div
+                                key={page}
+                                className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
+                            >
+                                <div
+                                    className="flex cursor-pointer items-center justify-between border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-3 hover:bg-blue-100 dark:border-gray-700 dark:from-blue-900 dark:to-indigo-900 dark:hover:bg-blue-800"
+                                    onClick={() => togglePanel(page)}
+                                >
+                                    <div className="flex items-center">
+                                        <FileText className="mr-2 h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                        <h3 className="text-base font-medium text-gray-900 dark:text-white">
+                                            {`${getPageName(setoranData)} - ${t('rekapan.form.halaman')} ${page}`}
+                                        </h3>
+                                        <div className="ml-3 flex items-center space-x-2">
+                                            {form.data.mistake[page]?.salahAyat.length > 0 && (
+                                                <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900 dark:text-red-200">
+                                                    {form.data.mistake[page].salahAyat.length} ayat
+                                                </span>
+                                            )}
+                                            {form.data.mistake[page]?.salahKata.length > 0 && (
+                                                <span className="inline-flex items-center rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+                                                    {form.data.mistake[page].salahKata.length} kata
+                                                </span>
+                                            )}
+                                            {(!form.data.mistake[page]?.salahAyat || form.data.mistake[page].salahAyat.length === 0) &&
+                                                (!form.data.mistake[page]?.salahKata || form.data.mistake[page].salahKata.length === 0) && (
+                                                    <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-200">
+                                                        <CheckCircle2 className="mr-1 h-3 w-3" />
+                                                        Perfect
+                                                    </span>
+                                                )}
+                                        </div>
+                                    </div>
+                                    {panels[page] ? (
+                                        <ChevronUp className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                                    ) : (
+                                        <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                                    )}
+                                </div>
+
+                                {panels[page] && (
+                                    <div className="space-y-4 p-4">
+                                        <div>
+                                            <div className="mb-3 flex items-center">
+                                                <AlertCircle className="mr-2 h-4 w-4 text-red-500 dark:text-red-400" />
+                                                <h4 className="text-base font-medium text-gray-900 dark:text-white">
+                                                    {t('rekapan.form.kesalahan_ayat')}
+                                                </h4>
+                                            </div>
+                                            {!form.data.mistake[page]?.salahAyat || form.data.mistake[page].salahAyat.length === 0 ? (
+                                                <div className="rounded-md border border-green-200 bg-green-50 p-3 dark:border-green-700 dark:bg-green-900">
+                                                    <p className="flex items-center text-sm text-green-700 dark:text-green-200">
+                                                        <CheckCircle2 className="mr-1 h-3 w-3" />
+                                                        {t('rekapan.form.tidak_ada_kesalahan_ayat')}
+                                                    </p>
                                                 </div>
-                                                {!form.data.mistake[page]?.salahAyat || form.data.mistake[page].salahAyat.length === 0 ? (
-                                                    <div className="rounded-md border border-green-200 bg-green-50 p-3 dark:border-green-700 dark:bg-green-900">
-                                                        <p className="flex items-center text-sm text-green-700 dark:text-green-200">
-                                                            <CheckCircle2 className="mr-1 h-3 w-3" />
-                                                            {t('rekapan.form.tidak_ada_kesalahan_ayat')}
-                                                        </p>
-                                                    </div>
-                                                ) : (
-                                                    <div className="space-y-2">
-                                                        {form.data.mistake[page].salahAyat.map((err, idx) => (
-                                                            <div
-                                                                key={`verse-${idx}`}
-                                                                className={`rounded-md border p-3 ${getErrorColor(err.salahKey)}`}
-                                                            >
-                                                                <div className="flex items-start">
-                                                                    <span className="mt-0.5 mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                                                        {idx + 1}
+                                            ) : (
+                                                <div className="space-y-2">
+                                                    {form.data.mistake[page].salahAyat.map((err, idx) => (
+                                                        <div
+                                                            key={`verse-${idx}`}
+                                                            className={`rounded-md border p-3 ${getErrorColor(err.salahKey)}`}
+                                                        >
+                                                            <div className="flex items-start">
+                                                                <span className="mt-0.5 mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                                                    {idx + 1}
+                                                                </span>
+                                                                <div className="flex flex-1 items-center">
+                                                                    <span
+                                                                        className={`inline-block rounded-md px-2 py-0.5 text-xs font-medium ${getErrorTextColor(
+                                                                            err.salahKey,
+                                                                        )}`}
+                                                                    >
+                                                                        {t("rekapan.form.ayat")} : {err.noAyat}
                                                                     </span>
-                                                                    <div className="flex flex-1 items-center">
+                                                                    <p className="ml-2 text-right text-sm text-gray-700 dark:text-gray-300">
+                                                                        {err.salah}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div>
+                                            <div className="mb-3 flex items-center">
+                                                <AlertCircle className="mr-2 h-4 w-4 text-orange-500 dark:text-orange-400" />
+                                                <h4 className="text-base font-medium text-gray-900 dark:text-white">
+                                                    {t('rekapan.form.kesalahan_kata')}
+                                                </h4>
+                                            </div>
+                                            {!form.data.mistake[page]?.salahKata || form.data.mistake[page].salahKata.length === 0 ? (
+                                                <div className="rounded-md border border-green-200 bg-green-50 p-3 dark:border-green-700 dark:bg-green-900">
+                                                    <p className="flex items-center text-sm text-green-700 dark:text-green-200">
+                                                        <CheckCircle2 className="mr-1 h-3 w-3" />
+                                                        {t('rekapan.form.tidak_ada_kesalahan_kata')}
+                                                    </p>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-2">
+                                                    {form.data.mistake[page].salahKata.map((err, idx) => (
+                                                        <div
+                                                            key={`word-${idx}`}
+                                                            className={`rounded-md border p-3 ${getErrorColor(err.salahKey)}`}
+                                                        >
+                                                            <div className="flex items-start">
+                                                                <span className="mt-0.5 mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                                                    {idx + 1}
+                                                                </span>
+                                                                <div className="flex-1">
+                                                                    <div className="flex items-center">
                                                                         <span
-                                                                            className={`inline-block rounded-md px-2 py-0.5 text-xs font-medium ${getErrorTextColor(
+                                                                            className={`inline-block rounded-md border bg-white px-2 py-1 text-base dark:bg-gray-700 ${getErrorTextColor(
                                                                                 err.salahKey,
                                                                             )}`}
+                                                                            style={{ fontFamily: "'Scheherazade New', 'Amiri', serif" }}
                                                                         >
-                                                                            {t("rekapan.form.ayat")} : {err.noAyat}
+                                                                            {err.kata?.text || ''}
                                                                         </span>
                                                                         <p className="ml-2 text-right text-sm text-gray-700 dark:text-gray-300">
                                                                             {err.salah}
@@ -647,98 +704,55 @@ const PageRecapFormLayout: React.FC = () => {
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            <div>
-                                                <div className="mb-3 flex items-center">
-                                                    <AlertCircle className="mr-2 h-4 w-4 text-orange-500 dark:text-orange-400" />
-                                                    <h4 className="text-base font-medium text-gray-900 dark:text-white">
-                                                        {t('rekapan.form.kesalahan_kata')}
-                                                    </h4>
+                                                        </div>
+                                                    ))}
                                                 </div>
-                                                {!form.data.mistake[page]?.salahKata || form.data.mistake[page].salahKata.length === 0 ? (
-                                                    <div className="rounded-md border border-green-200 bg-green-50 p-3 dark:border-green-700 dark:bg-green-900">
-                                                        <p className="flex items-center text-sm text-green-700 dark:text-green-200">
-                                                            <CheckCircle2 className="mr-1 h-3 w-3" />
-                                                            {t('rekapan.form.tidak_ada_kesalahan_kata')}
-                                                        </p>
-                                                    </div>
-                                                ) : (
-                                                    <div className="space-y-2">
-                                                        {form.data.mistake[page].salahKata.map((err, idx) => (
-                                                            <div
-                                                                key={`word-${idx}`}
-                                                                className={`rounded-md border p-3 ${getErrorColor(err.salahKey)}`}
-                                                            >
-                                                                <div className="flex items-start">
-                                                                    <span className="mt-0.5 mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                                                        {idx + 1}
-                                                                    </span>
-                                                                    <div className="flex-1">
-                                                                        <div className="flex items-center">
-                                                                            <span
-                                                                                className={`inline-block rounded-md border bg-white px-2 py-1 text-base dark:bg-gray-700 ${getErrorTextColor(
-                                                                                    err.salahKey,
-                                                                                )}`}
-                                                                                style={{ fontFamily: "'Scheherazade New', 'Amiri', serif" }}
-                                                                            >
-                                                                                {err.kata?.text || ''}
-                                                                            </span>
-                                                                            <p className="ml-2 text-right text-sm text-gray-700 dark:text-gray-300">
-                                                                                {err.salah}
-                                                                            </p>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
+                                            )}
+                                        </div>
 
-                                            <div className="border-t border-gray-200 pt-4 dark:border-gray-700">
-                                                <div className="grid grid-cols-1 gap-4">
-                                                    <div>
-                                                        <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
-                                                            {t('rekapan.form.kesimpulan')}
-                                                        </label>
-                                                        <div className="w-full">
-                                                            <Combobox
-                                                                options={conclusionOptions}
-                                                                placeholder={t('placeholders.select_conclusion')}
-                                                                searchPlaceholder={t('placeholders.search_conclusion')}
-                                                                notFoundText={t('notFoundText.conclusion_not_found')}
-                                                                value={form.data.mistake[page]?.kesimpulan || ''}
-                                                                onValueChange={handlePageChange(page, 'kesimpulan')}
-                                                            // className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
+                                        {
+                                            checkPanel() == 'tampilkan' && (
+                                                <div className="border-t border-gray-200 pt-4 dark:border-gray-700">
+                                                    <div className="grid grid-cols-1 gap-4">
+                                                        <div>
+                                                            <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                                                                {t('rekapan.form.kesimpulan')}
+                                                            </label>
+                                                            <div className="w-full">
+                                                                <Combobox
+                                                                    options={conclusionOptions}
+                                                                    placeholder={t('placeholders.select_conclusion')}
+                                                                    searchPlaceholder={t('placeholders.search_conclusion')}
+                                                                    notFoundText={t('notFoundText.conclusion_not_found')}
+                                                                    value={form.data.mistake[page]?.kesimpulan || ''}
+                                                                    onValueChange={handlePageChange(page, 'kesimpulan')}
+                                                                // className={isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-white text-black'}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                                                                {t('rekapan.form.catatan')}
+                                                            </label>
+                                                            <textarea
+                                                                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-transparent focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400"
+                                                                rows={2}
+                                                                placeholder={t('rekapan.form.catatan_khusus')}
+                                                                value={form.data.mistake[page]?.catatan || ''}
+                                                                onChange={(e) => handlePageChange(page, 'catatan')(e.target.value)}
                                                             />
                                                         </div>
                                                     </div>
-                                                    <div>
-                                                        <label className="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
-                                                            {t('rekapan.form.catatan')}
-                                                        </label>
-                                                        <textarea
-                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-transparent focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400"
-                                                            rows={2}
-                                                            placeholder={t('rekapan.form.catatan_khusus')}
-                                                            value={form.data.mistake[page]?.catatan || ''}
-                                                            onChange={(e) => handlePageChange(page, 'catatan')(e.target.value)}
-                                                        />
-                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                    </div>
-                )}
-            </div>
-        </div>
+                                            )
+                                        }
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                </div>
+            </div >
+        </div >
     );
 };
 

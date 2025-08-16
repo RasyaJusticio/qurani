@@ -184,6 +184,7 @@ const QuranHeader: React.FC<QuranHeaderProps> = ({ page, translateMode = 'read',
         checkLocalStorage();
         if (checkLocalStorage()) return router.visit("/home");
         if (target) {
+            console.log(target)
             router.visit(target);
         } else {
             router.visit("/result");
@@ -490,7 +491,7 @@ const QuranHeader: React.FC<QuranHeaderProps> = ({ page, translateMode = 'read',
                     <div
                         className="flex items-center justify-end min-w-min  text-center list-toggle-button"
                     >
-                        <span className={`${buttonSize.padding} ${buttonSize.fontSize} mr-0 rounded font-bold text-white cursor-pointer`} onClick={() => { setIsSidebarOpen(!isSidebarOpen); setAlertWaring(false); setAlert(false); setAlertReset(false); }}>
+                        <span className={`${buttonSize.padding} ${buttonSize.fontSize} mr-0 rounded font-bold text-white cursor-pointer`} onClick={() => { setIsSidebarOpen(!isSidebarOpen); }}>
                             <Settings className='text-black dark:text-white' />
                         </span>
                     </div>
@@ -746,9 +747,9 @@ const QuranHeader: React.FC<QuranHeaderProps> = ({ page, translateMode = 'read',
                     </div>
                 </div>
             </div>
-            <Alert show={alert} to={null} status='success' heading='Berhasil' message='Data Berhasil Disimpan' />
-            <Alert show={alertWaring} to={null} status='warning' heading='Peringatan' message='Tidak Ada Perubahan' />
-            <Alert show={alertReset} to={null} status='success' heading='Berhasil' message='Data Berhasil Direset' />
+            <Alert show={alert} setAlert={setAlert} to={null} status='success' heading='Berhasil' message='Data Berhasil Disimpan' />
+            <Alert show={alertWaring} setAlert={setAlertWaring} to={null} status='warning' heading='Peringatan' message='Tidak Ada Perubahan' />
+            <Alert show={alertReset} setAlert={setAlertReset} to={null} status='success' heading='Berhasil' message='Data Berhasil Direset' />
 
         </div>
     );

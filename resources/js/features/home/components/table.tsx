@@ -1,14 +1,50 @@
 import { Link, router } from '@inertiajs/react';
 import axios from 'axios';
 import { Check, Filter, Grid2X2, SquareActivity } from 'lucide-react';
-import React, { useEffect, useState } from 'react'; // Import useEffect
+import React, { useState } from 'react'; // Import useEffect
 import { useTranslation } from 'react-i18next';
 import PopUp from '../../../components/ui/PopUp';
 import AdvancedTableFilter from '@/components/layouts/filter';
 
+interface LinkData {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+interface Meta {
+    current_page: number;
+    has_more_pages: boolean;
+    last_page: number;
+    links: LinkData[];
+    per_page: number;
+    total: number;
+}
+interface FilterData {
+    reciter: string | null;
+    result: string | null;
+    signature: string | null; // Atau number | null, tergantung pada tipe data yang digunakan
+    timeRange: string | null;
+}
+interface Data {
+    id: number;
+    recipient: string;
+    recipient_username: string;
+    recite: string;
+    reciter: string;
+    reciter_id: number;
+    reciter_username: string;
+    results: string;
+    signature: number;
+    time: string;
+}
+interface Setoran {
+    data: Data[];
+    meta: Meta;
+    filters: FilterData;
+}
 interface HistoryTableProps {
     fluidDesign: boolean;
-    setoran: any; // Mengasumsikan setoran memiliki struktur pagination Laravel (data, links, current_page, last_page, dll.)
+    setoran: Setoran;
 }
 
 const formatTime = (timeString: string) => {
@@ -69,8 +105,8 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                     surah: {
                         id: response.data.nomor?.toString() || '',
                         name: response.data.surah_name || '',
-                        from: `${awalSurah},${awalAyat}` || '',
-                        to: `${akhirSurah},${akhirAyat}` || '',
+                        from: `${awalSurah},${awalAyat}`,
+                        to: `${akhirSurah},${akhirAyat}`
                     },
                 };
             }
@@ -97,18 +133,18 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
         setShowPopUp(false);
     };
 
-    const generatePaginationLinks = (currentPage: number, lastPage: number, links: any[]) => {
+    const generatePaginationLinks = (currentPage: number, lastPage: number, links: LinkData[]) => {
         const pages = [];
         const delta = 1; // Kurangi delta menjadi 1 untuk tampilan lebih ringkas
 
         // Tambah Previous jika ada
-        const prevLink = links.find((link: any) => link.label.includes('Previous'));
+        const prevLink = links.find((link: LinkData) => link.label.includes('Previous'));
         if (prevLink && prevLink.url) {
-            pages.push({ label: `${t("history.paginate.previous")}`, url: prevLink.url, active: prevLink.active });
+            pages.push({ label: `<`, url: prevLink.url, active: prevLink.active });
         }
 
         // Halaman pertama
-        pages.push({ label: '1', url: links.find((l: any) => l.label === '1')?.url, active: currentPage === 1 });
+        pages.push({ label: '1', url: links.find((l: LinkData) => l.label === '1')?.url, active: currentPage === 1 });
 
         // Jika current page jauh dari awal, tambah ellipsis
         if (currentPage - delta > 2) {
@@ -120,7 +156,7 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
             if (i < currentPage + delta + 1) {
                 pages.push({
                     label: i.toString(),
-                    url: links.find((l: any) => l.label == i.toString())?.url,
+                    url: links.find((l: LinkData) => l.label == i.toString())?.url,
                     active: currentPage === i
                 });
             }
@@ -135,21 +171,22 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
         if (lastPage > 1) {
             pages.push({
                 label: lastPage.toString(),
-                url: links.find((l: any) => l.label === lastPage.toString())?.url,
+                url: links.find((l: LinkData) => l.label === lastPage.toString())?.url,
                 active: currentPage === lastPage
             });
         }
 
         // Tambah Next jika ada
-        const nextLink = links.find((link: any) => link.label.includes('Next'));
+        const nextLink = links.find((link: LinkData) => link.label.includes('Next'));
         if (nextLink && nextLink.url) {
-            pages.push({ label: `${t("history.paginate.next")}`, url: nextLink.url, active: nextLink.active });
+            pages.push({ label: `>`, url: nextLink.url, active: nextLink.active });
         }
 
         return pages;
     };
 
     const paginationLinks = generatePaginationLinks(setoran.meta.current_page, setoran.meta.last_page, setoran.meta.links);
+    console.log(setoran);
     return (
         <div className={fluidDesign ? 'mt-0 w-full' : 'mx-auto mt-3 w-full max-w-4xl'}>
             <div className="flex w-full justify-center">
@@ -202,10 +239,10 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                             <tbody>
                                 {/* Gunakan filteredData di sini */}
                                 {setoran.data.length > 0 ? (
-                                    setoran.data.map((item: any, i: number) => (
+                                    setoran.data.map((item: Data, i: number) => (
                                         <tr
                                             key={item.id}
-                                            className={`hover:bg-gray-50'} cursor-pointer dark:hover:bg-gray-700 ${i % 2 === 1 ? "dark:bg-[#212529] bg-gray-200" : "dark:bg-[#323539]"}`}
+                                            className={`hover:bg-[#888888] hover:text-white dark:hover:bg-gray-700  cursor-pointer ${i % 2 === 1 ? "dark:bg-[#212529] bg-gray-200" : "dark:bg-[#323539]"}`}
                                             onClick={() => {
                                                 fetchSetoranDetails(item.id)
                                             }}
@@ -230,7 +267,7 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                                                                         size={20}
                                                                         className={
                                                                             item.signature === 0
-                                                                                ? `cursor-pointer text-gray-400 hover:text-gray-200 hover:text-gray-600 dark:text-gray-400`
+                                                                                ? `cursor-pointer text-gray-400 dark:hover:text-blue-300 hover:text-blue-300 dark:text-gray-400`
                                                                                 : 'text-blue-500'
                                                                         }
                                                                         onClick={(e) => {
@@ -313,7 +350,7 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                         <div className="block w-full md:hidden mb-14">
                             {/* Gunakan filteredData di sini */}
                             {setoran.data.length > 0 ? (
-                                setoran.data.map((item: any) => (
+                                setoran.data.map((item: Data) => (
                                     <table
                                         key={item.id}
                                         className={`w-full border-collapse mb-3 border-b-2 dark:border-gray-600 pb-52`}
@@ -383,7 +420,7 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                                             <tr>
                                                 <td colSpan={2} className={"text-right"}>
                                                     {
-                                                        <button className='dark:text-white text-xs text-center bg-blue-500 py-1 px-3 rounded-sm cursor-pointer w-full' onClick={() => {
+                                                        <button className='text-white text-sm font-semibold text-center bg-blue-500 py-1 px-3 rounded-sm cursor-pointer w-full' onClick={() => {
                                                             fetchSetoranDetails(item.id)
                                                         }}>Detail</button>
                                                     }

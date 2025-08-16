@@ -10,6 +10,7 @@ use App\Models\LinkID\User;
 use App\Models\Qurani\Chapter;
 use App\Models\Qurani\Juz;
 use App\Models\Qurani\Verses;
+use App\Models\SystemProvince;
 use App\Traits\ErrorLabel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use PHPUnit\Event\Telemetry\System;
 
 class ResultController extends Controller
 {
@@ -127,7 +129,7 @@ class ResultController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validasi gawal',
+                'message' => 'Validasi gagal',
                 'errors' => $validator->errors(),
             ], 422);
         }
@@ -138,8 +140,6 @@ class ResultController extends Controller
         } else {
             $request->merge(['anggota' => null]);
         }
-
-        Log::info($anggota);
 
         try {
             $penyetor = User::where('user_name', $request->anggota)->firstOrFail();
@@ -166,7 +166,7 @@ class ResultController extends Controller
 
             $setoran = QuSetoran::create($setoranData);
 
-            $kota = Kota::find($penyetor->user_city);
+            $kota = Kota::where("city_id", $penyetor->user_city)->first();
 
             if (!$kota) {
                 throw new \Exception('Kota tidak ditemukan untuk penyetor ini.');
@@ -177,20 +177,21 @@ class ResultController extends Controller
             $columnDay = 't' . $day;
 
             $rekap = QuSetoranRekap::where('periode', $periode)
-                ->where('kota', $kota->nama)
+                ->where('kota', $kota->city_name)
                 ->first();
 
             if ($rekap) {
                 $rekap->$columnDay = ($rekap->$columnDay ?? 0) + 1;
                 $rekap->save();
             } else {
+                $province = SystemProvince::where('province_id', $kota->province_id)->first();
                 $rekapData = [
                     'periode' => $periode,
                     'negara' => $kota->negara ?? 'Indonesia',
-                    'provinsi' => $kota->provinsi ?? null,
-                    'kota' => $kota->nama,
-                    'lat' => $kota->lat ?? null,
-                    'long' => $kota->long ?? null,
+                    'provinsi' => $province ?? null,
+                    'kota' => $kota->city_name ?? null,
+                    'lat' => $kota->latitude ?? null,
+                    'long' => $kota->longitude ?? null,
                     $columnDay => 1,
                 ];
 
@@ -208,7 +209,7 @@ class ResultController extends Controller
                     'penyetor' => $request->penyetor,
                     'penerima' => $request->penerima,
                     'hasil' => $setoran->hasil,
-                    'kota' => $kota->nama,
+                    'kota' => $kota->city_name,
                 ],
             ], 201);
         } catch (\Exception $e) {

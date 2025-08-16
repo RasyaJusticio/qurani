@@ -3,17 +3,16 @@ import { useForm } from '@inertiajs/react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Calendar, Expand, Grid2X2 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
 import { useTheme } from '../../../components/layouts/theme-context';
 import { useTranslation } from 'react-i18next';
 
-// Fix default icon issues
 L.Icon.Default.mergeOptions({
-    // iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+    iconUrl: 'assets/img/marker-icon.png',
+    shadowUrl: 'assets/img/marker-shadow.png',
 });
+
 
 const INDONESIA_BOUNDS = L.latLngBounds(L.latLng(-11, 94), L.latLng(6, 141));
 
@@ -129,7 +128,7 @@ const Maps: React.FC<MapsProps> = ({ setoranRekap, setoranRekapTotal, periodes, 
                     <div className="flex items-center space-x-2">
                         <button
                             onClick={() => (window.location.href = '/dashboard')}
-                            className={`rounded-full p-2 transition-colors hover:cursor-pointer dark:text-gray-300 hover:bg-gray-700 hover:text-white text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
+                            className={`rounded-full p-2 transition-colors hover:cursor-pointer dark:text-gray-300 hover:bg-gray-700 hover:text-white text-gray-600 dark:hover:bg-gray-100 hover:text-gray-900'}`}
                             aria-label="Go to dashboard"
                         >
                             <Grid2X2 className="h-5 w-5" />
@@ -156,7 +155,7 @@ const Maps: React.FC<MapsProps> = ({ setoranRekap, setoranRekapTotal, periodes, 
                         {!isExpanded && (
                             <button
                                 onClick={toggleExpand}
-                                className={`rounded-full p-2 transition-colors hover:cursor-pointer dark:text-gray-300 hover:bg-gray-700 hover:text-white text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
+                                className={`rounded-full p-2 transition-colors hover:cursor-pointer dark:text-gray-300 hover:bg-gray-700 hover:text-white text-gray-600 dark:hover:bg-gray-100 hover:text-gray-900'}`}
                                 aria-label="Expand map"
                             >
                                 <Expand className="h-5 w-5" />
