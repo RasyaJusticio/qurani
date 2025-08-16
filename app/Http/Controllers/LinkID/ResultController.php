@@ -176,8 +176,6 @@ class ResultController extends Controller
             $day = $timestamp->day;
             $columnDay = 't' . $day;
 
-            Log::info($kota);
-
             $rekap = QuSetoranRekap::where('periode', $periode)
                 ->where('kota', $kota->city_name)
                 ->first();

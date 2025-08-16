@@ -420,7 +420,7 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
                                             <tr>
                                                 <td colSpan={2} className={"text-right"}>
                                                     {
-                                                        <button className='text-white text-xs text-center bg-blue-500 py-1 px-3 rounded-sm cursor-pointer w-full' onClick={() => {
+                                                        <button className='text-white text-sm font-semibold text-center bg-blue-500 py-1 px-3 rounded-sm cursor-pointer w-full' onClick={() => {
                                                             fetchSetoranDetails(item.id)
                                                         }}>Detail</button>
                                                     }

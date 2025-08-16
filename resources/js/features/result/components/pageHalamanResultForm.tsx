@@ -362,14 +362,17 @@ const PageRecapFormLayout: React.FC = () => {
             })
             .catch((error) => {
                 console.log(error.response.data);
+                setAlertError(true)
                 if (error.response && error.response.status === 422) {
                     const errors = error.response.data.errors;
                     Object.keys(errors).forEach((key) => {
-                        form.setError(key as keyof FormData, errors[key][0]);
+                        setError(errors[key][0])
+                        // form.setError(key as keyof FormData, errors[key][0]);
                     });
                 } else {
                     console.error('Error:', error);
-                    form.setError('submit', 'Gagal mengirim data. Silakan coba lagi.');
+                    setError("Gagal mengirim data. Silakan coba lagi.")
+                    // form.setError('submit', 'Gagal mengirim data. Silakan coba lagi.');
                 }
             }).finally(() => {
                 if (btnSubmit.current) {
