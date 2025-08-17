@@ -8,10 +8,15 @@ import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
 import { useTheme } from '../../../components/layouts/theme-context';
 import { useTranslation } from 'react-i18next';
 
+delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: () => string })._getIconUrl;
+// delete (L.Icon.Default.prototype as any)._getIconUrl;
+
 L.Icon.Default.mergeOptions({
-    iconUrl: 'assets/img/marker-icon.png',
-    shadowUrl: 'assets/img/marker-shadow.png',
+    iconUrl: "/assets/img/marker-icon.png",
+    iconRetinaUrl: "/assets/img/marker-icon.png", // wajib ditambah biar retina nggak fallback ke default
+    shadowUrl: "/assets/img/marker-shadow.png",
 });
+
 
 
 const INDONESIA_BOUNDS = L.latLngBounds(L.latLng(-11, 94), L.latLng(6, 141));
@@ -178,7 +183,7 @@ const Maps: React.FC<MapsProps> = ({ setoranRekap, setoranRekapTotal, periodes, 
                     >
                         <TileLayer
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        // attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                            attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                         />
                         <MapBounds />
                         <MinimizeControl isExpanded={isExpanded} toggleExpand={toggleExpand} isDarkMode={isDarkMode} />
