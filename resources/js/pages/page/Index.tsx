@@ -309,7 +309,7 @@ export default function PageIndex() {
         return errorsByPage;
     };
 
-    const versesBySurah: { [key: number]: Verse[] } = {};
+    const versesBySurah: { [surahId: number]: Verse[] } = {};
     verses.forEach((verse) => {
         const surahId = parseInt(verse.verse_key.split(':')[0]);
         if (!versesBySurah[surahId]) {
@@ -409,22 +409,28 @@ export default function PageIndex() {
             <>
                 {Object.keys(versesBySurah).map((surahId) => {
                     const surah = chapters[parseInt(surahId)];
+                    const verse: Verse = versesBySurah[parseInt(surahId)][0];
+                    const header: boolean = verse.verse_number === 1
                     return (
                         <div key={surahId}>
                             {/* Surah Header - hanya ditampilkan sekali di awal surah */}
-                            <div className="mb-6 text-center">
-                                <h2 className={`${fontType() == "IndoPak" ? "font-arabic-indopak" : "font-arabic"} text-3xl font-bold dark:text-gray-300`}>
-                                    {surah.name_arabic}
-                                </h2>
-                                <p className={`mt-2 text-lg text-gray-600 dark:text-gray-300`}>
-                                    {surah.name_simple} ({surah.translated_name.name})
-                                </p>
-                                {surah.bismillah_pre && (
-                                    <p className={`${fontType() == "IndoPak" ? "font-arabic-indopak" : "qpc"} mt-4 text-3xl text-black dark:text-gray-300`}>
-                                        بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
-                                    </p>
-                                )}
-                            </div>
+                            {
+                                header && (
+                                    <div className="mb-6 text-center">
+                                        <h2 className={`${fontType() == "IndoPak" ? "font-arabic-indopak" : "font-arabic"} text-3xl font-bold dark:text-gray-300`}>
+                                            {surah.name_arabic}
+                                        </h2>
+                                        <p className={`mt-2 text-lg text-gray-600 dark:text-gray-300`}>
+                                            {surah.name_simple} ({t(`surah.${surahId}`)})
+                                        </p>
+                                        {surah.bismillah_pre && (
+                                            <p className={`${fontType() == "IndoPak" ? "font-arabic-indopak" : "qpc"} mt-4 text-3xl text-black dark:text-gray-300`}>
+                                                بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
+                                            </p>
+                                        )}
+                                    </div>
+                                )
+                            }
 
                             {/* Ayat-ayat dalam surah */}
                             <div style={{ direction: 'rtl' }}>
