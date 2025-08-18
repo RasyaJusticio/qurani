@@ -556,7 +556,6 @@ export default function SurahIndex() {
             }
             versesByPage[verse.page_number].push(verse);
         });
-        console.log(versesByPage[235])
         return (
             <div style={{
                 width: "fit-content",

@@ -2,14 +2,16 @@ import AppWrapper from '@/components/layouts/app-wrapper';
 import RecapHeader from '@/components/layouts/recap-header';
 import { cn } from '@/lib/utils';
 import { Head, usePage } from '@inertiajs/react';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, JSX } from 'react';
 
 interface Word {
     id: number;
     position: number;
     text_uthmani: string;
+    text_indopak: string;
     char_type_name: string;
     location: string;
+    line_number?: number;
 }
 
 interface Verse {
@@ -31,6 +33,17 @@ interface Surah {
     name_arabic: string;
     verses_count: number;
     translated_name: { name: string; language_name: string };
+}
+
+interface WordUtsmani {
+    [key: string]: {
+        id: number;
+        surah: number;
+        ayah: string;
+        word: string;
+        location: string
+        text: string
+    }
 }
 
 interface PageProps {
@@ -110,6 +123,27 @@ export default function SurahIndex() {
         y: number;
     } | null>(null);
     const spanRefs = useRef<{ [key: string]: HTMLSpanElement }>({});
+    const [wordUtsmani, setWordUtsmani] = useState<WordUtsmani | null>(null)
+
+    useEffect(() => {
+        async function fetchDataUtsmani() {
+            try {
+                // Path relatif ke file JSON Anda di folder public
+                const response = await fetch('/assets/json/qpc-utsmani.json');
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                setWordUtsmani(data);
+            } catch (e) {
+                console.log(e)
+            }
+        }
+
+        fetchDataUtsmani();
+    }, [])
 
     useEffect(() => {
         const loadErrorsFromLocalStorage = () => {
@@ -204,17 +238,256 @@ export default function SurahIndex() {
         setTooltip(null);
     };
 
-    const groupedVerses = verses.reduce(
-        (acc, verse, index) => {
-            const page = verse.page_number;
-            if (!acc[page]) {
-                acc[page] = [];
+    // const groupedVerses = verses.reduce(
+    //     (acc, verse, index) => {
+    //         const page = verse.page_number;
+    //         if (!acc[page]) {
+    //             acc[page] = [];
+    //         }
+    //         acc[page].push({ verse, index });
+    //         return acc;
+    //     },
+    //     {} as { [key: number]: { verse: Verse; index: number }[] },
+    // );
+
+    function getFont(location: string): string {
+        if (!wordUtsmani || !wordUtsmani[`${location}`]) {
+            return '';
+        }
+        return wordUtsmani[`${location}`]?.text || '';
+    }
+
+    function loadFontFace(page: number): string {
+        const fontName = `QPCPage${page}`;
+        const fontUrl = `/assets/fonts/QPC V1 Font/p${page}.woff2`;
+
+        // Cek apakah style dengan fontName sudah ada
+        const existingStyle = Array.from(document.head.querySelectorAll('style'))
+            .find(style => style.innerHTML.includes(`font-family: '${fontName}'`));
+
+        if (existingStyle) {
+            // Font sudah dimuat, tidak perlu inject ulang
+            return fontName;
+        }
+
+        // Buat elemen style untuk inject font-face
+        const style = document.createElement('style');
+        style.innerHTML = `
+        @font-face {
+            font-family: '${fontName}';
+            src: url('${fontUrl}') format('woff2');
+            font-display: swap;
+        }
+
+        .${fontName} {
+            font-family: '${fontName}';
+        }
+    `;
+        document.head.appendChild(style);
+
+        return fontName;
+    }
+
+    function renderMushaf(): JSX.Element {
+        const versesByPage: { [pageNumber: number]: Verse[] } = {};
+        verses.forEach(verse => {
+            if (!versesByPage[verse.page_number]) {
+                versesByPage[verse.page_number] = [];
             }
-            acc[page].push({ verse, index });
-            return acc;
-        },
-        {} as { [key: number]: { verse: Verse; index: number }[] },
-    );
+            versesByPage[verse.page_number].push(verse);
+        });
+
+        return (
+            <div style={{
+                width: "fit-content",
+                margin: '0 auto',
+            }}>
+                {Object.keys(versesByPage).length > 0 ? (
+                    Object.entries(versesByPage).map(([pageNumberStr, pageVerses]) => {
+                        const pageNumber = parseInt(pageNumberStr);
+                        const isValidationPage = pageNumber === 1 || pageNumber === 2;
+
+                        // Group all words by line_number across all verses in this page
+                        const wordsByLine: { [lineNumber: number]: { verse: Verse, word: Word }[] } = {};
+                        pageVerses.forEach(verse => {
+                            verse.words.forEach(word => {
+                                if (word.line_number !== undefined) {
+                                    if (!wordsByLine[word.line_number]) {
+                                        wordsByLine[word.line_number] = [];
+                                    }
+                                    wordsByLine[word.line_number].push({ verse, word });
+                                }
+                            });
+                        });
+
+                        const classUtsmani = loadFontFace(pageNumber)
+
+                        return (
+                            <div key={pageNumber} style={{ margin: '0 auto' }}>
+                                {Object.entries(wordsByLine).map(([lineNumberStr, lineWords]) => {
+                                    const lineNumber = parseInt(lineNumberStr);
+
+                                    // Group words by verse in this line
+                                    const wordsByVerse: { [verseId: number]: Word[] } = {};
+                                    lineWords.forEach(({ verse, word }) => {
+                                        if (!wordsByVerse[verse.id]) {
+                                            wordsByVerse[verse.id] = [];
+                                        }
+                                        wordsByVerse[verse.id].push(word);
+                                    });
+
+                                    return (
+                                        <div
+                                            key={lineNumber}
+                                            style={{
+                                                display: 'flex',
+                                                justifyContent: isValidationPage ? 'center' : 'space-between',
+                                                alignItems: 'center',
+                                                marginBottom: '5px',
+                                                width: '100%',
+                                                direction: 'rtl',
+                                                textAlign: isValidationPage ? 'center' : 'justify'
+                                            }}
+                                        >
+                                            {Object.entries(wordsByVerse).map(([verseIdStr, words]) => {
+                                                const verseId = parseInt(verseIdStr);
+                                                const verse = verses.find(v => v.id === verseId);
+                                                const verseLabel = verseErrors[verseId]
+                                                    ? errorLabels.find((l) => l.key === verseErrors[verseId].key)
+                                                    : null;
+
+                                                const totalWordsInVerse = words.length;
+
+                                                return (
+                                                    <div
+                                                        key={verseId}
+                                                        style={{
+                                                            backgroundColor: verseLabel?.color || 'transparent',
+                                                            borderRadius: verseLabel ? '6px' : '0',
+                                                            padding: verseLabel ? "2px 3px" : "0",
+                                                            margin: '0 1px',
+                                                            display: 'flex',
+                                                            justifyContent: isValidationPage ? 'center' :
+                                                                (totalWordsInVerse <= 2 ? 'flex-start' : 'space-between'),
+                                                            alignItems: 'center',
+                                                            flex: isValidationPage ? 'none' :
+                                                                (totalWordsInVerse <= 2 ? '0 1 auto' : '1 1 auto'),
+                                                            minWidth: 'fit-content',
+                                                            gap: totalWordsInVerse <= 2 ? '4px' : '0px'
+                                                        }}
+                                                    >
+                                                        {words.map((word) => {
+                                                            const wordLabel = wordErrors[word.id]
+                                                                ? errorLabels.find((l) => l.key === wordErrors[word.id].key)
+                                                                : null;
+
+                                                            const showWordHighlight = wordLabel || verseLabel;
+
+                                                            return (
+                                                                <span
+                                                                    key={word.id}
+                                                                    style={{
+                                                                        fontSize: "1.5rem",
+                                                                        // fontSize: getFontSizeClass(),
+                                                                        backgroundColor: showWordHighlight ? wordLabel?.color : 'transparent',
+                                                                        borderRadius: showWordHighlight ? '4px' : '0',
+                                                                        margin: '0 1px',
+                                                                        display: 'inline-block',
+                                                                        lineHeight: '1.5',
+                                                                        textAlign: 'center',
+                                                                        flex: isValidationPage ? 'none' :
+                                                                            (totalWordsInVerse <= 2 ? '0 0 auto' : '0 0 auto'),
+                                                                        minWidth: 'min-content'
+                                                                    }}
+                                                                    className={cn(
+                                                                        `cursor-pointer text-gray-700 transition-colors duration-200
+                                                                        hover:text-blue-300 dark:hover:text-blue-300`,
+                                                                        showWordHighlight ? 'dark:text-gray-900' : 'dark:text-gray-300',
+                                                                    )}
+                                                                >
+                                                                    {
+                                                                        word.char_type_name == "word" && (
+                                                                            <span
+                                                                                className={classUtsmani}
+                                                                                ref={(el) => {
+                                                                                    if (el) spanRefs.current[`word-${word.id}`] = el;
+                                                                                }}
+                                                                                onClick={() => {
+                                                                                    if (wordLabel) {
+                                                                                        setPopupError({
+                                                                                            type: 'word',
+                                                                                            id: word.id,
+                                                                                            label: wordErrors[word.id].label,
+                                                                                            locationText: word.text_uthmani
+                                                                                        });
+                                                                                    }
+                                                                                }}
+                                                                                onMouseEnter={(e) =>
+                                                                                    handleMouseEnter('word', word.id, wordErrors[word.id].label, getFont(word.location), e)
+                                                                                }
+                                                                                onMouseLeave={handleMouseLeave}
+                                                                            >
+                                                                                {getFont(word.location)}
+                                                                            </span>
+                                                                        )
+                                                                    }
+                                                                    {
+                                                                        word.char_type_name == "end" && (
+                                                                            <span
+                                                                                ref={(el) => {
+                                                                                    if (el) spanRefs.current[`verse-end-${verseId}`] = el;
+                                                                                }}
+                                                                                className={classUtsmani}
+                                                                                onClick={
+                                                                                    verseLabel
+                                                                                        ? () =>
+                                                                                            setPopupError({
+                                                                                                type: 'verse',
+                                                                                                id: verseId,
+                                                                                                label: verseErrors[verseId].label,
+                                                                                                locationText: `Ayat ke-${verse?.verse_number}`,
+                                                                                            })
+                                                                                        : undefined
+                                                                                }
+                                                                                onMouseEnter={(e) =>
+                                                                                    handleMouseEnter('verse', verseId, verseErrors[verseId].label, `Ayat ke-${verse?.verse_number}`, e)
+                                                                                }
+                                                                                onMouseLeave={handleMouseLeave}
+                                                                            >
+                                                                                {getFont(word.location)}
+                                                                            </span>
+                                                                        )
+                                                                    }
+                                                                </span>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    );
+                                })}
+
+                                {/* Page separator */}
+                                {pageVerses.length > 0 && (
+                                    <div className="my-4 flex items-center">
+                                        <hr className={`flex-1 border-2 border-t border-gray-300`} />
+                                        <span className={`mx-4 text-sm font-bold text-gray-700 dark:text-white`}>
+                                            Page {pageNumber}
+                                        </span>
+                                        <hr className={`flex-1 border-2 border-t border-gray-300`} />
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })
+                ) : (
+                    <div className="text-gray-700">Tidak ada data ayat untuk ditampilkan.</div>
+                )
+                }
+            </div >
+        );
+    }
 
     return (
         <AppWrapper>
@@ -231,7 +504,7 @@ export default function SurahIndex() {
                         </p>
                     )}
                 </div>
-                <div
+                {/* <div
                     className="font-arabic text-3xl text-gray-800"
                     style={{
                         direction: 'rtl',
@@ -360,7 +633,10 @@ export default function SurahIndex() {
                             </>
                         );
                     })}
-                </div>
+                </div> */}
+                {
+                    renderMushaf()
+                }
                 {popupError && (
                     <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black/55">
                         <div className="max-w-md rounded-lg bg-white p-6 text-center shadow-lg">
