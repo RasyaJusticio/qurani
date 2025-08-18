@@ -94,12 +94,13 @@ class RecapController extends Controller
                         'position' => $word->position,
                         'text_uthmani' => $word->text_uthmani,
                         'char_type_name' => $word->char_type_name,
-                        'location' => $word->location
+                        'location' => $word->location,
+                        "line_number" => $word->line_number
                     ];
                 })
-                    ->filter(function ($word) {
-                        return $word['char_type_name'] === 'word';
-                    })
+                    // ->filter(function ($word) {
+                    //     return $word['char_type_name'] === 'word';
+                    // })
                     ->values();
                 $verse->end_marker = $endMarkers->get($verse->verse_key, (object) ['text_uthmani' => ''])->text_uthmani;
                 return $verse;
@@ -139,7 +140,7 @@ class RecapController extends Controller
         // Parse verse_mapping to get verse keys and surah IDs
         $verseKeys = [];
         $surahIds = [];
-        $errorLabel = $this->ErrorLabelGenerate(Auth::user());
+        // $errorLabel = $this->ErrorLabelGenerate(Auth::user());
         foreach ($juz->verse_mapping as $surah => $range) {
             $surahIds[] = (int) $surah;
             [$start, $end] = explode('-', $range);
@@ -202,12 +203,13 @@ class RecapController extends Controller
                         'position' => $word->position,
                         "location" => $word->location,
                         'text_uthmani' => $word->text_uthmani,
-                        'char_type_name' => $word->char_type_name
+                        'char_type_name' => $word->char_type_name,
+                        "line_number" => $word->line_number
                     ];
                 })
-                    ->filter(function ($word) {
-                        return $word['char_type_name'] === 'word';
-                    })
+                    // ->filter(function ($word) {
+                    //     return $word['char_type_name'] === 'word';
+                    // })
                     ->values();
                 $verse->end_marker = $endMarkers->get($verse->verse_key, (object) ['text_uthmani' => ''])->text_uthmani;
                 return $verse;
@@ -282,7 +284,8 @@ class RecapController extends Controller
                         'position' => $word->position,
                         'text_uthmani' => $word->text_uthmani,
                         'char_type_name' => $word->char_type_name,
-                        'location' => $word->location
+                        'location' => $word->location,
+                        "line_number" => $word->line_number
                     ];
                 })
                     // ->filter(function ($word) {
