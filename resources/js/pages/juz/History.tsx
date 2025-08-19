@@ -88,6 +88,7 @@ export default function JuzRecap() {
         id: number;
         label: string;
         locationText: string;
+        className?: string
     } | null>(null);
     const [wordErrors, setWordErrors] = useState<{
         [key: number]: {
@@ -466,7 +467,8 @@ export default function JuzRecap() {
                                                                                                 type: 'word',
                                                                                                 id: word.id,
                                                                                                 label: wordErrors[word.id].label,
-                                                                                                locationText: word.text_uthmani,
+                                                                                                locationText: getFont(word.location),
+                                                                                                className: classUtsmani
                                                                                             })
                                                                                         : undefined
                                                                                 }
@@ -726,7 +728,7 @@ export default function JuzRecap() {
                     <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black/55">
                         <div className="max-w-md rounded-lg bg-white p-6 text-center shadow-lg">
                             <p className="mb-2 text-2xl">
-                                <strong>{popupError.locationText}</strong>
+                                <strong className={popupError.className}>{popupError.locationText}</strong>
                             </p>
                             <p className="mb-4">
                                 <span className="rounded px-2 py-1">{popupError.label}</span>

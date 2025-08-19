@@ -84,6 +84,7 @@ export default function PageRecap() {
         id: number;
         label: string;
         locationText: string;
+        className?: string
     } | null>(null);
     const [wordErrors, setWordErrors] = useState<{
         [key: number]: {
@@ -179,7 +180,6 @@ export default function PageRecap() {
                                 mistakeData.salah_kata.forEach((wordError: any) => {
                                     const wordLocation = wordError.word_location;
                                     verses.forEach((verse) => {
-                                        console.log(verse.words)
                                         verse.words.forEach((word) => {
                                             if (word.location === wordLocation) {
                                                 newWordErrors[word.id] = { key: wordError.salahKey, label: wordError.salah };
@@ -201,7 +201,6 @@ export default function PageRecap() {
                         });
 
                         setWordErrors(newWordErrors);
-                        console.log(newWordErrors)
                         setVerseErrors(newVerseErrors);
 
                     }
@@ -468,17 +467,18 @@ export default function PageRecap() {
                                                                             ref={(el) => {
                                                                                 if (el) spanRefs.current[`word-${word.id}`] = el;
                                                                             }}
-                                                                            onClick={
-                                                                                wordErrors
-                                                                                    ? () =>
-                                                                                        setPopupError({
-                                                                                            type: 'word',
-                                                                                            id: word.id,
-                                                                                            label: wordErrors[word.id].label,
-                                                                                            locationText: word.text_uthmani,
-                                                                                        })
-                                                                                    : undefined
-                                                                            }
+                                                                            onClick={() => {
+                                                                                console.log("click");
+                                                                                if (wordErrors) {
+                                                                                    setPopupError({
+                                                                                        type: 'word',
+                                                                                        id: word.id,
+                                                                                        label: wordErrors[word.id].label,
+                                                                                        locationText: getFont(word.location),
+                                                                                        className: classUtsmani
+                                                                                    })
+                                                                                }
+                                                                            }}
                                                                             onMouseEnter={(e) =>
                                                                                 handleMouseEnter('word', word.id, wordErrors[word.id].label, word.text_uthmani, e)
                                                                             }
@@ -537,15 +537,16 @@ export default function PageRecap() {
                     </div>
                 ) : (
                     <div className={`text-gray-700`}>Tidak ada data ayat untuk ditampilkan.</div>
-                )}
-            </div>
+                )
+                }
+            </div >
         );
     }
 
     if (!verses || !ready) {
         return null;
     }
-
+    console.log(popupError?.className)
     return (
         <AppWrapper>
             <Head title={`Page ${page.page_number} - Recap`} />
@@ -747,7 +748,7 @@ export default function PageRecap() {
                     <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black/55">
                         <div className="max-w-md rounded-lg bg-white p-6 text-center shadow-lg">
                             <p className="mb-2 text-2xl">
-                                <strong>{popupError.locationText}</strong>
+                                <span className={popupError.className}>{popupError.locationText}</span>
                             </p>
                             <p className="mb-4">
                                 <span className="rounded px-2 py-1">{popupError.label}</span>
