@@ -186,7 +186,7 @@ const HistoryTable: React.FC<HistoryTableProps> = ({ fluidDesign, setoran }) => 
     };
 
     const paginationLinks = generatePaginationLinks(setoran.meta.current_page, setoran.meta.last_page, setoran.meta.links);
-    console.log(setoran);
+
     return (
         <div className={fluidDesign ? 'mt-0 w-full' : 'mx-auto mt-3 w-full max-w-4xl'}>
             <div className="flex w-full justify-center">

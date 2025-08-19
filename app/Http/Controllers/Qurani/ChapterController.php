@@ -10,7 +10,6 @@ use App\Traits\ErrorLabel;
 use App\Traits\FetchWords;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class ChapterController extends Controller
@@ -116,8 +115,6 @@ class ChapterController extends Controller
             $reciterData = session("reciter_data")['value'];
             $settingUser = $reciterData == "grup" ? false : true;
         }
-
-        Log::info($verses->toArray());
 
         return Inertia::render('surah/Index', [
             'surah' => [

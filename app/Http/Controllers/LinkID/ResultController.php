@@ -185,6 +185,7 @@ class ResultController extends Controller
                 $rekap->save();
             } else {
                 $province = SystemProvince::where('province_id', $kota->province_id)->first();
+                Log::info($province);
                 $rekapData = [
                     'periode' => $periode,
                     'negara' => $kota->negara ?? 'Indonesia',

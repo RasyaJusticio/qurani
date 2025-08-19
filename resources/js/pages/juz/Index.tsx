@@ -100,6 +100,8 @@ export default function JuzIndex() {
     const [wordIndopak, setWordIndopak] = useState<WordIndopak | null>(null)
     const [wordUtsmani, setWordUtsmani] = useState<WordIndopak | null>(null)
     const { t, ready } = useTranslation("surah");
+    const [moreThenContainer, setMoreThenContainer] = useState<boolean>(false)
+    const containerRef = React.useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         async function fetchDataIndopak() {
@@ -137,11 +139,47 @@ export default function JuzIndex() {
         fetchDataIndopak();
     }, []);
 
+    const checkContainer = () => {
+        if (containerRef.current) {
+            const currentWidth = containerRef.current.offsetWidth;
+            const viewportWidth = window.innerWidth;
+
+            // setWidthContent(currentWidth);
+            setMoreThenContainer(currentWidth >= viewportWidth);
+        }
+    };
+
     useEffect(() => {
         const checkMobile = () => setIsMobile(window.innerWidth < 768);
+
+        // Panggil sekali saat mount
         checkMobile();
+        checkContainer();
+
+        // Setup event listeners
         window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
+        window.addEventListener('resize', checkContainer);
+
+        // Cleanup
+        return () => {
+            window.removeEventListener('resize', checkContainer);
+            window.removeEventListener('resize', checkMobile);
+        };
+    }, [currentErrorLabels]); // Hapus dependency widthContent dari sini
+
+    // Tambahkan useEffect untuk memantau perubahan containerRef
+    useEffect(() => {
+        const observer = new ResizeObserver(() => {
+            checkContainer();
+        });
+
+        if (containerRef.current) {
+            observer.observe(containerRef.current);
+        }
+
+        return () => {
+            observer.disconnect();
+        };
     }, []);
 
     useEffect(() => {
@@ -742,10 +780,11 @@ export default function JuzIndex() {
 
         if (isMobile) {
             const fontSize = getFontSizeClass(true);
-            if (typeof fontSize === "number" && fontSize >= 5) {
+            // return renderMushaf()
+            if (moreThenContainer || tataletakValue === "fleksibel") {
                 return renderFleksibel();
             }
-            if (typeof fontSize === "number" && fontSize < 5) {
+            if (!moreThenContainer || typeof fontSize === "number" && fontSize < 5) {
                 return renderMushaf();
             }
         }
@@ -762,7 +801,7 @@ export default function JuzIndex() {
         <AppWrapper>
             <Head title="Juz" />
             <PageHeader page={1} translateMode="read" classNav="" target={`/result/juz/${selectedJuz}`} errorLabels={validateErrorLabels()} onUpdateErrorLabels={setCurrentErrorLabels} setting={setting} />
-            <div className="mx-auto overflow-auto p-4">
+            <div className="mx-auto overflow-auto">
                 <MistakeModal
                     isOpen={modalOpen}
                     onClose={() => {
@@ -783,6 +822,17 @@ export default function JuzIndex() {
                 />
                 <div className="mt-20 mb-10 text-center" key={0}>
                     <p className={`text-lg dark:text-gray-300`}>Juz {juz.juz_number}</p>
+                </div>
+                <div
+                    ref={containerRef}
+                    style={{
+                        position: 'absolute',
+                        visibility: 'hidden',
+                        maxWidth: "fit-content",
+                        margin: '0 auto'
+                    }}
+                >
+                    {renderMushaf()}  {/* Pisahkan konten mushaf ke fungsi terpisah */}
                 </div>
                 <div
                     className={` dark:text-gray-300 pb-[100px] md:pb-0`}

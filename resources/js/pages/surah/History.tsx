@@ -103,6 +103,7 @@ export default function SurahIndex() {
         id: number;
         label: string;
         locationText: string;
+        className?: string
     } | null>(null);
     const [wordErrors, setWordErrors] = useState<{
         [key: number]: {
@@ -387,7 +388,7 @@ export default function SurahIndex() {
                                                                 <span
                                                                     key={word.id}
                                                                     style={{
-                                                                        fontSize: "1.5rem",
+                                                                        fontSize: "1.4rem",
                                                                         // fontSize: getFontSizeClass(),
                                                                         backgroundColor: showWordHighlight ? wordLabel?.color : 'transparent',
                                                                         borderRadius: showWordHighlight ? '4px' : '0',
@@ -418,7 +419,8 @@ export default function SurahIndex() {
                                                                                             type: 'word',
                                                                                             id: word.id,
                                                                                             label: wordErrors[word.id].label,
-                                                                                            locationText: word.text_uthmani
+                                                                                            locationText: getFont(word.location),
+                                                                                            className: classUtsmani
                                                                                         });
                                                                                     }
                                                                                 }}
@@ -641,7 +643,7 @@ export default function SurahIndex() {
                     <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black/55">
                         <div className="max-w-md rounded-lg bg-white p-6 text-center shadow-lg">
                             <p className="mb-2 text-2xl">
-                                <strong>{popupError.locationText}</strong>
+                                <span className={popupError.className}>{popupError.locationText}</span>
                             </p>
                             <p className="mb-4">
                                 <span className="rounded px-2 py-1">

@@ -112,6 +112,8 @@ export default function SurahIndex() {
     const [wordIndopak, setWordIndopak] = useState<WordIndopak | null>(null)
     const [wordUtsmani, setWordUtsmani] = useState<WordIndopak | null>(null)
     const { t, ready } = useTranslation("surah")
+    const [moreThenContainer, setMoreThenContainer] = useState<boolean>(false)
+    const containerRef = React.useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         async function fetchDataIndopak() {
@@ -150,6 +152,49 @@ export default function SurahIndex() {
         fetchDataUtsmani();
     }, []);
 
+    const checkContainer = () => {
+        if (containerRef.current) {
+            const currentWidth = containerRef.current.offsetWidth;
+            const viewportWidth = window.innerWidth;
+
+            // setWidthContent(currentWidth);
+            setMoreThenContainer(currentWidth >= viewportWidth);
+        }
+    };
+
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+
+        // Panggil sekali saat mount
+        checkMobile();
+        checkContainer();
+
+        // Setup event listeners
+        window.addEventListener('resize', checkMobile);
+        window.addEventListener('resize', checkContainer);
+
+        // Cleanup
+        return () => {
+            window.removeEventListener('resize', checkContainer);
+            window.removeEventListener('resize', checkMobile);
+        };
+    }, [currentErrorLabels]); // Hapus dependency widthContent dari sini
+
+    // Tambahkan useEffect untuk memantau perubahan containerRef
+    useEffect(() => {
+        const observer = new ResizeObserver(() => {
+            checkContainer();
+        });
+
+        if (containerRef.current) {
+            observer.observe(containerRef.current);
+        }
+
+        return () => {
+            observer.disconnect();
+        };
+    }, []);
+
     useEffect(() => {
         // Periksa apakah errorLabels juga tersedia
         if (!surah || !verses || !errorLabels) {
@@ -162,13 +207,6 @@ export default function SurahIndex() {
         if (savedWordErrors) setWordErrors(JSON.parse(savedWordErrors));
         if (savedVerseErrors) setVerseErrors(JSON.parse(savedVerseErrors));
     }, [errorLabels]);
-
-    useEffect(() => {
-        const checkMobile = () => setIsMobile(window.innerWidth < 768);
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
-    }, []);
 
     useEffect(() => {
         if (!surah || !verses) return;
@@ -726,10 +764,11 @@ export default function SurahIndex() {
 
         if (isMobile) {
             const fontSize = getFontSizeClass(true);
-            if (typeof fontSize === "number" && fontSize >= 5) {
+            // return renderMushaf()
+            if (moreThenContainer || tataletakValue === "fleksibel") {
                 return renderFleksibel();
             }
-            if (typeof fontSize === "number" && fontSize < 5) {
+            if (!moreThenContainer || typeof fontSize === "number" && fontSize < 5) {
                 return renderMushaf();
             }
         }
@@ -751,7 +790,7 @@ export default function SurahIndex() {
         <AppWrapper>
             <Head title={`${surah.name_simple} - Recap`} />
             <QuranHeader page={1} translateMode="read" target="/result" errorLabels={validateErrorLabels()} onUpdateErrorLabels={setCurrentErrorLabels} setting={setting} />
-            <div className="mx-auto max-w-7xl overflow-auto p-4">
+            <div className="mx-auto max-w-7xl overflow-auto">
                 {/* <ErrorDetails errorLabels={validateErrorLabels()} recordErrors={mistake} /> */}
                 <MistakeModal
                     isOpen={modalOpen}
@@ -795,6 +834,17 @@ export default function SurahIndex() {
                             بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
                         </p>
                     )}
+                </div>
+                <div
+                    ref={containerRef}
+                    style={{
+                        position: 'absolute',
+                        visibility: 'hidden',
+                        maxWidth: "fit-content",
+                        margin: '0 auto'
+                    }}
+                >
+                    {renderMushaf()}  {/* Pisahkan konten mushaf ke fungsi terpisah */}
                 </div>
                 <div
                     className={`pb-[100px] md:pb-0`}

@@ -2,7 +2,7 @@ import AppWrapper from '@/components/layouts/app-wrapper';
 import QuranHeader from '@/components/layouts/main-header';
 import { cn } from '@/lib/utils';
 import { Head, usePage } from '@inertiajs/react';
-import React, { JSX, useEffect, useState } from 'react';
+import React, { JSX, use, useEffect, useState } from 'react';
 import MistakeModal from '../../components/layouts/mistakeModal';
 import { useTranslation } from 'react-i18next';
 
@@ -96,6 +96,8 @@ export default function PageIndex() {
     const [wordIndopak, setWordIndopak] = useState<WordIndopak | null>(null)
     const [wordUtsmani, setWordUtsmani] = useState<WordIndopak | null>(null)
     const { t } = useTranslation("surah")
+    const [moreThenContainer, setMoreThenContainer] = useState<boolean>(false)
+    const containerRef = React.useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         async function fetchDataIndopak() {
@@ -133,12 +135,49 @@ export default function PageIndex() {
         fetchDataUtsmani();
     }, []);
 
+    const checkContainer = () => {
+        if (containerRef.current) {
+            const currentWidth = containerRef.current.offsetWidth;
+            const viewportWidth = window.innerWidth;
+
+            // setWidthContent(currentWidth);
+            setMoreThenContainer(currentWidth >= viewportWidth);
+        }
+    };
+
     useEffect(() => {
         const checkMobile = () => setIsMobile(window.innerWidth < 768);
+
+        // Panggil sekali saat mount
         checkMobile();
+        checkContainer();
+
+        // Setup event listeners
         window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
+        window.addEventListener('resize', checkContainer);
+
+        // Cleanup
+        return () => {
+            window.removeEventListener('resize', checkContainer);
+            window.removeEventListener('resize', checkMobile);
+        };
+    }, [currentErrorLabels]); // Hapus dependency widthContent dari sini
+
+    // Tambahkan useEffect untuk memantau perubahan containerRef
+    useEffect(() => {
+        const observer = new ResizeObserver(() => {
+            checkContainer();
+        });
+
+        if (containerRef.current) {
+            observer.observe(containerRef.current);
+        }
+
+        return () => {
+            observer.disconnect();
+        };
     }, []);
+
 
     useEffect(() => {
         if (verses.length === 0) {
@@ -549,7 +588,6 @@ export default function PageIndex() {
                 // Find the first line of this surah
                 const firstWord = verse.words.find(w => w.line_number !== undefined);
                 if (firstWord && verse.verse_number === 1) {
-                    console.log(firstWord)
                     surahHeaders[firstWord.line_number] = (
                         <div key={`surah-${surahId}`} style={{
                             textAlign: 'center',
@@ -737,10 +775,11 @@ export default function PageIndex() {
 
         if (isMobile) {
             const fontSize = getFontSizeClass(true);
-            if (typeof fontSize === "number" && fontSize >= 5) {
+            // return renderMushaf()
+            if (moreThenContainer || tataletakValue === "fleksibel") {
                 return renderFleksibel();
             }
-            if (typeof fontSize === "number" && fontSize < 5) {
+            if (!moreThenContainer || typeof fontSize === "number" && fontSize < 5) {
                 return renderMushaf();
             }
         }
@@ -757,7 +796,7 @@ export default function PageIndex() {
         <AppWrapper>
             <Head title={`Page ${page.page_number} - Recap`} />
             <QuranHeader page={1} translateMode="read" target={`/result/page/${page.page_number}`} errorLabels={validateErrorLabels()} onUpdateErrorLabels={setCurrentErrorLabels} setting={setting} />
-            <div className="mx-auto overflow-auto p-4">
+            <div className="mx-auto overflow-auto">
                 <MistakeModal
                     isOpen={modalOpen}
                     onClose={() => {
@@ -776,6 +815,17 @@ export default function PageIndex() {
                 />
                 <div className="mt-20 mb-7 text-center">
                     <p className={`text-lg dark:text-gray-300`}>Page {page.page_number}</p>
+                </div>
+                <div
+                    ref={containerRef}
+                    style={{
+                        position: 'absolute',
+                        visibility: 'hidden',
+                        maxWidth: "fit-content",
+                        margin: '0 auto'
+                    }}
+                >
+                    {renderMushaf()}  {/* Pisahkan konten mushaf ke fungsi terpisah */}
                 </div>
                 <div
                     className={`dark:text-gray-300 pb-[100px] md:pb-0`}
