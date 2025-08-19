@@ -388,7 +388,7 @@ export default function SurahIndex() {
                                                                 <span
                                                                     key={word.id}
                                                                     style={{
-                                                                        fontSize: "1.5rem",
+                                                                        fontSize: "1.4rem",
                                                                         // fontSize: getFontSizeClass(),
                                                                         backgroundColor: showWordHighlight ? wordLabel?.color : 'transparent',
                                                                         borderRadius: showWordHighlight ? '4px' : '0',

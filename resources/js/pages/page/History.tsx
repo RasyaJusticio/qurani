@@ -440,7 +440,7 @@ export default function PageRecap() {
                                                             <span
                                                                 key={word.id}
                                                                 style={{
-                                                                    fontSize: "1.5rem",
+                                                                    fontSize: "1.4rem",
                                                                     // fontSize: getFontSizeClass(),
                                                                     backgroundColor: showWordHighlight ? wordLabel?.color : 'transparent',
                                                                     borderRadius: showWordHighlight ? '4px' : '0',
@@ -551,7 +551,7 @@ export default function PageRecap() {
         <AppWrapper>
             <Head title={`Page ${page.page_number} - Recap`} />
             <RecapHeader page={1} translateMode="read" target="/result/page" />
-            <div className="mx-auto max-w-4xl overflow-auto p-20"
+            <div className="mx-auto max-w-4xl overflow-auto pt-20"
                 style={{
                     direction: 'rtl',
                     textAlign: 'justify',
