@@ -1,4 +1,4 @@
-import { Periode, SetoranRekap } from '@/features/home/types/setoranRekap';
+import { Periode, SetoranRekap, SetoranRekapTotal } from '@/features/home/types/setoranRekap';
 import { useForm } from '@inertiajs/react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -16,6 +16,7 @@ L.Icon.Default.mergeOptions({
     iconRetinaUrl: "/assets/img/marker-icon.png", // wajib ditambah biar retina nggak fallback ke default
     shadowUrl: "/assets/img/marker-shadow.png",
 });
+
 
 
 
@@ -79,8 +80,8 @@ const MinimizeControl = ({ isExpanded, toggleExpand, isDarkMode }: { isExpanded:
 };
 
 interface MapsProps {
-    setoranRekap: SetoranRekap[];
-    setoranRekapTotal: SetoranRekap[];
+    setoranRekap: SetoranRekap;
+    setoranRekapTotal: SetoranRekapTotal[];
     periodes: Periode[];
     selectedPeriode: Periode | null;
 }
@@ -90,6 +91,7 @@ const Maps: React.FC<MapsProps> = ({ setoranRekap, setoranRekapTotal, periodes, 
     const { t } = useTranslation('maps')
     const [map, setMap] = useState<L.Map | null>(null);
     const { isDarkMode } = useTheme();
+    const [currentZoom, setCurrentZoom] = useState<number>(4.5);
 
     const { data, setData } = useForm({
         periode: selectedPeriode || '',
@@ -116,13 +118,37 @@ const Maps: React.FC<MapsProps> = ({ setoranRekap, setoranRekapTotal, periodes, 
         setData('periode', selectedPeriode || '');
     }, [selectedPeriode]);
 
+    useEffect(() => {
+        if (!map) return;
+
+
+        const handleZoomEnd = () => {
+            const zoom = map.getZoom();
+            setCurrentZoom(zoom);
+            map.invalidateSize(); // Pastikan map dirender ulang dengan benar
+        };
+
+        map.on('zoomend', handleZoomEnd);
+
+        // Set initial zoom level
+        setCurrentZoom(map.getZoom());
+        handleZoomEnd(); // Panggil sekali untuk set initial state
+
+        // Cleanup
+        return () => {
+            map.off('zoomend', handleZoomEnd);
+        };
+    }, [map]);
+
     const handlePeriodeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const newPeriode = e.target.value;
         setData('periode', newPeriode);
     };
 
     // Determine which data to display
-    const mapData = data.periode ? setoranRekap.filter((item) => item.periode === data.periode) : setoranRekapTotal;
+    const mapData = data.periode ? setoranRekap[data.periode] : setoranRekapTotal;
+
+    // console.log(setoranRekap["2025-08"])
 
     return (
         <div className={`mx-auto h-full w-full ${isExpanded ? 'fixed inset-0 z-40' : ''}`}>
@@ -187,19 +213,32 @@ const Maps: React.FC<MapsProps> = ({ setoranRekap, setoranRekapTotal, periodes, 
                         />
                         <MapBounds />
                         <MinimizeControl isExpanded={isExpanded} toggleExpand={toggleExpand} isDarkMode={isDarkMode} />
-                        {mapData.map((item) => (
-                            <Marker key={item.kota} position={[item.lat, item.long]}>
-                                <Popup>
-                                    {item.kota}: {item.total_setoran} setoran
-                                </Popup>
-                            </Marker>
-                        ))}
+                        {mapData.flatMap((item) => {
+                            if (currentZoom < 6) {
+                                const setoranRekapTotal = item as SetoranRekapTotal
+                                return (
+                                    <Marker key={setoranRekapTotal.provinsi.id} position={[parseFloat(setoranRekapTotal.provinsi.latitude), parseFloat(setoranRekapTotal.provinsi.longitude)]}>
+                                        <Popup>
+                                            {setoranRekapTotal.provinsi.name}: {setoranRekapTotal.provinsi.total_setoran} setoran
+                                        </Popup>
+                                    </Marker>
+                                )
+                            } else {
+                                if (Array.isArray(item.kota)) {
+                                    return item.kota.map((k) => {
+                                        return (
+                                            <Marker key={k.kota} position={[k.lat, k.long]}>
+                                                <Popup>
+                                                    {k.kota}: {k.total_setoran} setoran
+                                                </Popup>
+                                            </Marker>
+                                        )
+                                    })
+                                }
+                            }
+                        })}
                     </MapContainer>
                 </div>
-
-                {/* Footer Card */}
-                {/* <div className={`p-3 text-sm rounded-b-lg dark:bg-[rgb(38,45,52)] text-gray-300 bg-gray-50 text-gray-600'}`}>
-                </div> */}
             </div>
         </div>
     );

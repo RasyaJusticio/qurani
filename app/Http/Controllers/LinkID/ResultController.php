@@ -189,7 +189,7 @@ class ResultController extends Controller
                 $rekapData = [
                     'periode' => $periode,
                     'negara' => $kota->negara ?? 'Indonesia',
-                    'provinsi' => $province ?? null,
+                    'provinsi' => $kota->province_id ?? null,
                     'kota' => $kota->city_name ?? null,
                     'lat' => $kota->latitude ?? null,
                     'long' => $kota->longitude ?? null,
