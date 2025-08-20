@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Qurani;
 
 use App\Http\Controllers\Controller;
 use App\Models\LinkID\Group;
+use App\Models\LinkID\QuSetoranRekap;
 use App\Models\Qurani\Chapter;
 use App\Models\Qurani\Juz;
 use Illuminate\Http\Request;
@@ -611,27 +612,63 @@ class HomeController extends Controller
     private function getSetoranRekap()
     {
         try {
-            return DB::connection('linkid')->table('qu_setoran_rekap')
+            $result = DB::connection('linkid')
+                ->table('qu_setoran_rekap')
                 ->select(
-                    'periode',
-                    'kota',
-                    'lat',
-                    'long',
-                    DB::raw('(t1 + t2 + t3 + t4 + t5 + t6 + t7 + t8 + t9 + t10 + t11 + t12 + t13 + t14 + t15 + t16 + t17 + t18 + t19 + t20 + t21 + t22 + t23 + t24 + t25 + t26 + t27 + t28 + t29 + t30 + t31) as total_setoran')
+                    'qu_setoran_rekap.periode',
+                    'qu_setoran_rekap.kota',
+                    'qu_setoran_rekap.lat',
+                    'qu_setoran_rekap.long',
+                    'qu_setoran_rekap.provinsi',
+                    DB::raw('(t1 + t2 + t3 + t4 + t5 + t6 + t7 + t8 + t9 + t10 + t11 + t12 + t13 + t14 + t15 + t16 + t17 + t18 + t19 + t20 + t21 + t22 + t23 + t24 + t25 + t26 + t27 + t28 + t29 + t30 + t31) as total_setoran'),
+                    'system_provinces.*'
                 )
-                ->orderBy('periode', 'desc')
-                ->orderBy('kota', 'asc')
-                ->get()
-                ->map(function ($item) {
-                    return [
-                        'periode' => $item->periode,
-                        'kota' => $item->kota,
-                        'lat' => (float) $item->lat,
-                        'long' => (float) $item->long,
-                        'total_setoran' => (int) $item->total_setoran,
+                ->leftJoin('system_provinces', 'qu_setoran_rekap.provinsi', '=', 'system_provinces.province_id')
+                ->orderBy('qu_setoran_rekap.periode', 'desc')
+                ->orderBy('qu_setoran_rekap.kota', 'asc')
+                ->get();
+
+            // Proses pengelompokan data setelah mengambil dari database
+            $finalResult = $result->groupBy('periode')->map(function ($periodeGroup) {
+                return collect($periodeGroup)->groupBy('province_name')->map(function ($provinsiGroup) {
+                    // Ambil data provinsi dari item pertama (mereka semua sama)
+                    $provinsiData = $provinsiGroup->first();
+
+                    // Hitung total setoran untuk provinsi ini
+                    $provinsiTotalSetoran = $provinsiGroup->sum('total_setoran');
+
+                    // Buat objek provinsi baru
+                    $provinsi = [
+                        'id' => $provinsiData->province_id,
+                        'name' => $provinsiData->province_name,
+                        'country_id' => $provinsiData->country_id,
+                        'alt_name' => $provinsiData->province_alt_name,
+                        'default' => $provinsiData->default,
+                        'enabled' => $provinsiData->enabled,
+                        'latitude' => $provinsiData->latitude,
+                        'longitude' => $provinsiData->longitude,
+                        'total_setoran' => (int) $provinsiTotalSetoran,
                     ];
-                })
-                ->toArray();
+
+                    // Buat array data kota
+                    $kota = $provinsiGroup->map(function ($item) {
+                        return [
+                            'kota' => $item->kota,
+                            'lat' => (float) $item->lat,
+                            'long' => (float) $item->long,
+                            'total_setoran' => (int) $item->total_setoran,
+                        ];
+                    })->values()->toArray();
+
+                    return [
+                        'provinsi' => $provinsi,
+                        'kota' => $kota,
+                    ];
+                })->values()->toArray();
+            })->toArray();
+
+            Log::info($finalResult);
+            return $finalResult;
         } catch (Exception $e) {
             Log::error('Error in getSetoranRekap', ['message' => $e->getMessage()]);
             return [];
@@ -641,14 +678,30 @@ class HomeController extends Controller
     private function getSetoranRekapTotal()
     {
         try {
-            return DB::connection('linkid')->table('qu_setoran_rekap')
-                ->select(
-                    'kota',
-                    'lat',
-                    'long',
+            $results = QuSetoranRekap::
+                select(
+                    'qu_setoran_rekap.kota',
+                    'qu_setoran_rekap.lat',
+                    'qu_setoran_rekap.long',
+                    'qu_setoran_rekap.provinsi', // Kolom 'provinsi' dari tabel rekap
+                    'system_provinces.*', // Nama provinsi dari tabel join
                     DB::raw('SUM(t1 + t2 + t3 + t4 + t5 + t6 + t7 + t8 + t9 + t10 + t11 + t12 + t13 + t14 + t15 + t16 + t17 + t18 + t19 + t20 + t21 + t22 + t23 + t24 + t25 + t26 + t27 + t28 + t29 + t30 + t31) as total_setoran')
                 )
-                ->groupBy('kota', 'lat', 'long')
+                ->leftJoin('system_provinces', 'qu_setoran_rekap.provinsi', '=', 'system_provinces.province_id')
+                ->groupBy(
+                    'qu_setoran_rekap.kota',
+                    'qu_setoran_rekap.lat',
+                    'qu_setoran_rekap.long',
+                    'qu_setoran_rekap.provinsi',
+                    'system_provinces.province_id',
+                    'system_provinces.province_name',
+                    'system_provinces.country_id',
+                    'system_provinces.province_alt_name',
+                    'system_provinces.default',
+                    'system_provinces.enabled',
+                    'system_provinces.latitude',
+                    'system_provinces.longitude'
+                )
                 ->orderBy('total_setoran', 'desc')
                 ->get()
                 ->map(function ($item) {
@@ -656,10 +709,52 @@ class HomeController extends Controller
                         'kota' => $item->kota,
                         'lat' => (float) $item->lat,
                         'long' => (float) $item->long,
+                        'provinsi' => [
+                            'id' => $item->province_id,
+                            'name' => $item->province_name,
+                            'country_id' => $item->country_id,
+                            'alt_name' => $item->province_alt_name,
+                            'default' => $item->default,
+                            'enabled' => $item->enabled,
+                            'latitude' => $item->latitude,
+                            'longitude' => $item->longitude
+                        ],
                         'total_setoran' => (int) $item->total_setoran,
                     ];
                 })
                 ->toArray();
+
+            // Langkah tambahan untuk menggabungkan total setoran berdasarkan provinsi
+            $finalResults = collect($results)
+                ->groupBy('provinsi.name')
+                ->map(function ($provinsiGroup, $provinsiName) {
+                    // Ambil data provinsi dari item pertama (mereka semua sama)
+                    $provinsiData = $provinsiGroup->first()['provinsi'];
+
+                    // Hitung total setoran untuk provinsi ini
+                    $provinsiTotalSetoran = $provinsiGroup->sum('total_setoran');
+
+                    // Tambahkan total_setoran ke data provinsi
+                    $provinsiData['total_setoran'] = (int) $provinsiTotalSetoran;
+
+                    // Buat array baru dengan data yang digabungkan
+                    return [
+                        'provinsi' => $provinsiData,
+                        'kota' => $provinsiGroup->map(function ($item) {
+                        return [
+                            'kota' => $item['kota'],
+                            'lat' => $item['lat'],
+                            'long' => $item['long'],
+                            'total_setoran' => $item['total_setoran']
+                        ];
+                    })->values()->toArray() // Pastikan keys direset
+                    ];
+                })
+                ->values() // Pastikan keys direset
+                ->toArray();
+
+            Log::info($finalResults);
+            return $finalResults;
         } catch (Exception $e) {
             Log::error('Error in getSetoranRekapTotal', ['message' => $e->getMessage()]);
             return [];

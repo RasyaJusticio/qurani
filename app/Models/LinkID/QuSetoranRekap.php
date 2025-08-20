@@ -2,7 +2,10 @@
 
 namespace App\Models\LinkID;
 
+use App\Models\SystemProvince;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use PHPUnit\Event\Telemetry\System;
 
 class QuSetoranRekap extends Model
 {
@@ -11,10 +14,6 @@ class QuSetoranRekap extends Model
     protected $table = 'qu_setoran_rekap';
 
     public $timestamps = false;
-
-    protected $casts = [
-        'provinsi' => 'array'
-    ];
 
     protected $fillable = [
         'periode',
@@ -55,4 +54,14 @@ class QuSetoranRekap extends Model
         't30',
         't31'
     ];
+
+    /**
+     * Get the province that owns the QuSetoranRekap
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function provinsi(): BelongsTo
+    {
+        return $this->belongsTo(SystemProvince::class, 'provinsi', 'province_id');
+    }
 }
