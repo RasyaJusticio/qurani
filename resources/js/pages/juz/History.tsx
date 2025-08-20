@@ -437,7 +437,7 @@ export default function JuzRecap() {
                                                                     <span
                                                                         key={word.id}
                                                                         style={{
-                                                                            fontSize: "1.4rem",
+                                                                            fontSize: "1.3rem",
                                                                             // fontSize: getFontSizeClass(),
                                                                             backgroundColor: showWordHighlight ? wordLabel?.color : 'transparent',
                                                                             borderRadius: showWordHighlight ? '4px' : '0',
